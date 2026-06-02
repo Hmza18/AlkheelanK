@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { STARTER_SUMMARIES } from "../data/starterSummaries.js";
 import { useAuth } from "../lib/auth.jsx";
 import {
   createQuiz,
@@ -29,7 +30,6 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
   const navigate = useNavigate();
   const { user, displayName, signOut, configured } = useAuth();
   const [quizzes, setQuizzes] = useState([]);
-  const [starters, setStarters] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [needsSetup, setNeedsSetup] = useState(false);
@@ -48,13 +48,6 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
     }
     setLoading(false);
   }, [user]);
-
-  useEffect(() => {
-    fetch(`${SERVER_URL}/quizzes`)
-      .then((r) => r.json())
-      .then(setStarters)
-      .catch(() => setStarters([]));
-  }, []);
 
   useEffect(() => {
     refresh();
@@ -218,7 +211,7 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
           Ready to play out of the box. Launch directly or copy one into your library to edit.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {starters.map((q) => (
+          {STARTER_SUMMARIES.map((q) => (
             <StarterCard
               key={q.id}
               quiz={q}
@@ -228,9 +221,6 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
               canCopy={!!user}
             />
           ))}
-          {starters.length === 0 && (
-            <p className="text-muted">Connecting to server…</p>
-          )}
         </div>
       </section>
 
@@ -348,11 +338,27 @@ function StarterCard({ quiz, onLaunch, onCopy, copying, canCopy }) {
   const accent = CATEGORY_COLORS[quiz.category] || "#a855f7";
   return (
     <div
-      className="alkheelank-card flex flex-col p-5"
+      className="alkheelank-card flex flex-col overflow-hidden p-0"
       style={{ borderTop: `3px solid ${accent}` }}
     >
-      <div className="flex items-center gap-3">
-        <span className="text-3xl">{quiz.emoji || "🎯"}</span>
+      {quiz.coverImage && (
+        <div className="relative h-36 w-full shrink-0 overflow-hidden">
+          <img
+            src={quiz.coverImage}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-ink-800 via-ink-800/40 to-transparent"
+            aria-hidden
+          />
+          <span className="absolute bottom-3 left-4 text-3xl drop-shadow-md">
+            {quiz.emoji || "🎯"}
+          </span>
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-5">
         <div>
           <h3 className="font-display text-lg font-bold leading-tight">{quiz.title}</h3>
           <span
@@ -362,28 +368,28 @@ function StarterCard({ quiz, onLaunch, onCopy, copying, canCopy }) {
             {quiz.category} · {quiz.questionCount} questions
           </span>
         </div>
+        <p className="mt-2 flex-1 text-sm text-muted">{quiz.description}</p>
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={onLaunch}
+            className="flex-1 rounded-xl bg-ink-700 py-2 text-sm font-bold text-paper ring-1 ring-white/10 hover:bg-ink-600"
+          >
+            ▶ Launch
+          </button>
+          <button
+            onClick={onCopy}
+            disabled={copying || !canCopy}
+            title={!canCopy ? "Log in to copy to your library" : "Copy to My Quizzes"}
+            className="flex-1 rounded-xl py-2 text-sm font-bold transition disabled:opacity-40"
+            style={{ backgroundColor: `${accent}22`, color: accent }}
+          >
+            {copying ? "Copying…" : "📋 Copy"}
+          </button>
+        </div>
+        {!canCopy && (
+          <p className="mt-1.5 text-center text-xs text-muted">Log in to copy</p>
+        )}
       </div>
-      <p className="mt-2 text-sm text-muted">{quiz.description}</p>
-      <div className="mt-4 flex gap-2">
-        <button
-          onClick={onLaunch}
-          className="flex-1 rounded-xl bg-ink-700 py-2 text-sm font-bold text-paper ring-1 ring-white/10 hover:bg-ink-600"
-        >
-          ▶ Launch
-        </button>
-        <button
-          onClick={onCopy}
-          disabled={copying || !canCopy}
-          title={!canCopy ? "Log in to copy to your library" : "Copy to My Quizzes"}
-          className="flex-1 rounded-xl py-2 text-sm font-bold transition disabled:opacity-40"
-          style={{ backgroundColor: `${accent}22`, color: accent }}
-        >
-          {copying ? "Copying…" : "📋 Copy"}
-        </button>
-      </div>
-      {!canCopy && (
-        <p className="mt-1.5 text-center text-xs text-muted">Log in to copy</p>
-      )}
     </div>
   );
 }

@@ -1,7 +1,13 @@
 // AlkheelanK microcopy — confident, playful, family-friendly (not Kahoot-shaped).
 
 export const copy = {
-  connecting: "Spinning up your room…",
+  connecting: {
+    server: "Connecting to game server…",
+    waking: "Waking up server — the first launch after idle can take up to a minute.",
+    slow: "Still connecting…",
+    creating: "Creating your room…",
+    verySlow: "Almost there — free servers are slow to wake the first time.",
+  },
   lobby: {
     waiting: "Players are rolling in…",
     emptyCta: "Need at least one player on the board",

@@ -5,6 +5,8 @@
 // the server in a player-facing payload — it is stripped before broadcasting
 // questions and only revealed after a question closes.
 
+import { questionImageFor } from "./starterImages.js";
+
 const TF = ["True", "False"];
 
 // All starter content below is ORIGINAL — written for AlkheelanK, not lifted from any
@@ -388,6 +390,12 @@ export const QUIZZES = [
     ],
   },
 ];
+
+for (const quiz of QUIZZES) {
+  quiz.questions.forEach((q, i) => {
+    q.image = questionImageFor(quiz.id, i, quiz.category);
+  });
+}
 
 export function getQuiz(id) {
   return QUIZZES.find((q) => q.id === id) || QUIZZES[0];

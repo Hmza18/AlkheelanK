@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
-import { socket, ensureConnected } from "../socket.js";
+import { socket, ensureConnected, wakeServer, connectSocket, emitWithAck } from "../socket.js";
 import { sfx, music } from "../lib/sound.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
 import Recap from "../components/Recap.jsx";
@@ -54,6 +54,8 @@ export default function HostGame({ launch, onExit }) {
   const [revealStage, setRevealStage] = useState(null);
   const [hostRecovered, setHostRecovered] = useState(false);
   const [hostConnected, setHostConnected] = useState(true);
+  const [connectHint, setConnectHint] = useState(copy.connecting.server);
+  const [creatingRoom, setCreatingRoom] = useState(false);
   const loggedRef = useRef(false);
   const hostTokenRef = useRef(null);
   const pinRef = useRef(null);
@@ -64,6 +66,24 @@ export default function HostGame({ launch, onExit }) {
     else music.stop();
     return () => music.stop();
   }, [phase, settings.music]);
+
+  useEffect(() => {
+    wakeServer();
+    ensureConnected();
+  }, []);
+
+  useEffect(() => {
+    if (phase !== "connecting") return;
+    setConnectHint(copy.connecting.server);
+    const t1 = setTimeout(() => setConnectHint(copy.connecting.waking), 4000);
+    const t2 = setTimeout(() => setConnectHint(copy.connecting.slow), 15000);
+    const t3 = setTimeout(() => setConnectHint(copy.connecting.verySlow), 35000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [phase]);
 
   useEffect(() => {
     ensureConnected();
@@ -212,9 +232,25 @@ export default function HostGame({ launch, onExit }) {
     setAnswerCount((c) => ({ ...c, total: players.filter((p) => p.connected !== false).length }));
   }, [players]);
 
-  const createLobby = () => {
+  const createLobby = async () => {
+    if (creatingRoom) return;
+    setCreatingRoom(true);
     setPhase("connecting");
-    socket.emit("host:create", { ...launch, settings });
+    setHostError(null);
+    setConnectHint(copy.connecting.server);
+    try {
+      await wakeServer();
+      setConnectHint(copy.connecting.server);
+      await connectSocket({ timeoutMs: 45_000 });
+      setConnectHint(copy.connecting.creating);
+      await emitWithAck("host:create", { ...launch, settings }, 15_000);
+      // host:created moves us to lobby; ack is a backstop if that event was missed.
+      setPhase((p) => (p === "connecting" ? "lobby" : p));
+    } catch (err) {
+      setHostError(err.message || "Could not create room.");
+    } finally {
+      setCreatingRoom(false);
+    }
   };
 
   const currentImage = question ? question.image ?? images[question.index] ?? null : null;
@@ -229,8 +265,34 @@ export default function HostGame({ launch, onExit }) {
         )}
         {phase === "connecting" && (
           <Centered>
-            <p className="text-xl text-muted animate-pulse">{copy.connecting}</p>
-            {hostError && <p className="mt-4 font-semibold text-tile-triangle">{hostError}</p>}
+            <p className="text-xl text-muted animate-pulse">{connectHint}</p>
+            {hostError && (
+              <>
+                <p className="mt-4 max-w-md font-semibold text-tile-triangle">{hostError}</p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <button onClick={createLobby} className="alkheelank-btn-primary px-6">
+                    Try again
+                  </button>
+                  <button
+                    onClick={() => {
+                      setHostError(null);
+                      setPhase("setup");
+                    }}
+                    className="rounded-xl bg-ink-700 px-6 py-3 text-sm font-semibold text-muted ring-1 ring-white/10 hover:text-paper"
+                  >
+                    ← Back
+                  </button>
+                </div>
+              </>
+            )}
+            {!hostError && (
+              <button
+                onClick={() => setPhase("setup")}
+                className="mt-8 text-sm font-semibold text-muted underline-offset-4 hover:text-paper hover:underline"
+              >
+                Cancel
+              </button>
+            )}
           </Centered>
         )}
         {phase === "lobby" && (

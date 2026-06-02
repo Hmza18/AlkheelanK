@@ -91,7 +91,7 @@ VITE_SUPABASE_ANON_KEY=sb_publishable_...   # or legacy anon JWT (eyJ...)
 
    Set **Site URL** to your production URL when deployed. On Vercel, also set `VITE_SITE_URL` to that URL and redeploy.
 
-> The anon key is a **public** browser key, gated by RLS — safe to ship. Never put the `service_role` key in the client. On Vercel, add both `VITE_SUPABASE_*` vars in the project settings, then **redeploy** (env vars are baked in at build time).
+> The anon key is a **public** browser key, gated by RLS — safe to ship. Never put the `service_role` or `sb_secret_` key in the client. On Vercel, add both `VITE_SUPABASE_*` vars in the project settings, then **redeploy** (env vars are baked in at build time). Step-by-step: [`docs/VERCEL_SETUP.md`](docs/VERCEL_SETUP.md).
 
 ---
 

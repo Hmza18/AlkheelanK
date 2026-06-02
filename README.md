@@ -102,9 +102,29 @@ VITE_SUPABASE_ANON_KEY=your-anon-public-key
 
 ### Client → Vercel
 
-1. Vercel → **New Project** → import the repo, set **Root Directory** to `client`.
-2. Framework preset: **Vite** (build `npm run build`, output `dist`). `vercel.json` handles SPA routing.
-3. Add env var **`VITE_SERVER_URL`** = your Render URL (e.g. `https://alkheelank-server.onrender.com`). Redeploy.
+**Option A (recommended):** Root Directory = `client`
+
+1. Vercel → **New Project** → import the repo.
+2. **Settings → Build and Deployment → Root Directory** → set to `client` → Save.
+3. Framework: **Vite** (build `npm run build`, output `dist`). `client/vercel.json` pins these and SPA rewrites.
+4. Add env var **`VITE_SERVER_URL`** = your Render URL (e.g. `https://alkheelank-server.onrender.com`). Redeploy.
+
+**Option B:** Root Directory left blank (repo root)
+
+1. Use the repo-root `vercel.json` (builds `client/` and serves `client/dist`).
+2. Do **not** also set Root Directory to `client` — pick one layout.
+
+**404 `NOT_FOUND` on every URL (even `/`)**
+
+The deploy can show “Ready” but serve Vercel’s blank 404 if the wrong folder is built. Check:
+
+| Setting | Must be |
+| -------- | -------- |
+| Root Directory | `client` (Option A) **or** repo root (Option B) — never `server` |
+| Output Directory | `dist` (Option A) **or** `client/dist` (Option B) |
+| Framework | Vite |
+
+After fixing, **Deployments → ⋯ → Redeploy**.
 
 > Free Render web services sleep when idle — the first connection after a nap takes a few seconds to wake.
 

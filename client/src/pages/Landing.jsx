@@ -34,7 +34,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-5xl overflow-hidden px-5 py-10">
+    <div className="alkheelank-screen-fill alkheelank-safe-x alkheelank-safe-bottom relative mx-auto w-full max-w-5xl overflow-hidden px-5 py-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
       <FloatingShapes />
 
       {/* Hero */}

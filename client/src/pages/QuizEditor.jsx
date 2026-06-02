@@ -81,7 +81,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   };
 
   return (
-    <div className="mx-auto max-w-3xl pb-36">
+    <div className="alkheelank-safe-x mx-auto max-w-3xl pb-36 pt-[max(0.5rem,env(safe-area-inset-top))]">
       <div className="flex items-center justify-between">
         <button
           onClick={() => window.location.assign("/")}
@@ -90,7 +90,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         >
           <Logo size="sm" />
         </button>
-        <button onClick={onCancel} className="text-muted hover:text-paper">
+        <button type="button" onClick={onCancel} className="min-h-touch px-2 text-muted hover:text-paper">
           ← Dashboard
         </button>
       </div>
@@ -152,7 +152,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         />
       )}
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-white/10 bg-ink-900/90 px-6 py-4 backdrop-blur">
+      <div className="alkheelank-safe-bottom fixed inset-x-0 bottom-0 border-t border-white/10 bg-ink-900/90 px-6 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-3">
           <span className="hidden text-muted sm:block">
             {questions.length} question{questions.length === 1 ? "" : "s"}
@@ -161,7 +161,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
             {userId && (
               <button
                 onClick={() => setBankOpen(true)}
-                className="rounded-xl bg-ink-700 px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-white/10 hover:text-paper"
+                className="min-h-touch rounded-xl bg-ink-700 px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-white/10 hover:text-paper"
                 title="Add questions from your bank"
               >
                 📚 From bank
@@ -219,7 +219,7 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
               type="button"
               onClick={saveToBank}
               title="Save this question to your bank"
-              className={`rounded-lg px-2 py-1 text-xs font-bold transition ${
+              className={`min-h-touch rounded-lg px-3 py-2 text-sm font-bold transition ${
                 bankSaved
                   ? "text-tile-square"
                   : "text-muted hover:text-paper"
@@ -231,7 +231,7 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
           {canRemove && (
             <button
               onClick={onRemove}
-              className="rounded-lg px-2 py-1 text-sm font-semibold text-tile-triangle hover:bg-tile-triangle/10"
+              className="min-h-touch rounded-lg px-3 py-2 text-sm font-semibold text-tile-triangle hover:bg-tile-triangle/10"
             >
               Remove
             </button>
@@ -245,7 +245,7 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
             key={opt.id}
             type="button"
             onClick={() => setType(opt.id)}
-            className={`rounded-lg px-4 py-1.5 text-sm font-bold transition ${
+            className={`min-h-touch rounded-lg px-4 py-2.5 text-sm font-bold transition ${
               type === opt.id ? "bg-brand-mid text-paper" : "text-muted hover:text-paper"
             }`}
           >
@@ -275,7 +275,7 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
                 key={ai}
                 type="button"
                 onClick={() => onChange({ correct: ai })}
-                className={`flex items-center justify-center gap-2 rounded-2xl py-5 text-2xl font-bold text-paper transition ${
+                className={`flex min-h-touch items-center justify-center gap-2 rounded-2xl py-5 text-2xl font-bold text-paper transition ${
                   isCorrect ? "ring-4 ring-paper" : "opacity-70 hover:opacity-100"
                 }`}
                 style={{ backgroundColor: s.color }}
@@ -310,7 +310,7 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
                   type="button"
                   onClick={() => onChange({ correct: ai })}
                   title="Mark as correct"
-                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold transition ${
+                  className={`alkheelank-touch-target shrink-0 rounded-full text-sm font-bold transition ${
                     isCorrect ? "bg-tile-square text-ink-900" : "bg-ink-700 text-muted hover:text-paper"
                   }`}
                 >
@@ -326,7 +326,7 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
         <button
           type="button"
           onClick={() => onChange({ doublePoints: !q.doublePoints })}
-          className={`rounded-xl px-3 py-2 text-sm font-bold ring-1 transition ${
+          className={`min-h-touch rounded-xl px-3 py-2.5 text-sm font-bold ring-1 transition ${
             q.doublePoints
               ? "bg-brand-mid/25 text-paper ring-brand-mid"
               : "bg-ink-800 text-muted ring-white/10 hover:text-paper"
@@ -393,7 +393,7 @@ function BankPicker({ userId, onAdd, onClose }) {
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
           <h2 className="font-display text-xl font-bold">Your Question Bank</h2>
-          <button onClick={onClose} className="text-muted hover:text-paper">✕</button>
+          <button type="button" onClick={onClose} className="alkheelank-touch-target text-muted hover:text-paper">✕</button>
         </div>
 
         <div className="px-6 pb-3">
@@ -437,7 +437,7 @@ function BankPicker({ userId, onAdd, onClose }) {
                     </div>
                     <button
                       onClick={() => onAdd(q)}
-                      className="shrink-0 rounded-xl bg-brand-mid/20 px-3 py-2 text-sm font-bold text-brand-end hover:bg-brand-mid/40"
+                      className="min-h-touch shrink-0 rounded-xl bg-brand-mid/20 px-4 py-2.5 text-sm font-bold text-brand-end hover:bg-brand-mid/40"
                     >
                       + Add
                     </button>

@@ -71,10 +71,26 @@ button:focus-visible {
     box-shadow: var(--alkheelank-shadow-card);
   }
   .alkheelank-input {
-    @apply w-full rounded-2xl bg-ink-800 px-5 py-4 text-center text-2xl font-semibold tracking-wide text-paper placeholder:text-muted/60 ring-2 ring-white/10 focus:ring-brand-mid focus:outline-none transition;
+    @apply w-full rounded-2xl bg-ink-800 px-5 py-4 text-center text-base font-semibold tracking-wide text-paper placeholder:text-muted/60 ring-2 ring-white/10 focus:ring-brand-mid focus:outline-none transition sm:text-2xl;
   }
   .alkheelank-btn {
-    @apply rounded-2xl px-6 py-4 text-lg font-bold transition active:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0;
+    @apply min-h-12 rounded-2xl px-6 py-4 text-base font-bold transition active:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 sm:text-lg;
+  }
+  .alkheelank-touch-target {
+    @apply inline-grid min-h-11 min-w-11 place-items-center;
+  }
+  .alkheelank-screen-fill {
+    min-height: 100dvh;
+  }
+  .alkheelank-safe-top {
+    padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  }
+  .alkheelank-safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  }
+  .alkheelank-safe-x {
+    padding-left: max(0px, env(safe-area-inset-left, 0px));
+    padding-right: max(0px, env(safe-area-inset-right, 0px));
   }
   .alkheelank-btn-primary {
     @apply alkheelank-btn bg-gradient-to-r from-brand-start via-brand-mid to-brand-end text-paper shadow-glow hover:brightness-110 focus-visible:ring-2 focus-visible:ring-brand-mid;
@@ -83,10 +99,10 @@ button:focus-visible {
     @apply alkheelank-btn bg-ink-700 text-paper ring-1 ring-white/10 hover:bg-ink-600 focus-visible:ring-2 focus-visible:ring-white/20;
   }
   .alkheelank-screen-host {
-    @apply mx-auto w-full max-w-6xl px-6 py-6;
+    @apply alkheelank-safe-x alkheelank-safe-top alkheelank-safe-bottom mx-auto w-full max-w-6xl px-6 py-6;
   }
   .alkheelank-screen-player {
-    @apply mx-auto w-full max-w-md px-5 py-6;
+    @apply alkheelank-safe-x alkheelank-safe-top alkheelank-safe-bottom mx-auto w-full max-w-md px-5 py-6;
   }
   .alkheelank-label {
     @apply text-xs font-bold uppercase tracking-widest text-muted;
@@ -145,16 +161,16 @@ button:focus-visible {
 .alkheelank-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border-radius: 9999px;
   background: linear-gradient(135deg, var(--alkheelank-brand-start), var(--alkheelank-brand-mid));
   box-shadow: 0 0 0 4px rgba(192, 38, 211, 0.25);
   cursor: pointer;
 }
 .alkheelank-range::-moz-range-thumb {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border: none;
   border-radius: 9999px;
   background: linear-gradient(135deg, var(--alkheelank-brand-start), var(--alkheelank-brand-mid));

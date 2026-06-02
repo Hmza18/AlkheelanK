@@ -86,3 +86,17 @@ export const layout = {
   hostPad: "px-6 py-6",
   playerPad: "px-5 py-6",
 };
+
+/** Minimum tap targets (Apple HIG 44pt; game actions prefer 48pt). */
+export const touch = {
+  min: "2.75rem",
+  comfortable: "3rem",
+};
+
+/** iOS safe-area insets (use with viewport-fit=cover). */
+export const safe = {
+  top: "env(safe-area-inset-top, 0px)",
+  right: "env(safe-area-inset-right, 0px)",
+  bottom: "env(safe-area-inset-bottom, 0px)",
+  left: "env(safe-area-inset-left, 0px)",
+};

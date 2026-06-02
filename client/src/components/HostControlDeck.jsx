@@ -28,7 +28,7 @@ export default function HostControlDeck({
   const showRevealControls = phase === "reveal";
 
   return (
-    <div className="fixed bottom-20 right-4 z-40 flex flex-col items-end gap-2">
+    <div className="fixed bottom-[max(5rem,env(safe-area-inset-bottom,0px)+4rem)] right-[max(1rem,env(safe-area-inset-right))] z-40 flex flex-col items-end gap-2">
       <AnimatePresence>
         {open && (
           <motion.div
@@ -51,7 +51,7 @@ export default function HostControlDeck({
                     sfx.tap();
                     onPacing?.(opt.id);
                   }}
-                  className={`flex-1 rounded-xl px-2 py-2 text-xs font-bold ring-1 transition ${
+                  className={`min-h-touch flex-1 rounded-xl px-2 py-2.5 text-sm font-bold ring-1 transition ${
                     pacing === opt.id
                       ? "bg-brand-mid/25 ring-brand-mid text-paper"
                       : "bg-ink-700 ring-white/10 text-muted hover:text-paper"
@@ -111,7 +111,7 @@ export default function HostControlDeck({
           sfx.tap();
           setOpen((v) => !v);
         }}
-        className="grid h-12 w-12 place-items-center rounded-2xl bg-ink-800/90 text-lg ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700"
+        className="alkheelank-touch-target h-12 w-12 rounded-2xl bg-ink-800/90 text-lg ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700"
         aria-expanded={open}
         title="Show controls"
       >

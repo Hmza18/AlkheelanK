@@ -284,7 +284,7 @@ export default function PlayScreen() {
 
 function CenterCard({ children }) {
   return (
-    <div className="alkheelank-screen-player flex min-h-screen items-center text-center">
+    <div className="alkheelank-screen-player alkheelank-screen-fill flex items-center text-center">
       <div className="alkheelank-card w-full p-8">{children}</div>
     </div>
   );
@@ -292,7 +292,7 @@ function CenterCard({ children }) {
 
 function JoinPin({ pin, setPin, goProfile, error }) {
   return (
-    <div className="alkheelank-screen-player flex min-h-screen flex-col">
+    <div className="alkheelank-screen-player alkheelank-screen-fill flex flex-col">
       <div className="mt-6 flex justify-center">
         <Logo size="md" />
       </div>
@@ -339,7 +339,7 @@ function JoinProfile({
   error,
 }) {
   return (
-    <form onSubmit={join} className="mx-auto flex min-h-screen max-w-md flex-col px-5 py-6">
+    <form onSubmit={join} className="alkheelank-screen-fill alkheelank-safe-x mx-auto flex max-w-md flex-col px-5 py-6 pb-24">
       <div className="mt-3 flex justify-center">
         <Avatar config={avatar} size={120} ring />
       </div>
@@ -360,7 +360,7 @@ function JoinProfile({
                 key={t.id}
                 type="button"
                 onClick={() => setTeamId(t.id)}
-                className={`rounded-xl px-3 py-2 text-sm font-bold ring-1 ${
+                className={`min-h-touch rounded-xl px-3 py-3 text-sm font-bold ring-1 ${
                   teamId === t.id ? "ring-paper text-paper" : "ring-white/10 text-muted"
                 }`}
                 style={{ backgroundColor: `${t.color}22` }}
@@ -378,7 +378,7 @@ function JoinProfile({
               key={id}
               type="button"
               onClick={() => setAvatar((a) => ({ ...a, base: id }))}
-              className={`rounded-2xl p-1 ${
+              className={`flex min-h-touch min-w-touch items-center justify-center rounded-2xl p-1 ${
                 avatar.base === id ? "bg-brand-mid/30 ring-2 ring-brand-mid" : "ring-1 ring-white/10"
               }`}
             >
@@ -392,7 +392,7 @@ function JoinProfile({
               key={c}
               type="button"
               onClick={() => setAvatar((a) => ({ ...a, color: c }))}
-              className={`h-9 w-9 rounded-full ${
+              className={`h-11 w-11 shrink-0 rounded-full ${
                 avatar.color === c ? "ring-4 ring-paper" : "ring-2 ring-white/15"
               }`}
               style={{ backgroundColor: c }}
@@ -414,7 +414,7 @@ function JoinProfile({
 
 function QuestionCard({ q, selected, onAnswer, paused }) {
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-5 py-6">
+    <div className="alkheelank-screen-fill alkheelank-safe-x relative mx-auto flex max-w-md flex-col px-5 py-6 pb-20">
       <div className="flex items-center justify-between text-sm font-semibold text-muted">
         <span>
           Q{q?.index + 1} / {q?.total}
@@ -427,7 +427,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
         </div>
       )}
       <h2 className="mt-3 text-center text-2xl font-bold">{q?.question}</h2>
-      <div className="mt-5 grid flex-1 grid-cols-1 content-end gap-3">
+      <div className="mt-5 grid flex-1 grid-cols-1 content-end gap-4">
         {q?.answers?.map((a, i) => (
           <AnswerTile
             key={i}

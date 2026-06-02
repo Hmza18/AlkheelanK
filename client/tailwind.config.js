@@ -34,6 +34,17 @@ export default {
       spacing: {
         18: "4.5rem",
         22: "5.5rem",
+        touch: "2.75rem",
+        "touch-lg": "3rem",
+      },
+      minHeight: {
+        screen: "100dvh",
+        touch: "2.75rem",
+        "touch-lg": "3rem",
+      },
+      minWidth: {
+        touch: "2.75rem",
+        "touch-lg": "3rem",
       },
       borderRadius: {
         card: "1.75rem",

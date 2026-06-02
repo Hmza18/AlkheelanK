@@ -22,21 +22,22 @@ export default function SettingsPanel({ corner = "bottom-left" }) {
 
   const pos =
     corner === "bottom-left"
-      ? "bottom-4 left-4"
+      ? "bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))]"
       : corner === "bottom-right"
-      ? "bottom-4 right-4"
+      ? "bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))]"
       : corner === "top-right"
-      ? "top-4 right-4"
-      : "top-4 left-4";
+      ? "top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))]"
+      : "top-[max(1rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))]";
 
   const masterPct = Math.round(s.master * 100);
 
   return (
     <>
       <button
+        type="button"
         onClick={() => setOpen(true)}
         title="Settings"
-        className={`fixed ${pos} z-40 grid h-11 w-11 place-items-center rounded-xl bg-ink-800/80 text-xl ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700`}
+        className={`fixed ${pos} z-40 alkheelank-touch-target h-12 w-12 rounded-xl bg-ink-800/80 text-xl ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700`}
       >
         ⚙️
       </button>
@@ -61,8 +62,9 @@ export default function SettingsPanel({ corner = "bottom-left" }) {
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-2xl font-bold">Settings</h2>
                 <button
+                  type="button"
                   onClick={() => setOpen(false)}
-                  className="grid h-9 w-9 place-items-center rounded-xl bg-ink-700 text-lg text-muted ring-1 ring-white/10 hover:text-paper"
+                  className="alkheelank-touch-target rounded-xl bg-ink-700 text-lg text-muted ring-1 ring-white/10 hover:text-paper"
                 >
                   ✕
                 </button>
@@ -126,14 +128,14 @@ function Toggle({ on, onChange }) {
     <button
       type="button"
       onClick={() => onChange(!on)}
-      className={`relative h-7 w-12 rounded-full transition ${
+      className={`relative inline-flex h-8 min-h-touch w-14 shrink-0 items-center rounded-full transition ${
         on ? "bg-gradient-to-r from-brand-start to-brand-mid" : "bg-ink-600"
       }`}
       aria-pressed={on}
     >
       <span
-        className={`absolute top-1 h-5 w-5 rounded-full bg-paper transition-all ${
-          on ? "left-6" : "left-1"
+        className={`absolute top-1 h-6 w-6 rounded-full bg-paper transition-all ${
+          on ? "left-[calc(100%-1.75rem)]" : "left-1"
         }`}
       />
     </button>

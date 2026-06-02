@@ -37,8 +37,8 @@ export default function AnswerTile({
       disabled={disabled}
       whileTap={disabled ? undefined : { scale: 0.96 }}
       className={`relative flex w-full items-center gap-4 rounded-2xl px-5 font-bold text-paper shadow-tile transition
-        ${big ? "py-7 text-2xl sm:text-3xl" : "py-6 text-xl sm:text-2xl"}
-        ${isTF ? "justify-center sm:py-12" : ""}
+        ${big ? "min-h-[3.5rem] py-7 text-2xl sm:min-h-[4rem] sm:text-3xl" : "min-h-touch py-6 text-xl sm:text-2xl"}
+        ${isTF ? "min-h-[4.5rem] justify-center py-8 sm:min-h-[5.5rem] sm:py-12" : ""}
         ${dim} ${ring} ${disabled ? "cursor-default" : "active:translate-y-1 hover:brightness-105"}`}
       style={{ backgroundColor: s.color }}
       aria-pressed={selected}

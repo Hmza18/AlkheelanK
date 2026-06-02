@@ -10,7 +10,7 @@ export function HostRecoveredBanner({ show }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={spring.snappy}
-          className="fixed left-1/2 top-4 z-50 -translate-x-1/2 rounded-2xl bg-tile-square/20 px-5 py-3 text-center font-semibold text-paper ring-1 ring-tile-square/40 backdrop-blur-md"
+          className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-50 -translate-x-1/2 rounded-2xl bg-tile-square/20 px-5 py-3 text-center font-semibold text-paper ring-1 ring-tile-square/40 backdrop-blur-md"
           role="status"
         >
           You're back — room restored.
@@ -30,7 +30,7 @@ export function HostStatusBanner({ connected, forPlayer }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           transition={spring.default}
-          className="fixed inset-x-4 top-4 z-50 mx-auto max-w-md rounded-2xl bg-warning/15 px-4 py-3 text-center text-sm font-bold text-paper ring-1 ring-warning/35 backdrop-blur-md"
+          className="fixed inset-x-4 top-[max(1rem,env(safe-area-inset-top))] z-50 mx-auto max-w-md rounded-2xl bg-warning/15 px-4 py-3 text-center text-sm font-bold text-paper ring-1 ring-warning/35 backdrop-blur-md"
           role="alert"
         >
           {forPlayer ? "Host stepped away — hang tight." : "Connection hiccup — players still see the game."}
@@ -43,7 +43,7 @@ export function HostStatusBanner({ connected, forPlayer }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           transition={spring.default}
-          className="fixed inset-x-4 top-4 z-50 mx-auto max-w-md rounded-2xl bg-tile-square/20 px-4 py-3 text-center text-sm font-bold text-paper ring-1 ring-tile-square/40 backdrop-blur-md"
+          className="fixed inset-x-4 top-[max(1rem,env(safe-area-inset-top))] z-50 mx-auto max-w-md rounded-2xl bg-tile-square/20 px-4 py-3 text-center text-sm font-bold text-paper ring-1 ring-tile-square/40 backdrop-blur-md"
           role="status"
         >
           Host is back on deck.

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import Logo from "../components/Logo.jsx";
 import Shape from "../components/Shape.jsx";
 import { ANSWERS } from "../lib/answers.js";
 import { useAuth } from "../lib/auth.jsx";
@@ -44,17 +43,20 @@ export default function Landing() {
         animate="show"
         className="relative z-10 flex flex-col items-center text-center"
       >
-        <motion.div variants={item}>
-          <Logo size="lg" />
-        </motion.div>
-
         <motion.h1
           variants={item}
-          className="mt-6 font-display text-4xl font-extrabold leading-tight sm:text-6xl"
+          className="font-display text-5xl font-extrabold tracking-tight alkheelank-gradient-text sm:text-7xl"
+        >
+          Alkheelan K
+        </motion.h1>
+
+        <motion.h2
+          variants={item}
+          className="mt-4 font-display text-3xl font-extrabold leading-tight sm:text-5xl"
         >
           Fast-tap trivia for
           <br className="hidden sm:block" /> your <span className="alkheelank-gradient-text">living room</span>.
-        </motion.h1>
+        </motion.h2>
 
         <motion.p variants={item} className="mt-4 max-w-md text-lg font-semibold text-muted">
           Host it on the big screen, everyone plays from their phones. Same rush you know — our own game.
@@ -130,8 +132,8 @@ export default function Landing() {
         </div>
       </motion.section>
 
-      <p className="relative z-10 mt-16 text-center text-sm text-muted/70">
-        Built for game nights with family &amp; friends. ▲ ◆ ● ■
+      <p className="relative z-10 mt-16 text-center text-sm font-semibold text-muted/80">
+        Built by Hamza
       </p>
     </div>
   );

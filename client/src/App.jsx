@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./lib/auth.jsx";
 import Background from "./components/Background.jsx";
 import Landing from "./pages/Landing.jsx";
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+      <Analytics />
     </AuthProvider>
   );
 }

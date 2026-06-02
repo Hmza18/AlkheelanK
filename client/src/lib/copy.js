@@ -1,0 +1,98 @@
+// AlkheelanK microcopy — confident, playful, family-friendly (not Kahoot-shaped).
+
+export const copy = {
+  connecting: "Spinning up your room…",
+  lobby: {
+    waiting: "Players are rolling in…",
+    emptyCta: "Need at least one player on the board",
+    start: "Let's play",
+    pinLabel: "Join code",
+    scan: "Scan to hop in",
+    modeSolo: "Every player for themselves",
+    modeTeams: "Team battle",
+  },
+  host: {
+    recovered: "You're back — room restored.",
+    playersBack: "Host is back on deck.",
+    hostAway: "Host stepped away — hang tight.",
+    endConfirm: "End game",
+    pause: "Pause round",
+    resume: "Resume round",
+    skipResults: "Show results now",
+    skipReveal: "Skip to highlight",
+    showStandings: "Scoreboard",
+    nextQuestion: "Next round",
+    finalResults: "Crown the champs",
+    pacing: {
+      label: "Show pace",
+      quick: "Quick",
+      normal: "Normal",
+      cinematic: "Cinematic",
+      quickHint: "Snappy reveals — keep momentum high.",
+      normalHint: "Balanced beats for most rooms.",
+      cinematicHint: "Let the drama breathe.",
+    },
+  },
+  player: {
+    joined: "You're in the crew!",
+    lobbyWait: "Eyes on the big screen — showtime soon.",
+    pinStep: "Enter the 6-digit code from the host screen.",
+    profileCta: "Join the party",
+    joining: "Finding your seat…",
+    reconnect: "Back in — your score is safe.",
+    paused: "Host hit pause",
+    revealSoon: "Big reveal incoming…",
+    result: {
+      correct: "Nailed it!",
+      wrong: "Not this round",
+      timeout: "Time ran out",
+      points: (n, mult) =>
+        n > 0 ? `+${n.toLocaleString()} pts${mult === 2 ? " · 2× boost" : ""}` : "0 pts",
+      rank: (r, total) => `#${r} of ${total}`,
+      watchScreen: "Watch the big screen for the drama.",
+    },
+    standings: "Where you stand",
+    final: "You placed",
+    gameOver: "That's a wrap",
+    playAgain: "Play again",
+  },
+  reveal: {
+    nobody: "Tough one — no correct picks",
+    standingsCta: "See who's climbing",
+    doublePoints: "2× points round",
+  },
+  standings: {
+    title: "Score check",
+    subtitle: (i, total) => `After round ${i + 1} of ${total}`,
+    teamRace: "Team race",
+    stillAnyone: "Still anyone's game",
+  },
+  final: {
+    title: "Final scores",
+    recapCta: "Party recap card",
+    recapHint: "Screenshot this — your group chat will love it.",
+    podiumRest: "The rest of the pack",
+    topContributors: "MVP contributors",
+  },
+  social: {
+    fastest: "Fastest correct",
+    clutch: "Clutch pick",
+    comeback: "Comeback climb",
+    confidentWrong: "Speedy miss",
+  },
+  ended: {
+    title: "Game over",
+    hostEnded: "Host wrapped the game.",
+    hostDisconnect: "Host connection dropped.",
+  },
+};
+
+export function funStatTitle(key) {
+  const map = {
+    fastest_finger: copy.social.fastest,
+    confident_wrong: copy.social.confidentWrong,
+    biggest_comeback: copy.social.comeback,
+    steady_climb: copy.standings.stillAnyone,
+  };
+  return map[key] || key;
+}

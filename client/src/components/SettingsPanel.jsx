@@ -1,0 +1,141 @@
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { getAudioSettings, setAudioSettings, sfx } from "../lib/sound.js";
+
+// A floating gear button + slide-in drawer for audio settings. Self-contained:
+// reads/writes the persisted audio store, and changes drive playback live.
+// Drop <SettingsPanel /> anywhere (dashboard, in-game) — it pins itself.
+export default function SettingsPanel({ corner = "bottom-left" }) {
+  const [open, setOpen] = useState(false);
+  const [s, setS] = useState(getAudioSettings());
+
+  // Keep local UI in sync if settings change elsewhere.
+  useEffect(() => {
+    if (open) setS(getAudioSettings());
+  }, [open]);
+
+  const update = (patch) => {
+    const next = { ...s, ...patch };
+    setS(next);
+    setAudioSettings(patch);
+  };
+
+  const pos =
+    corner === "bottom-left"
+      ? "bottom-4 left-4"
+      : corner === "bottom-right"
+      ? "bottom-4 right-4"
+      : corner === "top-right"
+      ? "top-4 right-4"
+      : "top-4 left-4";
+
+  const masterPct = Math.round(s.master * 100);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        title="Settings"
+        className={`fixed ${pos} z-40 grid h-11 w-11 place-items-center rounded-xl bg-ink-800/80 text-xl ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700`}
+      >
+        ⚙️
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+              className="fixed inset-0 z-50 bg-ink-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col bg-ink-800 p-6 shadow-2xl ring-1 ring-white/10"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-2xl font-bold">Settings</h2>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="grid h-9 w-9 place-items-center rounded-xl bg-ink-700 text-lg text-muted ring-1 ring-white/10 hover:text-paper"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <section className="mt-8">
+                <h3 className="alkheelank-label">Sound & vibe</h3>
+
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="font-semibold text-paper">Mute everything</span>
+                  <Toggle on={!s.muted} onChange={(v) => update({ muted: !v })} />
+                </div>
+
+                <div className={`mt-6 ${s.muted ? "pointer-events-none opacity-40" : ""}`}>
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-paper">Master volume</label>
+                    <span className="tabular-nums text-sm text-muted">{masterPct}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={masterPct}
+                    onChange={(e) => update({ master: Number(e.target.value) / 100 })}
+                    onMouseUp={() => sfx.tap()}
+                    onTouchEnd={() => sfx.tap()}
+                    className="alkheelank-range mt-2 w-full"
+                  />
+
+                  <div className="mt-6 flex items-center justify-between">
+                    <span className="font-semibold text-paper">🎵 Lobby music</span>
+                    <Toggle on={s.music} onChange={(v) => update({ music: v })} />
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className="font-semibold text-paper">🔔 Sound effects</span>
+                    <Toggle
+                      on={s.sfx}
+                      onChange={(v) => {
+                        update({ sfx: v });
+                        if (v) setTimeout(() => sfx.correct(), 30);
+                      }}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <p className="mt-auto pt-6 text-xs text-muted/70">
+                Saved on this device — your ears will thank you next time.
+              </p>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function Toggle({ on, onChange }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!on)}
+      className={`relative h-7 w-12 rounded-full transition ${
+        on ? "bg-gradient-to-r from-brand-start to-brand-mid" : "bg-ink-600"
+      }`}
+      aria-pressed={on}
+    >
+      <span
+        className={`absolute top-1 h-5 w-5 rounded-full bg-paper transition-all ${
+          on ? "left-6" : "left-1"
+        }`}
+      />
+    </button>
+  );
+}

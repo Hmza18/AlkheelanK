@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --alkheelank-ink-900: #0e0f2e;
+  --alkheelank-ink-800: #15163d;
+  --alkheelank-ink-700: #1d1e52;
+  --alkheelank-paper: #f5f6ff;
+  --alkheelank-muted: #a6a8d8;
+  --alkheelank-brand-start: #7c3aed;
+  --alkheelank-brand-mid: #c026d3;
+  --alkheelank-brand-end: #f43f5e;
+  --alkheelank-success: #10b981;
+  --alkheelank-warning: #f59e0b;
+  --alkheelank-error: #f43f5e;
+  --alkheelank-duration-fast: 220ms;
+  --alkheelank-duration-normal: 350ms;
+  --alkheelank-radius-card: 1.75rem;
+  --alkheelank-shadow-card: 0 8px 32px -8px rgba(14, 15, 46, 0.65);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --alkheelank-duration-fast: 0.01ms;
+    --alkheelank-duration-normal: 0.01ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  background: var(--alkheelank-ink-900);
+  color: var(--alkheelank-paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--alkheelank-brand-mid);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .alkheelank-gradient-text {
+    @apply bg-gradient-to-r from-brand-start via-brand-mid to-brand-end bg-clip-text text-transparent;
+  }
+  .alkheelank-card {
+    @apply rounded-3xl bg-ink-700/70 backdrop-blur-sm ring-1 ring-white/10;
+    box-shadow: var(--alkheelank-shadow-card);
+  }
+  .alkheelank-input {
+    @apply w-full rounded-2xl bg-ink-800 px-5 py-4 text-center text-2xl font-semibold tracking-wide text-paper placeholder:text-muted/60 ring-2 ring-white/10 focus:ring-brand-mid focus:outline-none transition;
+  }
+  .alkheelank-btn {
+    @apply rounded-2xl px-6 py-4 text-lg font-bold transition active:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0;
+  }
+  .alkheelank-btn-primary {
+    @apply alkheelank-btn bg-gradient-to-r from-brand-start via-brand-mid to-brand-end text-paper shadow-glow hover:brightness-110 focus-visible:ring-2 focus-visible:ring-brand-mid;
+  }
+  .alkheelank-btn-ghost {
+    @apply alkheelank-btn bg-ink-700 text-paper ring-1 ring-white/10 hover:bg-ink-600 focus-visible:ring-2 focus-visible:ring-white/20;
+  }
+  .alkheelank-screen-host {
+    @apply mx-auto w-full max-w-6xl px-6 py-6;
+  }
+  .alkheelank-screen-player {
+    @apply mx-auto w-full max-w-md px-5 py-6;
+  }
+  .alkheelank-label {
+    @apply text-xs font-bold uppercase tracking-widest text-muted;
+  }
+  .alkheelank-heading {
+    @apply font-display font-bold leading-tight;
+  }
+}
+
+@keyframes alkheelank-wait-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.alkheelank-wait-shimmer {
+  background: linear-gradient(
+    105deg,
+    #c4c6e8 0%,
+    #c4c6e8 38%,
+    #f5f6ff 50%,
+    #c4c6e8 62%,
+    #c4c6e8 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: alkheelank-wait-shimmer 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alkheelank-wait-shimmer {
+    animation: none;
+    color: var(--alkheelank-paper);
+    background: none;
+  }
+}
+
+.pin-display {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.15em;
+}
+
+.alkheelank-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: 9999px;
+  background: #2a2c55;
+  outline: none;
+}
+.alkheelank-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--alkheelank-brand-start), var(--alkheelank-brand-mid));
+  box-shadow: 0 0 0 4px rgba(192, 38, 211, 0.25);
+  cursor: pointer;
+}
+.alkheelank-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--alkheelank-brand-start), var(--alkheelank-brand-mid));
+  box-shadow: 0 0 0 4px rgba(192, 38, 211, 0.25);
+  cursor: pointer;
+}

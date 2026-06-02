@@ -1,0 +1,143 @@
+# AlkheelanK
+
+**Fast-tap trivia for your living room.** A real-time multiplayer quiz game — the host runs the big screen, everyone else plays from their phones with a 6-digit PIN. Same energy and mechanics you already know, our own look.
+
+- ▲ ◆ ● ■ — four colored, shaped answer tiles
+- Score rewards **speed *and* correctness**
+- Live answer distribution + climbing leaderboard between questions
+- A dramatic final podium with confetti
+
+> Built for personal use (family/friends). Game state is in-memory (no DB for live play). Hosts can **optionally** sign in to save quizzes — players never need an account.
+
+---
+
+## Stack
+
+| Part   | Tech                                   | Deploy |
+| ------ | -------------------------------------- | ------ |
+| Client | React + Vite + Tailwind + Framer Motion | Vercel |
+| Server | Node + Express + Socket.io (in-memory) | Render |
+
+### Sync model
+
+- **`game:PIN`** — room for everyone in a game (host + all players)
+- **`host:PIN`** — host-only events (e.g. live answer counts)
+- The **correct answer never leaves the server** in a player payload. Questions are broadcast via `buildPublicQuestion()` which only sends answer *text* by position; the correct index is revealed to everyone **only after** a question closes.
+
+### Scoring
+
+```
+correct: 1000 * (0.5 + 0.5 * timeRemaining / timeLimit)
+wrong:   0
+```
+
+One answer per player per question, enforced server-side. Late answers (after the timer) are ignored.
+
+---
+
+## Run it locally
+
+You need **Node 18+**. Open two terminals.
+
+**1. Server**
+
+```bash
+cd server
+npm install
+cp .env.example .env   # optional; defaults are fine for local
+npm run dev            # http://localhost:3001
+```
+
+**2. Client**
+
+```bash
+cd client
+npm install
+cp .env.example .env   # VITE_SERVER_URL=http://localhost:3001
+npm run dev            # http://localhost:5173
+```
+
+Open `http://localhost:5173` on your laptop/TV and click **Host**. On each phone (same network), open the same URL and enter the PIN. To reach phones, run the client with the host flag already set (Vite is configured with `host: true`) and visit `http://<your-computer-ip>:5173`.
+
+---
+
+## Host accounts (optional — Supabase)
+
+Hosts can sign up / log in to **save quizzes** to their account and see a dashboard with launch / edit / duplicate / delete and a game-night history. This is fully optional: with no keys set, the app runs in **guest mode** (run one-off games, build quizzes that aren't saved). **Players never need an account.**
+
+Setup (2 minutes):
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. **SQL Editor → New query**, paste the contents of [`supabase/schema.sql`](supabase/schema.sql), and run it. This creates the `quizzes` + `game_history` tables with Row Level Security (each user only sees their own rows).
+3. **Project Settings → API**: copy the **Project URL** and the **anon public** key into `client/.env`:
+
+```bash
+VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+```
+
+4. (Optional) In **Authentication → Providers → Email**, turn off "Confirm email" for instant local testing, or leave it on for production.
+
+> The anon key is a **public** browser key, gated by RLS — safe to ship. Never put the `service_role` key in the client. On Vercel, add both `VITE_SUPABASE_*` vars in the project settings.
+
+---
+
+## How to play
+
+1. **Host** opens the site → **Host on the big screen** → pick a quiz. A 6-digit PIN appears.
+2. **Players** open the site on their phones, type the PIN + a nickname.
+3. Host hits **Start**. Each question shows on the big screen with a countdown; phones show four tiles to tap.
+4. After the timer (or once everyone answers): the big screen reveals the correct answer + how many picked each tile, then the leaderboard. Phones show each player's hit/miss, points, and rank.
+5. Host advances through all questions, then the **podium**.
+
+---
+
+## Deploy
+
+### Server → Render
+
+1. Push this repo to GitHub.
+2. Render → **New → Blueprint** and select the repo (uses `render.yaml`), **or** New → Web Service with **Root Directory** `server`, build `npm install`, start `npm start`.
+3. After the client is live, set the server env var **`CORS_ORIGIN`** to your Vercel URL (e.g. `https://alkheelank.vercel.app`).
+
+### Client → Vercel
+
+1. Vercel → **New Project** → import the repo, set **Root Directory** to `client`.
+2. Framework preset: **Vite** (build `npm run build`, output `dist`). `vercel.json` handles SPA routing.
+3. Add env var **`VITE_SERVER_URL`** = your Render URL (e.g. `https://alkheelank-server.onrender.com`). Redeploy.
+
+> Free Render web services sleep when idle — the first connection after a nap takes a few seconds to wake.
+
+---
+
+## Project layout
+
+```
+AlkheelanK/
+├── server/                 # Express + Socket.io (in-memory game state)
+│   └── src/
+│       ├── index.js        # socket wiring, room broadcasts, timers
+│       ├── gameManager.js  # state, scoring, public/private payloads
+│       └── quizzes.js      # built-in quizzes (add your own here)
+├── supabase/
+│   └── schema.sql          # quizzes + game_history tables + RLS policies
+└── client/                 # Vite + React + Tailwind
+    └── src/
+        ├── pages/          # Landing, Auth, Host (orchestrator), Dashboard,
+        │                   #   QuizEditor, HostGame, Play
+        ├── components/     # AnswerTile, Timer, Leaderboard, Podium, Logo…
+        └── lib/            # auth, supabase, db, answer shapes, sound synth
+```
+
+## Add your own quiz
+
+Edit `server/src/quizzes.js`. Each question needs exactly **4 answers** and a `correct` index (0–3):
+
+```js
+{
+  question: "Best pizza topping?",
+  answers: ["Pineapple", "Pepperoni", "Mushroom", "Plain"],
+  correct: 1,
+  timeLimit: 20,
+}
+```

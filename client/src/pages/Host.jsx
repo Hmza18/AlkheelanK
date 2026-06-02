@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth.jsx";
+import { isOAuthCallback } from "../lib/authRedirect.js";
 import { createQuiz, updateQuiz } from "../lib/db.js";
 import Dashboard from "./Dashboard.jsx";
 import QuizEditor from "./QuizEditor.jsx";
@@ -20,9 +21,13 @@ export default function Host() {
   // auto-fall into guest mode so the app still works end to end.
   const allowed = Boolean(user) || guest || !configured;
 
-  if (loading) {
+  const finishingOAuth = isOAuthCallback() && configured && !user;
+
+  if (loading || finishingOAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-muted">Loading…</div>
+      <div className="flex min-h-screen items-center justify-center text-muted">
+        {finishingOAuth ? "Finishing sign-in…" : "Loading…"}
+      </div>
     );
   }
   if (!allowed) {

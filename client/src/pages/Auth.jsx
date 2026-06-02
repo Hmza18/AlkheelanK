@@ -1,18 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../lib/auth.jsx";
+import { consumeOAuthHashError, isOAuthCallback } from "../lib/authRedirect.js";
 import Logo from "../components/Logo.jsx";
 
 export default function Auth() {
   const navigate = useNavigate();
-  const { signIn, signUp, signInWithGoogle, configured } = useAuth();
+  const { signIn, signUp, signInWithGoogle, configured, user, loading } = useAuth();
   const [mode, setMode] = useState("login"); // login | signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
   const [busy, setBusy] = useState(false);
+  const finishingOAuth = isOAuthCallback();
+
+  useEffect(() => {
+    const oauthErr = consumeOAuthHashError();
+    if (oauthErr) setError(oauthErr);
+  }, []);
+
+  useEffect(() => {
+    if (!loading && user) navigate("/host", { replace: true });
+  }, [loading, user, navigate]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -76,7 +87,17 @@ export default function Auth() {
         <div className="alkheelank-card mt-6 w-full p-4 text-center text-sm text-muted">
           Login isn't configured yet (no Supabase keys). You can still{" "}
           <span className="text-paper">continue as guest</span> below.
+          {!import.meta.env.DEV && (
+            <p className="mt-2 text-xs text-tile-triangle">
+              On the live site: add <code className="text-paper">VITE_SUPABASE_URL</code> and{" "}
+              <code className="text-paper">VITE_SUPABASE_ANON_KEY</code> in Vercel, then redeploy.
+            </p>
+          )}
         </div>
+      )}
+
+      {finishingOAuth && configured && (
+        <p className="mt-6 text-center text-sm text-muted">Finishing Google sign-in…</p>
       )}
 
       <form onSubmit={submit} className="alkheelank-card mt-6 w-full p-6">

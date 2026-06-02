@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { supabase, isSupabaseConfigured } from "./supabase.js";
+import { oauthRedirectUrl } from "./authRedirect.js";
 
 const AuthContext = createContext(null);
 
@@ -53,7 +54,7 @@ export function AuthProvider({ children }) {
         // that supabase-js picks up automatically (detectSessionInUrl).
         return supabase.auth.signInWithOAuth({
           provider: "google",
-          options: { redirectTo: `${window.location.origin}/host` },
+          options: { redirectTo: oauthRedirectUrl() },
         });
       },
       async signOut() {

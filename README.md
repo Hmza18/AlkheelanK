@@ -85,7 +85,13 @@ VITE_SUPABASE_ANON_KEY=sb_publishable_...   # or legacy anon JWT (eyJ...)
 
 4. (Optional) In **Authentication → Providers → Email**, turn off "Confirm email" for instant local testing, or leave it on for production.
 
-> The anon key is a **public** browser key, gated by RLS — safe to ship. Never put the `service_role` key in the client. On Vercel, add both `VITE_SUPABASE_*` vars in the project settings.
+5. **Google sign-in (local + production):** In **Authentication → Providers → Google**, enable the provider and complete the Google Cloud OAuth client. Then in **Authentication → URL configuration**, add **Redirect URLs** for every origin you use:
+   - `http://localhost:5173/login` (and `/host` if you used an older build)
+   - `https://YOUR-VERCEL-URL.vercel.app/login` (same for production)
+
+   Set **Site URL** to your production URL when deployed. On Vercel, also set `VITE_SITE_URL` to that URL and redeploy.
+
+> The anon key is a **public** browser key, gated by RLS — safe to ship. Never put the `service_role` key in the client. On Vercel, add both `VITE_SUPABASE_*` vars in the project settings, then **redeploy** (env vars are baked in at build time).
 
 ---
 

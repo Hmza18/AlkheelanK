@@ -6,51 +6,87 @@ export const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3
 // doesn't open a socket until the user actually hosts or joins.
 export const socket = io(SERVER_URL, {
   autoConnect: false,
-  transports: ["websocket", "polling"],
-  // Give cold-hosted servers time to accept the first socket after wake-up.
+  // Polling first — Render/Vercel proxies often reject a direct WebSocket attempt
+  // before the service is fully awake. Socket.io upgrades once polling works.
+  transports: ["polling", "websocket"],
+  upgrade: true,
+  rememberUpgrade: true,
   timeout: 45_000,
-  reconnectionAttempts: 5,
+  reconnectionAttempts: 10,
+  reconnectionDelay: 1_000,
+  reconnectionDelayMax: 5_000,
 });
 
 export function ensureConnected() {
   if (!socket.connected) socket.connect();
 }
 
-/** Hit the HTTP health check so Render/similar hosts wake before the socket handshake. */
-export function wakeServer() {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 60_000);
-  return fetch(`${SERVER_URL}/`, { signal: ctrl.signal })
-    .catch(() => {})
-    .finally(() => clearTimeout(timer));
+export function formatConnectError(err, { timedOut = false } = {}) {
+  const raw = err?.message || "";
+  if (timedOut) {
+    return "Game server took too long to respond. Free hosting can take up to a minute to wake — try again.";
+  }
+  if (/websocket error/i.test(raw)) {
+    return "Could not connect to the game server. Confirm the Render server is deployed and VITE_SERVER_URL is correct.";
+  }
+  if (err instanceof TypeError || /failed to fetch|network/i.test(raw)) {
+    return "Could not reach the game server. Check your connection and that the server is running.";
+  }
+  return raw || "Could not connect to the game server.";
 }
 
-/** Resolve once the socket is connected, or reject on timeout / connect_error. */
+/** Hit the HTTP health check so Render/similar hosts wake before the socket handshake. */
+export async function wakeServer() {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 60_000);
+  try {
+    const res = await fetch(`${SERVER_URL}/`, { signal: ctrl.signal });
+    if (!res.ok) {
+      throw new Error(
+        `Game server returned ${res.status}. Deploy alkheelank-server on Render and set VITE_SERVER_URL to its URL.`,
+      );
+    }
+    return res.json();
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error("Game server timed out while waking up. Try again in a moment.");
+    }
+    if (err instanceof TypeError) {
+      throw new Error("Could not reach the game server. Check VITE_SERVER_URL and your Render deployment.");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Resolve once the socket is connected.
+ * Do not fail on transient transport errors — Socket.io retries with polling.
+ */
 export function connectSocket({ timeoutMs = 45_000 } = {}) {
   if (socket.connected) return Promise.resolve();
 
   return new Promise((resolve, reject) => {
     let settled = false;
+    const cleanup = () => {
+      clearTimeout(timer);
+      socket.off("connect", onConnect);
+    };
     const finish = (fn, value) => {
       if (settled) return;
       settled = true;
-      clearTimeout(timer);
-      socket.off("connect", onConnect);
-      socket.off("connect_error", onError);
+      cleanup();
       fn(value);
     };
 
     const onConnect = () => finish(resolve);
-    const onError = (err) =>
-      finish(reject, err instanceof Error ? err : new Error("Could not reach the game server."));
-
     const timer = setTimeout(
-      () => finish(reject, new Error("Game server took too long to respond. Try again in a moment.")),
+      () => finish(reject, new Error(formatConnectError(null, { timedOut: true }))),
       timeoutMs,
     );
 
     socket.on("connect", onConnect);
-    socket.on("connect_error", onError);
     ensureConnected();
   });
 }

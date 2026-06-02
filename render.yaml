@@ -11,4 +11,4 @@ services:
     healthCheckPath: /
     envVars:
       - key: CORS_ORIGIN
-        sync: false # set this to your Vercel URL after the client is deployed
+        value: https://www.alkheelan.xyz,https://alkheelan.xyz

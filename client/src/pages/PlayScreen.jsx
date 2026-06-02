@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { socket, ensureConnected } from "../socket.js";
+import { socket, ensureConnected, wakeServer, connectSocket, formatConnectError } from "../socket.js";
 import { sfx } from "../lib/sound.js";
 import Logo from "../components/Logo.jsx";
 import AnswerTile from "../components/AnswerTile.jsx";
@@ -37,6 +37,7 @@ export default function PlayScreen() {
   const joinInfoRef = useRef(null);
 
   useEffect(() => {
+    wakeServer().catch(() => {});
     ensureConnected();
     const onConnect = () => {
       const info = joinInfoRef.current;
@@ -131,31 +132,46 @@ export default function PlayScreen() {
     };
   }, [pin, me, teamId]);
 
-  const goProfile = () => {
+  const goProfile = async () => {
     const cleanPin = pin.replace(/\D/g, "").slice(0, 6);
     if (cleanPin.length !== 6) return setError(copy.player.pinStep);
-    socket.emit("player:peek", { pin: cleanPin }, (res) => {
-      if (res?.error) setError(res.error);
-      else {
-        setMeta(res);
-        if (res.mode === "teams" && res.teams?.length) setTeamId(res.teams[0].id);
-        setStep("profile");
-        setError(null);
-      }
-    });
+    setError(null);
+    try {
+      await wakeServer();
+      await connectSocket();
+      socket.emit("player:peek", { pin: cleanPin }, (res) => {
+        if (res?.error) setError(res.error);
+        else {
+          setMeta(res);
+          if (res.mode === "teams" && res.teams?.length) setTeamId(res.teams[0].id);
+          setStep("profile");
+          setError(null);
+        }
+      });
+    } catch (err) {
+      setError(formatConnectError(err));
+    }
   };
 
-  const join = (e) => {
+  const join = async (e) => {
     e.preventDefault();
     const cleanPin = pin.replace(/\D/g, "").slice(0, 6);
     if (!nickname.trim()) return setError("Pick a nickname to join.");
     setJoining(true);
-    socket.emit("player:join", {
-      pin: cleanPin,
-      nickname: nickname.trim(),
-      character: avatar,
-      teamId,
-    });
+    setError(null);
+    try {
+      await wakeServer();
+      await connectSocket();
+      socket.emit("player:join", {
+        pin: cleanPin,
+        nickname: nickname.trim(),
+        character: avatar,
+        teamId,
+      });
+    } catch (err) {
+      setJoining(false);
+      setError(formatConnectError(err));
+    }
   };
 
   const answer = (i) => {

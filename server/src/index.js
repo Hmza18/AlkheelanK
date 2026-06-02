@@ -44,6 +44,10 @@ app.get("/quizzes/:id", (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: origins, methods: ["GET", "POST"] },
+  transports: ["polling", "websocket"],
+  allowUpgrades: true,
+  pingTimeout: 60_000,
+  pingInterval: 25_000,
 });
 
 const gameRoom = (pin) => `game:${pin}`;
@@ -402,6 +406,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`AlkheelanK server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);
 });

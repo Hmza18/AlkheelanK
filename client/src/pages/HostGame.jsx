@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
-import { socket, ensureConnected, wakeServer, connectSocket, emitWithAck } from "../socket.js";
+import { socket, ensureConnected, wakeServer, connectSocket, emitWithAck, formatConnectError } from "../socket.js";
 import { sfx, music } from "../lib/sound.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
 import Recap from "../components/Recap.jsx";
@@ -247,7 +247,7 @@ export default function HostGame({ launch, onExit }) {
       // host:created moves us to lobby; ack is a backstop if that event was missed.
       setPhase((p) => (p === "connecting" ? "lobby" : p));
     } catch (err) {
-      setHostError(err.message || "Could not create room.");
+      setHostError(formatConnectError(err));
     } finally {
       setCreatingRoom(false);
     }

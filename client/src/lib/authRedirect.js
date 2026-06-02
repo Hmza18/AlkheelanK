@@ -1,9 +1,11 @@
 /** Where Supabase sends the browser after Google (or other OAuth) sign-in. */
 export function oauthRedirectUrl() {
-  const base = (import.meta.env.VITE_SITE_URL || "").replace(/\/$/, "");
-  const origin =
-    base || (typeof window !== "undefined" ? window.location.origin : "");
-  return `${origin}/login`;
+  // Always use the URL the user is actually on (fixes prod when Supabase Site URL was localhost).
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return `${window.location.origin}/login`;
+  }
+  const base = (import.meta.env.VITE_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
+  return `${base}/login`;
 }
 
 /** True while the URL still carries OAuth tokens/errors (hash or PKCE query). */

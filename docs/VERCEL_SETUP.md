@@ -24,16 +24,20 @@ Use the **Publishable** key (`sb_publishable_...`) for this project. Copy it fro
 
 A new build is required; changing env vars alone does not update an old deployment’s JS bundle.
 
-## 3. Supabase redirect URLs (Google login)
+## 3. Supabase redirect URLs (Google login) — required
+
+If Google sign-in sends you to **localhost** (connection refused), Supabase **Site URL** is still set to local dev.
 
 [Authentication → URL configuration](https://supabase.com/dashboard/project/lfoydcrwkjhzanveyxjj/auth/url-configuration)
 
-- **Site URL:** your Vercel URL  
+- **Site URL:** `https://www.alkheelan.xyz` (your live URL — **not** `http://localhost:5173`)
 - **Redirect URLs:**  
-  - `https://YOUR-VERCEL-URL.vercel.app/login`  
-  - `https://YOUR-VERCEL-URL.vercel.app/host`  
+  - `https://www.alkheelan.xyz/login`  
+  - `https://www.alkheelan.xyz/host`  
   - `http://localhost:5173/login`  
   - `http://localhost:5173/host`
+
+Or run: `node scripts/fix-supabase-oauth-urls.mjs` (needs `SUPABASE_ACCESS_TOKEN` in `server/.env`).
 
 ## Never put on Vercel (client)
 

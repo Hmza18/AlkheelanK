@@ -67,13 +67,20 @@ Hosts can sign up / log in to **save quizzes** to their account and see a dashbo
 
 Setup (2 minutes):
 
+```bash
+# From repo root — copies .env files, installs deps, checks Supabase
+npm run setup:all
+```
+
+Or manually:
+
 1. Create a free project at [supabase.com](https://supabase.com).
-2. **SQL Editor → New query**, paste the contents of [`supabase/schema.sql`](supabase/schema.sql), and run it. This creates the `quizzes` + `game_history` tables with Row Level Security (each user only sees their own rows).
-3. **Project Settings → API**: copy the **Project URL** and the **anon public** key into `client/.env`:
+2. **SQL Editor → New query**, paste [`supabase/schema.sql`](supabase/schema.sql) (or [`supabase/patch-missing-tables.sql`](supabase/patch-missing-tables.sql) if you already ran an older schema), and run it.
+3. **Project Settings → API Keys**: copy the **Project URL** and **Publishable** key (`sb_publishable_...`) into `client/.env`:
 
 ```bash
 VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-public-key
+VITE_SUPABASE_ANON_KEY=sb_publishable_...   # or legacy anon JWT (eyJ...)
 ```
 
 4. (Optional) In **Authentication → Providers → Email**, turn off "Confirm email" for instant local testing, or leave it on for production.

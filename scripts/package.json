@@ -1,0 +1,13 @@
+{
+  "name": "hmoot-scripts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
+    "pg": "^8.13.1"
+  },
+  "scripts": {
+    "apply-schema": "node apply-schema.mjs",
+    "verify": "node verify-setup.mjs"
+  }
+}

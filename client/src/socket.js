@@ -2,6 +2,18 @@ import { io } from "socket.io-client";
 
 export const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
+function isLocalDevOrigin() {
+  if (typeof window === "undefined") return false;
+  return /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+}
+
+function serverReachHint() {
+  if (isLocalDevOrigin()) {
+    return "Start the game server with `npm run dev:server`, or set VITE_SERVER_URL in client/.env.";
+  }
+  return "On Render, set CORS_ORIGIN to include your site URL (e.g. https://www.alkheelan.xyz). Also confirm VITE_SERVER_URL on Vercel is https://alkheelank-server.onrender.com and redeploy.";
+}
+
 // One shared connection for the tab. We connect lazily so the landing page
 // doesn't open a socket until the user actually hosts or joins.
 export const socket = io(SERVER_URL, {
@@ -52,7 +64,7 @@ export async function wakeServer() {
       throw new Error("Game server timed out while waking up. Try again in a moment.");
     }
     if (err instanceof TypeError) {
-      throw new Error("Could not reach the game server. Check VITE_SERVER_URL and your Render deployment.");
+      throw new Error(`Could not reach the game server. ${serverReachHint()}`);
     }
     throw err;
   } finally {

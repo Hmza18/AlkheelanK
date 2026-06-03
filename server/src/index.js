@@ -8,7 +8,32 @@ import { getQuiz, quizSummaries, validateCustomQuiz, getStarterForCopy } from ".
 
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
-const origins = CORS_ORIGIN === "*" ? "*" : CORS_ORIGIN.split(",").map((s) => s.trim());
+const configuredOrigins =
+  CORS_ORIGIN === "*" ? [] : CORS_ORIGIN.split(",").map((s) => s.trim()).filter(Boolean);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (CORS_ORIGIN === "*") return true;
+  if (configuredOrigins.includes(origin)) return true;
+  try {
+    const { hostname, protocol } = new URL(origin);
+    if (protocol !== "http:" && protocol !== "https:") return false;
+    if (hostname === "localhost" || hostname === "127.0.0.1") return true;
+    if (hostname === "alkheelan.xyz" || hostname.endsWith(".alkheelan.xyz")) return true;
+    if (hostname.endsWith(".vercel.app") && hostname.includes("alkheelan")) return true;
+  } catch {
+    return false;
+  }
+  return false;
+}
+
+const corsOrigin =
+  CORS_ORIGIN === "*"
+    ? "*"
+    : (origin, callback) => {
+        if (isAllowedOrigin(origin)) callback(null, origin || true);
+        else callback(new Error("Not allowed by CORS"));
+      };
 
 // Question images are sent to EVERYONE (host + players). The `image` survives
 // sanitization in buildPublicQuestion (it is NOT stripped like `correct`).
@@ -22,7 +47,7 @@ const SEND_IMAGE_TO_PLAYERS = true;
 const HOST_GRACE_MS = 45_000;
 
 const app = express();
-app.use(cors({ origin: origins }));
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 
 app.get("/", (_req, res) => {
@@ -43,7 +68,7 @@ app.get("/quizzes/:id", (req, res) => {
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: origins, methods: ["GET", "POST"] },
+  cors: { origin: corsOrigin, methods: ["GET", "POST"] },
   transports: ["polling", "websocket"],
   allowUpgrades: true,
   pingTimeout: 60_000,

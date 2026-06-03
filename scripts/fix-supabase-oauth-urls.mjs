@@ -28,7 +28,7 @@ const ref =
   serverEnv.SUPABASE_PROJECT_REF ||
   clientEnv.VITE_SUPABASE_URL?.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
 
-const siteUrl = (process.argv[2] || serverEnv.SITE_URL || "https://www.alkheeloot.xyz").replace(
+const siteUrl = (process.argv[2] || serverEnv.SITE_URL || "https://www.alkheelan.xyz").replace(
   /\/$/,
   "",
 );

@@ -1,6 +1,6 @@
 /** Public join hostname shown on the host lobby (override with VITE_JOIN_HOST). */
 export const JOIN_HOST = (
-  import.meta.env.VITE_JOIN_HOST || "alkheeloot.xyz"
+  import.meta.env.VITE_JOIN_HOST || "alkheelan.xyz"
 ).replace(/^https?:\/\//, "").replace(/\/$/, "");
 
 export function joinDisplayPath() {

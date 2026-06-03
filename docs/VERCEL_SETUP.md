@@ -15,8 +15,18 @@ Use the **Publishable** key (`sb_publishable_...`) for this project. Copy it fro
 
 | Name | Value |
 |------|--------|
-| `VITE_SERVER_URL` | Your Render game server URL, e.g. `https://alkheelank-server.onrender.com` |
-| `VITE_SITE_URL` | Your Vercel URL, e.g. `https://your-project.vercel.app` |
+| `VITE_SERVER_URL` | `https://alkheelank-server.onrender.com` |
+| `VITE_SITE_URL` | Your Vercel URL, e.g. `https://alkheelan-k.vercel.app` or `https://www.alkheelan.xyz` |
+
+## 1b. Render server CORS (required for live play)
+
+The game server on Render must allow your client origin. In **Render → alkheelank-server → Environment**:
+
+| Name | Value |
+|------|--------|
+| `CORS_ORIGIN` | `https://www.alkheelan.xyz,https://alkheelan.xyz,https://alkheelan-k.vercel.app,http://localhost:5173` |
+
+Save and redeploy the Render service. Without this, the browser blocks requests even when the server is up.
 
 ## 2. Redeploy
 
@@ -30,10 +40,10 @@ If Google sign-in sends you to **localhost** (connection refused), Supabase **Si
 
 [Authentication → URL configuration](https://supabase.com/dashboard/project/lfoydcrwkjhzanveyxjj/auth/url-configuration)
 
-- **Site URL:** `https://www.alkheeloot.xyz` (your live URL — **not** `http://localhost:5173`)
+- **Site URL:** `https://www.alkheelan.xyz` (your live URL — **not** `http://localhost:5173`)
 - **Redirect URLs:**  
-  - `https://www.alkheeloot.xyz/login`  
-  - `https://www.alkheeloot.xyz/host`  
+  - `https://www.alkheelan.xyz/login`  
+  - `https://www.alkheelan.xyz/host`  
   - `http://localhost:5173/login`  
   - `http://localhost:5173/host`
 

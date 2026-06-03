@@ -33,12 +33,10 @@ export default function Logo({ size = "md", withMark = true, className = "" }) {
   const text =
     size === "lg"
       ? "text-6xl sm:text-7xl"
-      : size === "compact"
-      ? "text-3xl"
       : size === "sm"
       ? "text-2xl"
       : "text-4xl";
-  const markSize = size === "lg" ? 64 : size === "compact" ? 36 : size === "sm" ? 30 : 44;
+  const markSize = size === "lg" ? 64 : size === "sm" ? 30 : 44;
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       {withMark && <Mark size={markSize} />}

@@ -460,7 +460,7 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
           {quizMeta && <p className="mt-3 text-muted">{quizMeta.title} · {quizMeta.questionCount} questions</p>}
           <p className="mt-2 rounded-full bg-ink-700 px-3 py-1 text-xs font-bold uppercase tracking-widest text-muted">{mode === "teams" ? copy.lobby.modeTeams : copy.lobby.modeSolo}</p>
         </div>
-        {pin && <div className="flex flex-col items-center"><div className="rounded-3xl bg-ink-800/70 p-5 ring-1 ring-white/10"><QRCodeSVG value={joinUrl} size={150} bgColor="transparent" fgColor="#f5f6ff" level="M" /></div><p className="mt-3 text-sm font-semibold text-muted">📱 {copy.lobby.scan}</p></div>}
+        {pin && <div className="flex flex-col items-center"><div className="rounded-3xl bg-ink-800/70 p-5 ring-1 ring-white/10"><QRCodeSVG value={joinUrl} size={150} bgColor="transparent" fgColor="#faf6f0" level="M" /></div><p className="mt-3 text-sm font-semibold text-muted">📱 {copy.lobby.scan}</p></div>}
       </div>
       <div className="mt-10 flex-1">
         {players.length === 0 ? <p className="mt-10 text-center text-xl text-muted animate-pulse">{copy.lobby.waiting}</p> : (

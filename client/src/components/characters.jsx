@@ -38,7 +38,7 @@ export const COLORS = [
   "#10b981",
   "#0ea5e9",
   "#6366f1",
-  "#a855f7",
+  "#d97706",
 ];
 
 export const HATS = ["none", "cap", "crown", "party"];
@@ -239,7 +239,7 @@ const HAT_RENDER = {
   none: () => null,
   cap: () => <path d="M15 17 q17 -13 34 0 q-4 4 -34 3 z" fill="#10b981" />,
   crown: () => <polygon points="18,18 18,8 25,14 32,6 39,14 46,8 46,18" fill={GOLD} stroke="#b45309" strokeWidth="1" />,
-  party: () => <polygon points="32,0 23,18 41,18" fill="#a855f7" stroke={LINE} strokeWidth="1" />,
+  party: () => <polygon points="32,0 23,18 41,18" fill="#d97706" stroke={LINE} strokeWidth="1" />,
 };
 
 const GLASSES_RENDER = {

@@ -9,24 +9,24 @@ function svgDataUri(emoji, accent, label) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img">
   <defs>
     <linearGradient id="qbg" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#15163d"/>
+      <stop offset="0%" stop-color="#242019"/>
       <stop offset="100%" stop-color="${accent}" stop-opacity="0.45"/>
     </linearGradient>
   </defs>
   <rect width="640" height="360" rx="24" fill="url(#qbg)"/>
   <text x="320" y="148" font-size="96" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
-  <text x="320" y="248" font-family="system-ui,sans-serif" font-size="24" font-weight="600" fill="#f5f6ff" fill-opacity="0.9" text-anchor="middle">${safe}</text>
+  <text x="320" y="248" font-family="system-ui,sans-serif" font-size="24" font-weight="600" fill="#faf6f0" fill-opacity="0.92" text-anchor="middle">${safe}</text>
 </svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg.trim())}`;
 }
 
 const ACCENTS = {
-  Mixed: "#a855f7",
+  Mixed: "#d97706",
   Movies: "#f43f5e",
   General: "#0ea5e9",
   Kids: "#f59e0b",
   Geography: "#10b981",
-  Family: "#c026d3",
+  Family: "#ea580c",
 };
 
 /** @type {Record<string, { emoji: string, label: string }[]>} */
@@ -94,5 +94,5 @@ export const QUESTION_ART = {
 export function questionImageFor(quizId, index, category) {
   const art = QUESTION_ART[quizId]?.[index];
   if (!art) return null;
-  return svgDataUri(art.emoji, ACCENTS[category] || "#a855f7", art.label);
+  return svgDataUri(art.emoji, ACCENTS[category] || "#d97706", art.label);
 }

@@ -14,9 +14,9 @@ function Mark({ size = 44 }) {
     <svg width={s} height={s} viewBox="0 0 100 100" aria-hidden="true">
       <defs>
         <linearGradient id="ak-bg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#7c3aed" />
-          <stop offset="55%" stopColor="#c026d3" />
-          <stop offset="100%" stopColor="#f43f5e" />
+          <stop offset="0%" stopColor="#d97706" />
+          <stop offset="55%" stopColor="#ea580c" />
+          <stop offset="100%" stopColor="#e11d48" />
         </linearGradient>
       </defs>
       <rect x="2" y="2" width="96" height="96" rx="26" fill="url(#ak-bg)" />

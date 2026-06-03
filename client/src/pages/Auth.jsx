@@ -97,7 +97,9 @@ export default function Auth() {
       )}
 
       {finishingOAuth && configured && (
-        <p className="mt-6 text-center text-sm text-muted">Finishing Google sign-in…</p>
+        <div className="alkheelank-card mt-6 w-full p-4 text-center text-sm font-semibold text-muted">
+          Finishing Google sign-in…
+        </div>
       )}
 
       <form onSubmit={submit} className="alkheelank-card mt-6 w-full p-6">
@@ -124,16 +126,16 @@ export default function Auth() {
           type="button"
           onClick={google}
           disabled={busy || !configured}
-          className="flex w-full items-center justify-center gap-3 rounded-2xl bg-paper px-4 py-3 font-bold text-ink-900 transition hover:brightness-95 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-3 rounded-2xl bg-ink-800 px-4 py-3 font-bold text-paper ring-1 ring-white/10 transition hover:bg-ink-600 disabled:opacity-50"
         >
           <GoogleIcon />
           Continue with Google
         </button>
 
         <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-muted">
-          <span className="h-px flex-1 bg-white/10" />
+          <span className="h-px flex-1 bg-brand-start/25" />
           or
-          <span className="h-px flex-1 bg-white/10" />
+          <span className="h-px flex-1 bg-brand-start/25" />
         </div>
 
         <label className="mb-1 block text-sm font-semibold text-muted">Email</label>

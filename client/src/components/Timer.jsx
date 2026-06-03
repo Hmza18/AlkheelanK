@@ -61,13 +61,13 @@ export default function Timer({ timeLimit, startedAt, sound = false, paused = fa
         viewBox="0 0 128 128"
         className={danger ? "animate-pulse" : urgent ? "animate-[pulse_1.8s_ease-in-out_infinite]" : ""}
       >
-        <circle cx="64" cy="64" r={R} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="12" />
+        <circle cx="64" cy="64" r={R} fill="none" stroke="rgba(250,246,240,0.12)" strokeWidth="12" />
         <circle
           cx="64"
           cy="64"
           r={R}
           fill="none"
-          stroke={paused ? "#a6a8d8" : danger ? "#f43f5e" : urgent ? "#fb923c" : "#c026d3"}
+          stroke={paused ? "#b8a99a" : danger ? "#f43f5e" : urgent ? "#fb923c" : "#ea580c"}
           strokeWidth="12"
           strokeLinecap="round"
           strokeDasharray={C}

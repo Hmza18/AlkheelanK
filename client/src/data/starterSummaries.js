@@ -9,7 +9,7 @@ export const STARTER_SUMMARIES = [
     emoji: "🎉",
     category: "Mixed",
     questionCount: 9,
-    coverImage: starterCover("🎉", "#a855f7", "Mixed trivia"),
+    coverImage: starterCover("🎉", "#d97706", "Mixed trivia"),
   },
   {
     id: "movie-night",
@@ -54,6 +54,6 @@ export const STARTER_SUMMARIES = [
     emoji: "🏠",
     category: "Family",
     questionCount: 8,
-    coverImage: starterCover("🏠", "#c026d3", "Family"),
+    coverImage: starterCover("🏠", "#ea580c", "Family"),
   },
 ];

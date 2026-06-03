@@ -3,16 +3,16 @@
 
 export const color = {
   ink: {
-    900: "#0e0f2e",
-    800: "#15163d",
-    700: "#1d1e52",
-    600: "#262a6b",
-    500: "#343a86",
+    900: "#1a1814",
+    800: "#242019",
+    700: "#2e2922",
+    600: "#3d362c",
+    500: "#4a4133",
   },
   brand: {
-    start: "#7c3aed",
-    mid: "#c026d3",
-    end: "#f43f5e",
+    start: "#d97706",
+    mid: "#ea580c",
+    end: "#e11d48",
   },
   tile: {
     triangle: "#f43f5e",
@@ -20,12 +20,12 @@ export const color = {
     circle: "#f59e0b",
     square: "#10b981",
   },
-  paper: "#f5f6ff",
-  muted: "#a6a8d8",
+  paper: "#faf6f0",
+  muted: "#b8a99a",
   success: "#10b981",
   warning: "#f59e0b",
   error: "#f43f5e",
-  focus: "rgba(192, 38, 211, 0.55)",
+  focus: "rgba(217, 119, 6, 0.55)",
 };
 
 export const space = {
@@ -53,10 +53,10 @@ export const radius = {
 };
 
 export const shadow = {
-  card: "0 8px 32px -8px rgba(14, 15, 46, 0.65)",
+  card: "0 10px 34px -14px rgba(18, 14, 9, 0.72)",
   tile: "0 8px 0 0 rgba(0,0,0,0.25)",
   tileSm: "0 5px 0 0 rgba(0,0,0,0.25)",
-  glow: "0 0 60px -10px rgba(192,38,211,0.6)",
+  glow: "0 0 44px -12px rgba(217,119,6,0.45)",
 };
 
 export const type = {

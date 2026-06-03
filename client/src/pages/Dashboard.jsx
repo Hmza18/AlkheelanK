@@ -18,12 +18,12 @@ import SettingsPanel from "../components/SettingsPanel.jsx";
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
 const CATEGORY_COLORS = {
-  Mixed: "#a855f7",
+  Mixed: "#d97706",
   Movies: "#f43f5e",
   General: "#0ea5e9",
   Kids: "#f59e0b",
   Geography: "#10b981",
-  Family: "#c026d3",
+  Family: "#ea580c",
 };
 
 export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunchBuiltin }) {
@@ -335,7 +335,7 @@ function MyQuizCard({ quiz, onLaunch, onEdit, onDuplicate, onDelete, onShare }) 
 // Starter template card
 // ---------------------------------------------------------------------------
 function StarterCard({ quiz, onLaunch, onCopy, copying, canCopy }) {
-  const accent = CATEGORY_COLORS[quiz.category] || "#a855f7";
+  const accent = CATEGORY_COLORS[quiz.category] || "#d97706";
   return (
     <div
       className="alkheelank-card flex flex-col overflow-hidden p-0"

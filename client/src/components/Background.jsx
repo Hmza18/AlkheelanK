@@ -1,4 +1,4 @@
-// Ambient arcade backdrop: soft brand glows + slowly floating answer shapes.
+// Ambient living-room backdrop: warm brand glows + slowly floating answer shapes.
 // Purely decorative; pointer-events disabled so it never blocks taps.
 import Shape from "./Shape.jsx";
 
@@ -12,13 +12,13 @@ const FLOATERS = [
 export default function Background() {
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-ink-900">
-      <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-brand-start/30 blur-3xl" />
-      <div className="absolute -right-32 top-1/3 h-96 w-96 rounded-full bg-brand-mid/25 blur-3xl" />
-      <div className="absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-brand-end/20 blur-3xl" />
+      <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-brand-start/20 blur-3xl" />
+      <div className="absolute -right-32 top-1/3 h-96 w-96 rounded-full bg-brand-mid/18 blur-3xl" />
+      <div className="absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-brand-end/12 blur-3xl" />
       {FLOATERS.map((f, i) => (
         <div
           key={i}
-          className="absolute animate-float opacity-20"
+          className="absolute animate-float opacity-[0.14]"
           style={{ top: f.top, left: f.left, animationDelay: f.delay }}
         >
           <Shape type={f.type} size={f.size} color={f.color} />

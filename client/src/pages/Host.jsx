@@ -25,8 +25,10 @@ export default function Host() {
 
   if (loading || finishingOAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-muted">
-        {finishingOAuth ? "Finishing sign-in…" : "Loading…"}
+      <div className="flex min-h-screen items-center justify-center px-5">
+        <div className="alkheelank-card px-6 py-4 text-center font-semibold text-muted">
+          {finishingOAuth ? "Finishing sign-in…" : "Loading…"}
+        </div>
       </div>
     );
   }

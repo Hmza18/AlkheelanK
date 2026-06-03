@@ -35,7 +35,7 @@ export const AVATAR_BASES = [
 ];
 export const AVATAR_COLORS = [
   "#f43f5e", "#fb923c", "#facc15", "#22c55e",
-  "#10b981", "#0ea5e9", "#6366f1", "#a855f7",
+  "#10b981", "#0ea5e9", "#6366f1", "#d97706",
 ];
 export const AVATAR_HATS = ["none", "cap", "crown", "party"];
 export const AVATAR_GLASSES = ["none", "round", "shades"];

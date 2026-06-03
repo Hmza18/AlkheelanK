@@ -4,19 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // AlkheelanK identity — deep "midnight arcade" indigo with a violet→fuchsia
-        // brand gradient. Distinct from Kahoot's purple/magenta brand.
+        // AlkheelanK identity — warm "living-room" charcoal with an amber→orange→coral
+        // brand gradient. Cozy family game night, not a neon arcade.
         ink: {
-          900: "#0e0f2e", // deepest background (not pure black)
-          800: "#15163d",
-          700: "#1d1e52",
-          600: "#262a6b",
-          500: "#343a86",
+          900: "#1a1814", // deepest background (warm charcoal, not pure black)
+          800: "#242019",
+          700: "#2e2922",
+          600: "#3d362c",
+          500: "#4a4133",
         },
         brand: {
-          start: "#7c3aed", // violet-600
-          mid: "#c026d3", // fuchsia-600
-          end: "#f43f5e", // rose-500
+          start: "#d97706", // amber-600
+          mid: "#ea580c", // orange-600
+          end: "#e11d48", // coral / rose-600 (accent pop)
         },
         // Answer tile palette — four distinct, refined (non-neon) hues.
         tile: {
@@ -25,8 +25,8 @@ export default {
           circle: "#f59e0b", // amber
           square: "#10b981", // emerald
         },
-        paper: "#f5f6ff", // off-white text (not pure white)
-        muted: "#a6a8d8",
+        paper: "#faf6f0", // warm off-white text (not pure white)
+        muted: "#b8a99a",
         success: "#10b981",
         warning: "#f59e0b",
         error: "#f43f5e",
@@ -60,7 +60,7 @@ export default {
       boxShadow: {
         tile: "0 8px 0 0 rgba(0,0,0,0.25)",
         "tile-sm": "0 5px 0 0 rgba(0,0,0,0.25)",
-        glow: "0 0 60px -10px rgba(192,38,211,0.6)",
+        glow: "0 0 44px -12px rgba(217,119,6,0.45)",
       },
       keyframes: {
         "pop-in": {

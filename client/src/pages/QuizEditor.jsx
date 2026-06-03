@@ -4,7 +4,6 @@ import { answerStyle, tfStyle } from "../lib/answers.js";
 import { fileToDataURL } from "../lib/image.js";
 import { isSetupError, addBankQuestion, listBankQuestions, bankRowToQuestion } from "../lib/db.js";
 import Logo from "../components/Logo.jsx";
-import BuiltByHamza from "../components/BuiltByHamza.jsx";
 
 const SETUP_HELP =
   "Your database isn't set up yet. Run supabase/schema.sql in the Supabase SQL editor (see README), then try again.";
@@ -131,9 +130,6 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
           {error}
         </p>
       )}
-
-      <BuiltByHamza className="mt-10" />
-
       <AnimatePresence>
         {saved && (
           <motion.div

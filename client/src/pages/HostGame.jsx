@@ -20,7 +20,6 @@ import PhaseShell from "../components/PhaseShell.jsx";
 import { HostRecoveredBanner, HostStatusBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
 import { joinDisplayPath, joinQrUrl } from "../lib/site.js";
-import BuiltByHamza from "../components/BuiltByHamza.jsx";
 
 const DEFAULT_SETTINGS = {
   mode: "solo",
@@ -370,7 +369,6 @@ function Centered({ children }) {
   return (
     <div className="host-phase-fill flex min-h-[80vh] flex-col items-center justify-center text-center landscapePhone:min-h-0">
       {children}
-      <BuiltByHamza className="mt-10" />
     </div>
   );
 }
@@ -438,7 +436,6 @@ function SetupView({ settings, setSettings, onCreate, onCancel }) {
           </button>
         ))}
       </div>
-      <BuiltByHamza className="mt-8" />
       <button onClick={onCreate} className="alkheelank-btn-primary mt-6 w-full text-xl">Open lobby →</button>
     </div>
   );
@@ -530,7 +527,6 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
         )}
       </div>
       {error && <p className="mb-2 text-center font-semibold text-tile-triangle">{error}</p>}
-      <BuiltByHamza className="mb-3 shrink-0 landscapePhone:mb-2" />
       <div className="sticky bottom-6 mt-3 flex shrink-0 justify-center landscapePhone:bottom-2 landscapePhone:mt-3">
         <button onClick={onStart} disabled={players.length === 0} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-6 landscapePhone:py-2.5 landscapePhone:text-base" title={players.length === 0 ? copy.lobby.emptyCta : ""}>
           {copy.lobby.start}

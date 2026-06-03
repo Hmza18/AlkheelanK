@@ -448,87 +448,133 @@ function formatLobbyPin(pinStr) {
 function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
   const pinStr = String(pin || "").padStart(6, "•");
   const joinUrl = joinQrUrl(pin);
+  const joinLine = `${copy.lobby.joinAt} ${joinDisplayPath()} ${copy.lobby.joinOr} ${copy.lobby.joinQr}.`;
+
   return (
-    <div className="alkheelank-screen-host host-phase-fill flex min-h-0 flex-col">
-      <div className="flex shrink-0 items-center justify-between">
-        <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage"><Logo /></button>
-        <div className="text-right"><p className="text-sm uppercase tracking-widest text-muted">Players</p><p className="font-display text-3xl font-bold landscapePhone:text-2xl">{players.length}</p></div>
+    <div className="alkheelank-screen-host host-phase-fill lobby-host flex min-h-0 flex-col">
+      {/* Kahoot-style top bar (phone landscape only) */}
+      <div className="lobby-host__pin-banner hidden shrink-0 landscapePhone:flex" aria-label="Join instructions and game PIN">
+        <div className="lobby-host__pin-banner-join">
+          <p className="lobby-host__pin-banner-text">{joinLine}</p>
+        </div>
+        <div className="lobby-host__pin-banner-pin" aria-label={`${copy.lobby.pinLabel} ${formatLobbyPin(pinStr)}`}>
+          <span className="lobby-host__pin-banner-label">{copy.lobby.pinLabel}</span>
+          <span className="lobby-host__pin-banner-code font-display">{formatLobbyPin(pinStr)}</span>
+        </div>
       </div>
 
-      {quizMeta && (
-        <div className="lobby-quiz-badge mt-8 self-center landscapePhone:mt-2">
-          {quizMeta.title} · {quizMeta.questionCount} questions
-        </div>
-      )}
+      <div className="lobby-host__header flex shrink-0 items-center justify-between landscapePhone:hidden">
+        <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage"><Logo /></button>
+        <div className="text-right"><p className="text-sm uppercase tracking-widest text-muted">Players</p><p className="font-display text-3xl font-bold">{players.length}</p></div>
+      </div>
 
-      <div className="lobby-join-stage w-full max-w-6xl self-center">
-        <div className="lobby-join-panel-grid">
-          <div className="lobby-join-panel__instructions">
-            <p className="lobby-join-kicker">{copy.lobby.joinAt}</p>
-            <p className="lobby-join-url">{joinDisplayPath()}</p>
-            <p className="lobby-join-helper">
-              {copy.lobby.joinOr} <strong>{copy.lobby.joinQr}</strong>
-            </p>
-          </div>
-          <div className="lobby-join-panel__separator" aria-hidden="true" />
-          <div className="lobby-join-panel__pin">
-            <p className="lobby-join-panel__pin-label">{copy.lobby.pinLabel}</p>
-            <div className="pin-display-lobby lobby-join-panel__pin-number font-display alkheelank-gradient-text">
-              {formatLobbyPin(pinStr)}
+      <div className="lobby-host__body flex min-h-0 flex-1 flex-col landscapePhone:grid landscapePhone:grid-cols-[1fr_auto] landscapePhone:gap-3">
+        <div className="lobby-host__main flex min-h-0 min-w-0 flex-1 flex-col landscapePhone:items-center landscapePhone:justify-center landscapePhone:overflow-hidden">
+          {quizMeta && (
+            <div className="lobby-quiz-badge mt-8 self-center landscapePhone:mt-0 landscapePhone:mb-2 landscapePhone:px-2 landscapePhone:py-0.5 landscapePhone:text-[0.65rem]">
+              {quizMeta.title} · {quizMeta.questionCount} questions
+            </div>
+          )}
+
+          <div className="lobby-join-stage w-full max-w-6xl self-center landscapePhone:hidden">
+            <div className="lobby-join-panel-grid">
+              <div className="lobby-join-panel__instructions">
+                <p className="lobby-join-kicker">{copy.lobby.joinAt}</p>
+                <p className="lobby-join-url">{joinDisplayPath()}</p>
+                <p className="lobby-join-helper">
+                  {copy.lobby.joinOr} <strong>{copy.lobby.joinQr}</strong>
+                </p>
+              </div>
+              <div className="lobby-join-panel__separator" aria-hidden="true" />
+              <div className="lobby-join-panel__pin">
+                <p className="lobby-join-panel__pin-label">{copy.lobby.pinLabel}</p>
+                <div className="pin-display-lobby lobby-join-panel__pin-number font-display alkheelank-gradient-text">
+                  {formatLobbyPin(pinStr)}
+                </div>
+              </div>
+              {pin && (
+                <>
+                  <div className="lobby-join-panel__separator" aria-hidden="true" />
+                  <div className="lobby-join-panel__qr">
+                    <QRCodeSVG value={joinUrl} size={160} bgColor="#faf6f0" fgColor="#1a1814" level="M" />
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          {pin && (
-            <>
-              <div className="lobby-join-panel__separator" aria-hidden="true" />
-              <div className="lobby-join-panel__qr">
-                <QRCodeSVG value={joinUrl} size={160} bgColor="#faf6f0" fgColor="#1a1814" level="M" className="landscapePhone:hidden" />
-                <QRCodeSVG value={joinUrl} size={100} bgColor="#faf6f0" fgColor="#1a1814" level="M" className="hidden landscapePhone:block" />
-              </div>
-            </>
-          )}
-        </div>
-      </div>
 
-      {mode && (
-        <div className="mt-4 flex justify-center landscapePhone:mt-2">
-          <p className="rounded-full bg-ink-700 px-3 py-1 text-xs font-bold uppercase tracking-widest text-muted ring-1 ring-white/10">
-            {mode === "teams" ? copy.lobby.modeTeams : copy.lobby.modeSolo}
-          </p>
-        </div>
-      )}
-
-      <div className="mt-10 min-h-0 flex-1 overflow-y-auto landscapePhone:mt-2">
-        {players.length === 0 ? (
-          <p className="lobby-waiting-status mt-10 landscapePhone:mt-2" role="status" aria-live="polite">
-            <span className="lobby-waiting-status__label alkheelank-wait-shimmer">{copy.lobby.waiting}</span>
-            <span className="lobby-waiting-status__dots" aria-hidden="true">
-              <span className="lobby-waiting-status__dot" />
-              <span className="lobby-waiting-status__dot" />
-              <span className="lobby-waiting-status__dot" />
-            </span>
-          </p>
-        ) : (
-          <div className="flex flex-wrap justify-center gap-3">
-            <AnimatePresence>
-              {players.map((p) => (
-                <motion.span key={p.id} layout initial={{ scale: 0, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} exit={{ scale: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 18 }} className="flex items-center gap-2 rounded-2xl bg-ink-700 py-2 pl-2 pr-4 text-xl font-bold ring-1 ring-white/10 landscapePhone:text-base">
-                  <span className="landscapePhone:hidden">
-                    <Avatar config={p.character} size={40} ring />
-                  </span>
-                  <span className="hidden landscapePhone:inline-flex">
-                    <Avatar config={p.character} size={32} ring />
-                  </span>
-                  {p.nick}
-                  {mode === "teams" && p.team?.name && <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: `${p.team.color}33`, color: p.team.color }}>{p.team.name}</span>}
-                </motion.span>
-              ))}
-            </AnimatePresence>
+          <div className="hidden flex-col items-center landscapePhone:flex">
+            <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage">
+              <Logo size="compact" />
+            </button>
+            {mode && (
+              <p className="mt-1.5 rounded-full bg-ink-700/80 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-muted ring-1 ring-white/10">
+                {mode === "teams" ? copy.lobby.modeTeams : copy.lobby.modeSolo}
+              </p>
+            )}
           </div>
-        )}
+
+          {mode && (
+            <div className="mt-4 flex justify-center landscapePhone:hidden">
+              <p className="rounded-full bg-ink-700 px-3 py-1 text-xs font-bold uppercase tracking-widest text-muted ring-1 ring-white/10">
+                {mode === "teams" ? copy.lobby.modeTeams : copy.lobby.modeSolo}
+              </p>
+            </div>
+          )}
+
+          <div className="mt-10 min-h-0 flex-1 overflow-y-auto landscapePhone:mt-2 landscapePhone:flex landscapePhone:w-full landscapePhone:flex-col landscapePhone:items-center landscapePhone:overflow-y-auto">
+            {players.length === 0 ? (
+              <p className="lobby-waiting-status mt-10 landscapePhone:mt-2" role="status" aria-live="polite">
+                <span className="lobby-waiting-status__label alkheelank-wait-shimmer landscapePhone:rounded-lg landscapePhone:bg-brand-mid/90 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-xs landscapePhone:font-bold landscapePhone:text-paper landscapePhone:no-underline">
+                  {copy.lobby.waiting}
+                </span>
+                <span className="lobby-waiting-status__dots landscapePhone:hidden" aria-hidden="true">
+                  <span className="lobby-waiting-status__dot" />
+                  <span className="lobby-waiting-status__dot" />
+                  <span className="lobby-waiting-status__dot" />
+                </span>
+              </p>
+            ) : (
+              <div className="flex flex-wrap justify-center gap-3 landscapePhone:gap-1.5 landscapePhone:px-1">
+                <AnimatePresence>
+                  {players.map((p) => (
+                    <motion.span key={p.id} layout initial={{ scale: 0, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} exit={{ scale: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 18 }} className="flex items-center gap-2 rounded-2xl bg-ink-700 py-2 pl-2 pr-4 text-xl font-bold ring-1 ring-white/10 landscapePhone:py-1 landscapePhone:pl-1.5 landscapePhone:pr-2.5 landscapePhone:text-sm">
+                      <span className="landscapePhone:hidden">
+                        <Avatar config={p.character} size={40} ring />
+                      </span>
+                      <span className="hidden landscapePhone:inline-flex">
+                        <Avatar config={p.character} size={24} ring />
+                      </span>
+                      {p.nick}
+                      {mode === "teams" && p.team?.name && <span className="rounded-full px-2 py-0.5 text-xs font-bold landscapePhone:px-1.5 landscapePhone:text-[0.65rem]" style={{ backgroundColor: `${p.team.color}33`, color: p.team.color }}>{p.team.name}</span>}
+                    </motion.span>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <aside className="lobby-host__rail hidden min-h-0 shrink-0 flex-col items-stretch justify-center gap-3 landscapePhone:flex landscapePhone:pr-1">
+          <div className="lobby-host__player-count" aria-label={`${players.length} players`}>
+            <span className="lobby-host__player-count-icon" aria-hidden="true">👥</span>
+            <span className="lobby-host__player-count-num font-display">{players.length}</span>
+          </div>
+          <button
+            type="button"
+            onClick={onStart}
+            disabled={players.length === 0}
+            className="lobby-host__start-btn font-display font-bold"
+            title={players.length === 0 ? copy.lobby.emptyCta : ""}
+          >
+            {copy.lobby.start}
+          </button>
+        </aside>
       </div>
-      {error && <p className="mb-2 text-center font-semibold text-tile-triangle">{error}</p>}
-      <div className="sticky bottom-6 mt-6 flex shrink-0 justify-center landscapePhone:bottom-2 landscapePhone:mt-3">
-        <button onClick={onStart} disabled={players.length === 0} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-8 landscapePhone:py-3 landscapePhone:text-lg" title={players.length === 0 ? copy.lobby.emptyCta : ""}>
+
+      {error && <p className="mb-2 text-center text-sm font-semibold text-tile-triangle landscapePhone:mb-0 landscapePhone:mt-1">{error}</p>}
+      <div className="sticky bottom-6 mt-6 flex shrink-0 justify-center landscapePhone:hidden">
+        <button onClick={onStart} disabled={players.length === 0} className="alkheelank-btn-primary px-16 text-2xl" title={players.length === 0 ? copy.lobby.emptyCta : ""}>
           {copy.lobby.start}
         </button>
       </div>

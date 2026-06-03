@@ -82,10 +82,8 @@ function closeQuestion(game) {
   GM.recordRanks(game); // snapshot ranking for the post-game comeback stat
   io.to(gameRoom(game.pin)).emit("game:reveal", reveal);
 
-  for (const player of game.players.values()) {
-    if (player.socketId) {
-      io.to(player.socketId).emit("player:result", GM.buildPlayerResult(game, player.socketId));
-    }
+  for (const socketId of game.sockets.keys()) {
+    io.to(socketId).emit("player:result", GM.buildPlayerResult(game, socketId));
   }
 }
 
@@ -305,6 +303,7 @@ io.on("connection", (socket) => {
     const finish = (player, reconnected) => {
       socket.join(gameRoom(game.pin));
       const ok = {
+        id: player.pid,
         pid: player.pid,
         nick: player.nick,
         character: player.character,

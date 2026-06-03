@@ -256,7 +256,10 @@ export function markDisconnected(game, socketId) {
   const pid = game.sockets.get(socketId);
   if (!pid) return null;
   const p = game.players.get(pid);
-  if (p) p.connected = false;
+  if (p) {
+    p.connected = false;
+    p.socketId = null;
+  }
   game.sockets.delete(socketId);
   return p;
 }

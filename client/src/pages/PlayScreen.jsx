@@ -35,10 +35,15 @@ export default function PlayScreen() {
   const [hostConnected, setHostConnected] = useState(true);
   const [showReconnectBanner, setShowReconnectBanner] = useState(false);
   const joinInfoRef = useRef(null);
+  const pinRef = useRef(pin);
+  const teamIdRef = useRef(teamId);
+  pinRef.current = pin;
+  teamIdRef.current = teamId;
 
   useEffect(() => {
     wakeServer().catch(() => {});
     ensureConnected();
+
     const onConnect = () => {
       const info = joinInfoRef.current;
       if (!info) return;
@@ -52,24 +57,30 @@ export default function PlayScreen() {
     };
     const onMeta = (m) => {
       setMeta(m);
-      if (m.mode === "teams" && m.teams?.length && !teamId) setTeamId(m.teams[0].id);
+      if (m.mode === "teams" && m.teams?.length && !teamIdRef.current) {
+        const first = m.teams[0].id;
+        teamIdRef.current = first;
+        setTeamId(first);
+      }
     };
     const onJoined = (info) => {
-      setMe(info);
+      const player = { ...info, id: info.id ?? info.pid };
+      setMe(player);
       joinInfoRef.current = {
-        pin: pin.replace(/\D/g, "").slice(0, 6),
-        nick: info.nick,
-        character: info.character,
-        teamId: info.teamId,
-        pid: info.pid,
+        pin: pinRef.current.replace(/\D/g, "").slice(0, 6),
+        nick: player.nick,
+        character: player.character,
+        teamId: player.teamId,
+        pid: player.pid,
       };
       setJoining(false);
       setError(null);
       if (info.reconnected) {
         setShowReconnectBanner(true);
         setTimeout(() => setShowReconnectBanner(false), 3500);
+      } else {
+        setPhase("lobby");
       }
-      setPhase("lobby");
     };
     const onHostStatus = ({ connected }) => {
       setHostConnected(connected !== false);
@@ -95,42 +106,56 @@ export default function PlayScreen() {
       if (r.correct) sfx.correct();
       else if (r.answered) sfx.wrong();
     };
+    const onStandings = (s) => {
+      setStandings(s);
+      setPhase("standings");
+    };
+    const onPaused = () => setPaused(true);
+    const onResumed = ({ startedAt }) => {
+      setPaused(false);
+      setQuestion((q) => (q ? { ...q, startedAt } : q));
+    };
+    const onFinal = (f) => {
+      const myId = joinInfoRef.current?.pid;
+      setFinalRank(f.standings.find((p) => p.id === myId));
+      setPhase("final");
+    };
+    const onEnded = () => setPhase("ended");
+    const onPlayerError = ({ message }) => {
+      setError(message);
+      setJoining(false);
+    };
 
     socket.on("connect", onConnect);
     socket.on("player:meta", onMeta);
     socket.on("player:joined", onJoined);
-    socket.on("player:error", ({ message }) => {
-      setError(message);
-      setJoining(false);
-    });
+    socket.on("player:error", onPlayerError);
     socket.on("game:question", onQuestion);
     socket.on("player:answerLocked", onLocked);
     socket.on("player:result", onResult);
-    socket.on("game:standings", (s) => {
-      setStandings(s);
-      setPhase("standings");
-    });
-    socket.on("game:paused", () => setPaused(true));
-    socket.on("game:resumed", ({ startedAt }) => {
-      setPaused(false);
-      setQuestion((q) => (q ? { ...q, startedAt } : q));
-    });
-    socket.on("game:final", (f) => {
-      setFinalRank(f.standings.find((p) => p.id === (me?.id || joinInfoRef.current?.pid)));
-      setPhase("final");
-    });
-    socket.on("game:ended", () => setPhase("ended"));
+    socket.on("game:standings", onStandings);
+    socket.on("game:paused", onPaused);
+    socket.on("game:resumed", onResumed);
+    socket.on("game:final", onFinal);
+    socket.on("game:ended", onEnded);
     socket.on("game:hostStatus", onHostStatus);
 
     return () => {
       socket.off("connect", onConnect);
       socket.off("player:meta", onMeta);
       socket.off("player:joined", onJoined);
+      socket.off("player:error", onPlayerError);
       socket.off("game:question", onQuestion);
       socket.off("player:answerLocked", onLocked);
       socket.off("player:result", onResult);
+      socket.off("game:standings", onStandings);
+      socket.off("game:paused", onPaused);
+      socket.off("game:resumed", onResumed);
+      socket.off("game:final", onFinal);
+      socket.off("game:ended", onEnded);
+      socket.off("game:hostStatus", onHostStatus);
     };
-  }, [pin, me, teamId]);
+  }, []);
 
   const goProfile = async () => {
     const cleanPin = pin.replace(/\D/g, "").slice(0, 6);
@@ -272,7 +297,7 @@ export default function PlayScreen() {
     return (
       <>
         {settingsFab}
-        <StandingsCard standings={standings} meId={me?.id} />
+        <StandingsCard standings={standings} meId={me?.id ?? me?.pid ?? joinInfoRef.current?.pid} />
       </>
     );
   }

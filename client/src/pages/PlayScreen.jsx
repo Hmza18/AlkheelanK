@@ -5,7 +5,8 @@ import { socket, ensureConnected, wakeServer, connectSocket, formatConnectError 
 import { sfx } from "../lib/sound.js";
 import Logo from "../components/Logo.jsx";
 import AnswerTile from "../components/AnswerTile.jsx";
-import Avatar, { BASES, COLORS, DEFAULT_AVATAR } from "../components/characters.jsx";
+import Avatar, { DEFAULT_AVATAR } from "../components/characters.jsx";
+import AvatarPicker from "../components/AvatarPicker.jsx";
 import PostAnswerWaiting from "../components/PostAnswerWaiting.jsx";
 import { HostStatusBanner, PlayerReconnectBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
@@ -220,7 +221,7 @@ export default function PlayScreen() {
     return (
       <>
         {settingsFab}
-        <JoinProfile
+        <AvatarPicker
         nickname={nickname}
         setNickname={setNickname}
         avatar={avatar}
@@ -229,7 +230,7 @@ export default function PlayScreen() {
         teams={meta?.teams || []}
         teamId={teamId}
         setTeamId={setTeamId}
-        join={join}
+        onDone={join}
         joining={joining}
         error={error}
       />
@@ -363,93 +364,6 @@ function JoinPin({ pin, setPin, goProfile, error }) {
         </button>
       </form>
     </div>
-  );
-}
-
-function JoinProfile({
-  nickname,
-  setNickname,
-  avatar,
-  setAvatar,
-  mode,
-  teams,
-  teamId,
-  setTeamId,
-  join,
-  joining,
-  error,
-}) {
-  return (
-    <form onSubmit={join} className="alkheelank-screen-fill alkheelank-safe-x mx-auto flex max-w-md flex-col overflow-y-auto px-5 py-6 pb-24">
-      <div className="mt-3 flex justify-center">
-        <Avatar config={avatar} size={120} ring />
-      </div>
-      <input
-        className="alkheelank-input mt-4"
-        placeholder="Nickname"
-        maxLength={16}
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        autoFocus
-      />
-      {mode === "teams" && (
-        <div className="mt-3 rounded-2xl bg-ink-800/70 p-3 ring-1 ring-white/10">
-          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted">Choose team</p>
-          <div className="grid grid-cols-2 gap-2">
-            {teams.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTeamId(t.id)}
-                className={`min-h-touch rounded-xl px-3 py-3 text-sm font-bold ring-1 ${
-                  teamId === t.id ? "ring-paper text-paper" : "ring-white/10 text-muted"
-                }`}
-                style={{ backgroundColor: `${t.color}22` }}
-              >
-                {t.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      <div className="mt-4 rounded-3xl bg-ink-800/70 p-3 ring-1 ring-white/10">
-        <div className="grid grid-cols-5 gap-2">
-          {BASES.map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setAvatar((a) => ({ ...a, base: id }))}
-              className={`flex min-h-touch min-w-touch items-center justify-center rounded-2xl p-1 ${
-                avatar.base === id ? "bg-brand-mid/30 ring-2 ring-brand-mid" : "ring-1 ring-white/10"
-              }`}
-            >
-              <Avatar config={{ ...avatar, base: id }} size={56} />
-            </button>
-          ))}
-        </div>
-        <div className="mt-3 flex justify-center gap-2">
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setAvatar((a) => ({ ...a, color: c }))}
-              className={`h-11 w-11 shrink-0 rounded-full ${
-                avatar.color === c ? "ring-4 ring-paper" : "ring-2 ring-white/15"
-              }`}
-              style={{ backgroundColor: c }}
-            />
-          ))}
-        </div>
-      </div>
-      {error && (
-        <p className="mt-4 rounded-xl bg-tile-triangle/20 px-4 py-2 text-center font-semibold text-tile-triangle">
-          {error}
-        </p>
-      )}
-      <button type="submit" disabled={joining} className="alkheelank-btn-primary mt-5 w-full text-xl">
-        {joining ? copy.player.joining : copy.player.profileCta}
-      </button>
-    </form>
   );
 }
 

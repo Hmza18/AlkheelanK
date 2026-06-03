@@ -30,8 +30,12 @@ export const TEAM_PRESETS = {
 };
 
 export const AVATAR_BASES = [
-  "spark", "fox", "frog", "bunny", "robot", "lion", "owl", "seal",
-  "dragon", "bee", "bear", "pup", "alien", "chick", "raccoon",
+  "sun", "bear", "moose", "pug", "cat", "hamster", "mouse", "rabbit", "fox", "wolf",
+  "spark", "frog", "bunny", "robot", "lion", "owl", "seal",
+  "dragon", "bee", "pup", "alien", "chick", "raccoon",
+];
+export const AVATAR_ACCESSORIES = [
+  "none", "disguise", "note", "pacifier", "pancakes", "icecream", "football", "cycling", "bow",
 ];
 export const AVATAR_COLORS = [
   "#f43f5e", "#fb923c", "#facc15", "#22c55e",
@@ -42,7 +46,8 @@ export const AVATAR_GLASSES = ["none", "round", "shades"];
 export const AVATAR_MOUTHS = ["smile", "grin", "oh"];
 
 export const DEFAULT_AVATAR = {
-  base: "spark",
+  base: "sun",
+  accessory: "none",
   color: "#0ea5e9",
   hat: "none",
   glasses: "none",
@@ -96,8 +101,11 @@ export function isNickAllowed(nick) {
 
 function sanitizeAvatar(cfg) {
   const c = cfg && typeof cfg === "object" ? cfg : {};
+  let base = pick(AVATAR_BASES, c.base, DEFAULT_AVATAR.base);
+  if (base === "mouse") base = "hamster";
   return {
-    base: pick(AVATAR_BASES, c.base, DEFAULT_AVATAR.base),
+    base,
+    accessory: pick(AVATAR_ACCESSORIES, c.accessory, "none"),
     color: pick(AVATAR_COLORS, c.color, DEFAULT_AVATAR.color),
     hat: pick(AVATAR_HATS, c.hat, "none"),
     glasses: pick(AVATAR_GLASSES, c.glasses, "none"),

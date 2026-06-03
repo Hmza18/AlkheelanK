@@ -1,10 +1,15 @@
-// AlkheelanK avatar stickers.
-//
-// I can't copy the Kahoot character sheet. This file gives us the same useful
-// UX shape — a clean grid of cute face stickers — with original SVG artwork and
-// a cohesive AlkheelanK style: rounded heads, soft sticker outline, big eyes, tiny
-// expression. The socket config stays `{ base, color, hat, glasses, mouth }`
-// for compatibility, but the UI now feels like choosing a face sheet.
+// AlkheelanK avatar stickers — picker faces + legacy config for older saves.
+
+import { useId } from "react";
+import {
+  ACCESSORIES,
+  CHARACTER_VIBES,
+  CompositeAvatar,
+  MannequinWithAccessory,
+  PICKER_BASES,
+} from "./avatarArt.jsx";
+
+export { PICKER_BASES, ACCESSORIES, CHARACTER_VIBES };
 
 const INK = "#1f2937";
 const PAPER = "#f8fafc";
@@ -13,6 +18,7 @@ const BLUSH = "#fb7185";
 const GOLD = "#facc15";
 
 export const BASES = [
+  ...PICKER_BASES,
   "spark",
   "fox",
   "frog",
@@ -28,7 +34,7 @@ export const BASES = [
   "alien",
   "chick",
   "raccoon",
-];
+].filter((id, i, arr) => arr.indexOf(id) === i);
 
 export const COLORS = [
   "#f43f5e",
@@ -46,7 +52,8 @@ export const GLASSES = ["none", "round", "shades"];
 export const MOUTHS = ["smile", "grin", "oh"];
 
 export const DEFAULT_AVATAR = {
-  base: "spark",
+  base: "sun",
+  accessory: "none",
   color: "#0ea5e9",
   hat: "none",
   glasses: "none",
@@ -55,8 +62,11 @@ export const DEFAULT_AVATAR = {
 
 export function sanitizeAvatar(cfg) {
   const c = cfg && typeof cfg === "object" ? cfg : {};
+  let base = BASES.includes(c.base) ? c.base : DEFAULT_AVATAR.base;
+  if (base === "mouse") base = "hamster";
   return {
-    base: BASES.includes(c.base) ? c.base : DEFAULT_AVATAR.base,
+    base,
+    accessory: ACCESSORIES.includes(c.accessory) ? c.accessory : "none",
     color: COLORS.includes(c.color) ? c.color : DEFAULT_AVATAR.color,
     hat: HATS.includes(c.hat) ? c.hat : "none",
     glasses: GLASSES.includes(c.glasses) ? c.glasses : "none",
@@ -113,7 +123,7 @@ function Face({ color, children, happy = false }) {
   );
 }
 
-const DETAILS = {
+const LEGACY_DETAILS = {
   spark: ({ color }) => (
     <Face color={color}>
       <polygon points="32,7 35,17 46,17 37,23 40,34 32,27 24,34 27,23 18,17 29,17" fill={GOLD} />
@@ -260,14 +270,47 @@ const GLASSES_RENDER = {
   ),
 };
 
-export default function Avatar({ config, size = 48, ring = false, className = "" }) {
+export default function Avatar({
+  config,
+  size = 48,
+  ring = false,
+  className = "",
+  variant = "default",
+}) {
   const c = sanitizeAvatar(config);
-  const Base = DETAILS[c.base] || DETAILS.spark;
+  const uid = useId().replace(/:/g, "");
+
+  if (variant === "mannequin") {
+    return (
+      <span
+        className={`inline-grid place-items-center overflow-visible ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+          <MannequinWithAccessory accessory={c.accessory || "none"} uid={uid} />
+        </svg>
+      </span>
+    );
+  }
+
+  if (PICKER_BASES.includes(c.base) || c.base === "mouse" || variant === "picker") {
+    const base = c.base === "mouse" ? "hamster" : PICKER_BASES.includes(c.base) ? c.base : "sun";
+    return (
+      <span
+        className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-white/30" : ""} ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+          <CompositeAvatar base={base} accessory={c.accessory || "none"} uid={uid} />
+        </svg>
+      </span>
+    );
+  }
+
+  const Base = LEGACY_DETAILS[c.base] || LEGACY_DETAILS.spark;
   return (
     <span
-      className={`inline-grid place-items-center overflow-visible rounded-full ${
-        ring ? "ring-2 ring-white/30" : ""
-      } ${className}`}
+      className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-white/30" : ""} ${className}`}
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">

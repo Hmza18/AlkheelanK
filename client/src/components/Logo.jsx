@@ -1,4 +1,4 @@
-// AlkheelanK wordmark. The four answer shapes are baked into the mark so the brand
+// Alkheeloot wordmark. The four answer shapes are baked into the mark so the brand
 // itself hints at the gameplay — familiarity from the flow, not a copied logo.
 
 const SHAPES = [
@@ -41,7 +41,7 @@ export default function Logo({ size = "md", withMark = true, className = "" }) {
     <div className={`flex items-center gap-3 ${className}`}>
       {withMark && <Mark size={markSize} />}
       <span className={`font-display font-bold tracking-tight alkheelank-gradient-text ${text}`}>
-        AlkheelanK
+        Alkheeloot
       </span>
     </div>
   );

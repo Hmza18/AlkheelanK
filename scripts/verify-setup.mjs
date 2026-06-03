@@ -25,7 +25,7 @@ const serverUrl = clientEnv.VITE_SERVER_URL;
 
 let ok = true;
 
-console.log("\n=== AlkheelanK setup check ===\n");
+console.log("\n=== Alkheeloot setup check ===\n");
 
 if (!url || !key) {
   console.log("✗ client/.env missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY");

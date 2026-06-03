@@ -14,6 +14,7 @@ import {
 } from "../lib/db.js";
 import Logo from "../components/Logo.jsx";
 import SettingsPanel from "../components/SettingsPanel.jsx";
+import BuiltByHamza from "../components/BuiltByHamza.jsx";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
@@ -250,6 +251,8 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
           </div>
         </section>
       )}
+
+      <BuiltByHamza className="mt-14 pb-4" />
     </div>
   );
 }

@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       colors: {
-        // AlkheelanK identity — warm "living-room" charcoal with an amber→orange→coral
+        // Alkheeloot identity — warm "living-room" charcoal with an amber→orange→coral
         // brand gradient. Cozy family game night, not a neon arcade.
         ink: {
           900: "#1a1814", // deepest background (warm charcoal, not pure black)

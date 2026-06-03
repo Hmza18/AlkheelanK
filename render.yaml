@@ -1,4 +1,4 @@
-# One-click Render blueprint for the AlkheelanK server.
+# One-click Render blueprint for the Alkheeloot server.
 # In the Render dashboard: New → Blueprint → point at this repo.
 services:
   - type: web
@@ -11,4 +11,4 @@ services:
     healthCheckPath: /
     envVars:
       - key: CORS_ORIGIN
-        value: https://www.alkheelan.xyz,https://alkheelan.xyz
+        value: https://www.alkheeloot.xyz,https://alkheeloot.xyz

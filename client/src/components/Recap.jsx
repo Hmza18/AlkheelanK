@@ -80,7 +80,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
       <div className="flex items-center justify-between">
 
-        <span className="alkheelank-heading text-xl alkheelank-gradient-text">AlkheelanK</span>
+        <span className="alkheelank-heading text-xl alkheelank-gradient-text">Alkheeloot</span>
 
         <span className="alkheelank-label rounded-full bg-ink-700 px-3 py-1 normal-case">Party recap</span>
 

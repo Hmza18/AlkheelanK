@@ -1,4 +1,4 @@
--- AlkheelanK database schema for Supabase.
+-- Alkheeloot database schema for Supabase.
 -- Run this in the Supabase SQL editor (Dashboard → SQL → New query).
 -- Auth itself is handled by Supabase Auth (email + password); these tables just
 -- store each host's saved quizzes, question bank, game history, and shared

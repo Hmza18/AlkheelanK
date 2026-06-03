@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Shape from "../components/Shape.jsx";
 import { ANSWERS } from "../lib/answers.js";
 import { useAuth } from "../lib/auth.jsx";
+import BuiltByHamza from "../components/BuiltByHamza.jsx";
 
 const container = {
   hidden: {},
@@ -47,7 +48,7 @@ export default function Landing() {
           variants={item}
           className="font-display text-5xl font-extrabold tracking-tight alkheelank-gradient-text sm:text-7xl"
         >
-          Alkheelan K
+          Alkheeloot
         </motion.h1>
 
         <motion.h2
@@ -132,9 +133,7 @@ export default function Landing() {
         </div>
       </motion.section>
 
-      <p className="relative z-10 mt-16 text-center text-sm font-semibold text-muted/80">
-        Built by Hamza
-      </p>
+      <BuiltByHamza className="relative z-10 mt-16" />
     </div>
   );
 }

@@ -26,7 +26,7 @@ app.use(cors({ origin: origins }));
 app.use(express.json());
 
 app.get("/", (_req, res) => {
-  res.json({ name: "AlkheelanK server", status: "ok", ...GM.stats() });
+  res.json({ name: "Alkheeloot server", status: "ok", ...GM.stats() });
 });
 
 app.get("/quizzes", (_req, res) => {
@@ -406,5 +406,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`AlkheelanK server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);
+  console.log(`Alkheeloot server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);
 });

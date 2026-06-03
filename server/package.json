@@ -1,7 +1,7 @@
 {
   "name": "alkheelank-server",
   "version": "1.0.0",
-  "description": "AlkheelanK real-time quiz game server (Express + Socket.io)",
+  "description": "Alkheeloot real-time quiz game server (Express + Socket.io)",
   "type": "module",
   "main": "src/index.js",
   "engines": {

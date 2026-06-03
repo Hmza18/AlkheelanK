@@ -1,8 +1,8 @@
-# One-shot local setup for AlkheelanK
+# One-shot local setup for Alkheeloot
 $ErrorActionPreference = "Stop"
 $Root = Split-Path $PSScriptRoot -Parent
 
-Write-Host "`nAlkheelanK setup`n" -ForegroundColor Cyan
+Write-Host "`nAlkheeloot setup`n" -ForegroundColor Cyan
 
 function Ensure-Env($example, $target) {
   if (-not (Test-Path $target)) {

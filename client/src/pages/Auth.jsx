@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "../lib/auth.jsx";
 import { consumeOAuthHashError, isOAuthCallback } from "../lib/authRedirect.js";
 import Logo from "../components/Logo.jsx";
+import BuiltByHamza from "../components/BuiltByHamza.jsx";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -190,7 +191,9 @@ export default function Auth() {
         Guests can run a one-off game, but saving quizzes needs an account.
       </p>
 
-      <button onClick={() => navigate("/")} className="mt-6 text-sm text-muted hover:text-paper">
+      <BuiltByHamza className="mt-8" />
+
+      <button onClick={() => navigate("/")} className="mt-4 text-sm text-muted hover:text-paper">
         ← Home
       </button>
     </div>

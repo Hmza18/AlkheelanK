@@ -1,4 +1,4 @@
-// AlkheelanK avatar stickers — picker faces + legacy config for older saves.
+// Alkheeloot avatar stickers — picker faces + legacy config for older saves.
 
 import { useId } from "react";
 import {

@@ -10,6 +10,7 @@ import AvatarPicker from "../components/AvatarPicker.jsx";
 import PostAnswerWaiting from "../components/PostAnswerWaiting.jsx";
 import { HostStatusBanner, PlayerReconnectBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
+import BuiltByHamza from "../components/BuiltByHamza.jsx";
 import SettingsPanel from "../components/SettingsPanel.jsx";
 
 export default function PlayScreen() {
@@ -363,6 +364,7 @@ function JoinPin({ pin, setPin, goProfile, error }) {
           Continue →
         </button>
       </form>
+      <BuiltByHamza className="mt-auto pt-8" />
     </div>
   );
 }

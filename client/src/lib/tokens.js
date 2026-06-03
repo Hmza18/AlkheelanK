@@ -1,4 +1,4 @@
-// AlkheelanK design tokens — single source for spacing, motion, semantic colors, and UI rhythm.
+// Alkheeloot design tokens — single source for spacing, motion, semantic colors, and UI rhythm.
 // Tailwind mirrors these in tailwind.config.js; components import here for JS-driven styles.
 
 export const color = {

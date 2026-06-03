@@ -1,4 +1,4 @@
-// AlkheelanK microcopy — confident, playful, family-friendly (not Kahoot-shaped).
+// Alkheeloot microcopy — confident, playful, family-friendly (not Kahoot-shaped).
 
 export const copy = {
   connecting: {

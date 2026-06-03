@@ -1,4 +1,4 @@
-// Original post-answer filler lines — kid-friendly, AlkheelanK tone (not Kahoot copy).
+// Original post-answer filler lines — kid-friendly, Alkheeloot tone (not Kahoot copy).
 
 const FAST = [
   "Whoa, lightning fingers! ⚡",

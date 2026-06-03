@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "../lib/auth.jsx";
 import { getQuizShare, createQuiz } from "../lib/db.js";
 import Logo from "../components/Logo.jsx";
+import BuiltByHamza from "../components/BuiltByHamza.jsx";
 
 // Handles two entry points:
 //   /share/:code  — arrived via a share link (code from URL)
@@ -182,9 +183,11 @@ export default function ShareImport() {
         </motion.div>
       )}
 
+      <BuiltByHamza className="mt-auto pt-10" />
+
       <button
         onClick={() => navigate(-1)}
-        className="mt-auto pt-10 text-sm text-muted hover:text-paper"
+        className="mt-4 text-sm text-muted hover:text-paper"
       >
         ← Back
       </button>

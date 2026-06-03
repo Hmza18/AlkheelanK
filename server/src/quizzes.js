@@ -9,7 +9,7 @@ import { questionImageFor } from "./starterImages.js";
 
 const TF = ["True", "False"];
 
-// All starter content below is ORIGINAL — written for AlkheelanK, not lifted from any
+// All starter content below is ORIGINAL — written for Alkheeloot, not lifted from any
 // copyrighted quiz set or trivia book. Facts are general knowledge.
 
 export const QUIZZES = [

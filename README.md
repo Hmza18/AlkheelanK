@@ -1,4 +1,4 @@
-# AlkheelanK
+# Alkheeloot
 
 **Fast-tap trivia for your living room.** A real-time multiplayer quiz game — the host runs the big screen, everyone else plays from their phones with a 6-digit PIN. Same energy and mechanics you already know, our own look.
 
@@ -146,7 +146,7 @@ After fixing, **Deployments → ⋯ → Redeploy**.
 ## Project layout
 
 ```
-AlkheelanK/
+Alkheeloot/
 ├── server/                 # Express + Socket.io (in-memory game state)
 │   └── src/
 │       ├── index.js        # socket wiring, room broadcasts, timers

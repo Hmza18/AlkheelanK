@@ -30,10 +30,10 @@ If Google sign-in sends you to **localhost** (connection refused), Supabase **Si
 
 [Authentication → URL configuration](https://supabase.com/dashboard/project/lfoydcrwkjhzanveyxjj/auth/url-configuration)
 
-- **Site URL:** `https://www.alkheelan.xyz` (your live URL — **not** `http://localhost:5173`)
+- **Site URL:** `https://www.alkheeloot.xyz` (your live URL — **not** `http://localhost:5173`)
 - **Redirect URLs:**  
-  - `https://www.alkheelan.xyz/login`  
-  - `https://www.alkheelan.xyz/host`  
+  - `https://www.alkheeloot.xyz/login`  
+  - `https://www.alkheeloot.xyz/host`  
   - `http://localhost:5173/login`  
   - `http://localhost:5173/host`
 

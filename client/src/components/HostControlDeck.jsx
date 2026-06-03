@@ -36,7 +36,7 @@ export default function HostControlDeck({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 380, damping: 28 }}
-            className="w-72 rounded-2xl bg-ink-800/95 p-4 shadow-2xl ring-1 ring-white/10 backdrop-blur-md"
+            className="w-72 max-w-[calc(100vw-2rem)] rounded-2xl bg-ink-800/95 p-4 shadow-2xl ring-1 ring-white/10 backdrop-blur-md"
           >
             <p className="text-xs font-bold uppercase tracking-widest text-muted">
               {copy.host.pacing.label}

@@ -362,7 +362,7 @@ export default function HostGame({ launch, onExit }) {
               onExit();
             }
           }}
-          className="fixed bottom-4 right-4 rounded-xl bg-ink-800/80 px-4 py-2 text-sm font-semibold text-muted ring-1 ring-white/10 hover:text-paper"
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] rounded-xl bg-ink-800/80 px-4 py-2 text-sm font-semibold text-muted ring-1 ring-white/10 hover:text-paper"
         >
           {copy.host.endConfirm}
         </button>
@@ -378,7 +378,7 @@ function Centered({ children }) {
 function SetupView({ settings, setSettings, onCreate, onCancel }) {
   const toggle = (key) => setSettings((s) => ({ ...s, [key]: !s[key] }));
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="alkheelank-screen-host mx-auto max-w-2xl overflow-y-auto">
       <div className="flex items-center justify-between">
         <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage"><Logo size="sm" /></button>
         <button onClick={onCancel} className="text-muted hover:text-paper">← Dashboard</button>
@@ -448,7 +448,7 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const joinUrl = `${origin}/join?pin=${pin}`;
   return (
-    <div className="alkheelank-screen-host flex min-h-[88vh] flex-col">
+    <div className="alkheelank-screen-host flex min-h-[88svh] flex-col">
       <div className="flex items-center justify-between">
         <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage"><Logo /></button>
         <div className="text-right"><p className="text-sm uppercase tracking-widest text-muted">Players</p><p className="font-display text-3xl font-bold">{players.length}</p></div>
@@ -462,7 +462,7 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
         </div>
         {pin && <div className="flex flex-col items-center"><div className="rounded-3xl bg-ink-800/70 p-5 ring-1 ring-white/10"><QRCodeSVG value={joinUrl} size={150} bgColor="transparent" fgColor="#faf6f0" level="M" /></div><p className="mt-3 text-sm font-semibold text-muted">📱 {copy.lobby.scan}</p></div>}
       </div>
-      <div className="mt-10 flex-1">
+      <div className="mt-10 flex-1 overflow-y-auto">
         {players.length === 0 ? <p className="mt-10 text-center text-xl text-muted animate-pulse">{copy.lobby.waiting}</p> : (
           <div className="flex flex-wrap justify-center gap-3">
             <AnimatePresence>
@@ -502,14 +502,14 @@ function QuestionView({ question, image, answerCount, paused }) {
     };
   }, [question?.startedAt, question?.timeLimit, paused]);
   return (
-    <div className="alkheelank-screen-host flex min-h-[90vh] flex-col">
+    <div className="alkheelank-screen-host flex min-h-[90svh] flex-col">
       <div className="flex items-center justify-between text-muted">
         <span className="font-semibold">Question {question.index + 1} of {question.total}{isTF && <span className="ml-3 rounded-full bg-ink-700 px-3 py-1 text-sm">True / False</span>}</span>
         <span className="font-semibold">{answerCount.answered} answered</span>
       </div>
       {question.doublePoints && <div className="mx-auto mt-3 inline-flex animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-5 py-2 text-lg font-extrabold text-paper ring-1 ring-brand-mid">⚡ {copy.reveal.doublePoints}</div>}
       <h1 className="mt-4 text-center font-display text-4xl font-bold leading-tight sm:text-5xl">{question.question}</h1>
-      {image && <div className="mt-5"><motion.img initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} src={image} alt="" className="mx-auto max-h-[34vh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10" /></div>}
+      {image && <div className="mt-5"><motion.img initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} src={image} alt="" className="mx-auto max-h-[22svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 sm:max-h-[34svh]" /></div>}
       <div className="my-6 flex items-center justify-center"><Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound /></div>
       <div className={`mt-auto grid gap-4 ${isTF ? "sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2"}`}>
         {question.answers.map((a, i) => <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big />)}
@@ -523,7 +523,7 @@ function QuestionView({ question, image, answerCount, paused }) {
 
 function StandingsView({ standings, onNext }) {
   return (
-    <div className="alkheelank-screen-host mx-auto flex min-h-[90vh] max-w-4xl flex-col">
+    <div className="alkheelank-screen-host mx-auto flex min-h-[90svh] max-w-4xl flex-col">
       <div className="text-center">
         <p className="alkheelank-label tracking-[0.3em]">{copy.standings.subtitle(standings.index, standings.total)}</p>
         <h1 className="mt-2 alkheelank-heading text-4xl alkheelank-gradient-text sm:text-5xl">{copy.standings.title}</h1>
@@ -561,7 +561,7 @@ function FinalView({ final, onHome }) {
 
   if (view === "recap") {
     return (
-      <div className="mx-auto flex min-h-[92vh] max-w-5xl flex-col items-center justify-center py-10">
+      <div className="mx-auto flex min-h-[92svh] max-w-5xl flex-col items-center justify-center py-10">
         <Recap recap={final.recap} title={final.title} standings={final.standings} />
         <p className="mt-4 text-center text-sm text-muted">📸 {copy.final.recapHint}</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -573,7 +573,7 @@ function FinalView({ final, onHome }) {
   }
 
   return (
-    <div className="mx-auto flex min-h-[92vh] max-w-5xl flex-col items-center justify-center py-10">
+    <div className="mx-auto flex min-h-[92svh] max-w-5xl flex-col items-center justify-center py-10">
       <h1 className="alkheelank-heading text-5xl alkheelank-gradient-text sm:text-7xl">{copy.final.title}</h1>
       <p className="mt-2 text-muted">{final.title}</p>
       {final.mode === "teams" && final.teamPodium?.length > 0 ? (

@@ -355,7 +355,7 @@ function JoinProfile({
   error,
 }) {
   return (
-    <form onSubmit={join} className="alkheelank-screen-fill alkheelank-safe-x mx-auto flex max-w-md flex-col px-5 py-6 pb-24">
+    <form onSubmit={join} className="alkheelank-screen-fill alkheelank-safe-x mx-auto flex max-w-md flex-col overflow-y-auto px-5 py-6 pb-24">
       <div className="mt-3 flex justify-center">
         <Avatar config={avatar} size={120} ring />
       </div>

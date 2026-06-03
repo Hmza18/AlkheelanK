@@ -4,12 +4,14 @@ import { useId } from "react";
 import {
   ACCESSORIES,
   CHARACTER_VIBES,
+  ACCESSORY_VIBES,
   CompositeAvatar,
   MannequinWithAccessory,
   PICKER_BASES,
+  resolveAccessory,
 } from "./avatarArt.jsx";
 
-export { PICKER_BASES, ACCESSORIES, CHARACTER_VIBES };
+export { PICKER_BASES, ACCESSORIES, CHARACTER_VIBES, ACCESSORY_VIBES };
 
 const INK = "#1f2937";
 const PAPER = "#f8fafc";
@@ -66,7 +68,7 @@ export function sanitizeAvatar(cfg) {
   if (base === "mouse") base = "hamster";
   return {
     base,
-    accessory: ACCESSORIES.includes(c.accessory) ? c.accessory : "none",
+    accessory: resolveAccessory(c.accessory),
     color: COLORS.includes(c.color) ? c.color : DEFAULT_AVATAR.color,
     hat: HATS.includes(c.hat) ? c.hat : "none",
     glasses: GLASSES.includes(c.glasses) ? c.glasses : "none",

@@ -35,7 +35,7 @@ export const AVATAR_BASES = [
   "dragon", "bee", "pup", "alien", "chick", "raccoon",
 ];
 export const AVATAR_ACCESSORIES = [
-  "none", "disguise", "note", "pacifier", "pancakes", "icecream", "football", "cycling", "bow",
+  "none", "disguise", "crown", "bow", "plaster", "wizard", "halo", "horns", "shades",
 ];
 export const AVATAR_COLORS = [
   "#f43f5e", "#fb923c", "#facc15", "#22c55e",
@@ -99,13 +99,26 @@ export function isNickAllowed(nick) {
   return !BLOCKLIST.some((word) => norm.includes(word));
 }
 
+const ACCESSORY_ALIASES = {
+  party: "bow",
+  headphones: "plaster",
+  cap: "bow",
+  medal: "plaster",
+  helmet: "bow",
+  beard: "plaster",
+  heart: "plaster",
+};
+
 function sanitizeAvatar(cfg) {
   const c = cfg && typeof cfg === "object" ? cfg : {};
   let base = pick(AVATAR_BASES, c.base, DEFAULT_AVATAR.base);
   if (base === "mouse") base = "hamster";
+  let accessory = ACCESSORY_ALIASES[c.accessory] || c.accessory;
+  if (!AVATAR_ACCESSORIES.includes(accessory)) accessory = "none";
+  else accessory = pick(AVATAR_ACCESSORIES, accessory, "none");
   return {
     base,
-    accessory: pick(AVATAR_ACCESSORIES, c.accessory, "none"),
+    accessory,
     color: pick(AVATAR_COLORS, c.color, DEFAULT_AVATAR.color),
     hat: pick(AVATAR_HATS, c.hat, "none"),
     glasses: pick(AVATAR_GLASSES, c.glasses, "none"),

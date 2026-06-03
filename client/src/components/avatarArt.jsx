@@ -38,14 +38,56 @@ export function resolvePickerBase(base) {
 export const ACCESSORIES = [
   "none",
   "disguise",
+  "crown",
+  "bow",
+  "plaster",
+  "wizard",
+  "halo",
+  "horns",
+  "shades",
+];
+
+export const ACCESSORY_VIBES = {
+  none: "No accessory",
+  disguise: "Glasses & mustache",
+  crown: "Royal crown",
+  bow: "Hair bow",
+  plaster: "Plaster",
+  wizard: "Wizard hat",
+  halo: "Angel halo",
+  horns: "Devil horns",
+  shades: "Cool shades",
+};
+
+/** Old accessory ids from earlier builds — map to none on load. */
+const LEGACY_ACCESSORIES = new Set([
   "note",
   "pacifier",
   "pancakes",
   "icecream",
   "football",
   "cycling",
-  "bow",
-];
+  "party",
+  "headphones",
+]);
+
+const LEGACY_ACCESSORY_MAP = {
+  party: "bow",
+  headphones: "plaster",
+  cap: "bow",
+  medal: "plaster",
+  helmet: "bow",
+  beard: "plaster",
+  heart: "plaster",
+};
+
+export function resolveAccessory(id) {
+  if (!id || id === "none") return "none";
+  if (LEGACY_ACCESSORY_MAP[id]) return LEGACY_ACCESSORY_MAP[id];
+  if (ACCESSORIES.includes(id)) return id;
+  if (LEGACY_ACCESSORIES.has(id)) return "none";
+  return "none";
+}
 
 function ClayDefs({ uid, skin }) {
   const { light, mid, dark, rim } = skin;
@@ -258,62 +300,86 @@ function ClayAccessory({ id, uid }) {
     case "disguise":
       return (
         <g>
-          <rect x="15" y="27" width="13" height="8" rx="3" fill="#6366f1" />
-          <rect x="36" y="27" width="13" height="8" rx="3" fill="#6366f1" />
-          <rect x="28.5" y="30" width="7" height="2.5" rx="1.2" fill="#4f46e5" />
-          <rect x="21" y="40" width="22" height="5" rx="2.5" fill="#78350f" />
+          <circle cx="24" cy="30" r="7.5" fill="#bae6fd" opacity="0.45" />
+          <circle cx="40" cy="30" r="7.5" fill="#bae6fd" opacity="0.45" />
+          <circle cx="24" cy="30" r="7.5" fill="none" stroke={INK} strokeWidth="2.2" />
+          <circle cx="40" cy="30" r="7.5" fill="none" stroke={INK} strokeWidth="2.2" />
+          <rect x="30.5" y="29" width="3" height="2" rx="1" fill={INK} />
+          <ellipse cx="26" cy="42" rx="7" ry="4" fill="#78350f" />
+          <ellipse cx="38" cy="42" rx="7" ry="4" fill="#78350f" />
+          <ellipse cx="32" cy="43" rx="4" ry="2.8" fill="#92400e" />
+          <ellipse cx="24" cy="41" rx="2" ry="1" fill="#a16207" opacity="0.5" />
+          <ellipse cx="40" cy="41" rx="2" ry="1" fill="#a16207" opacity="0.5" />
         </g>
       );
-    case "note":
-      return (
-        <g transform="rotate(-7 32 16)">
-          <rect x="21" y="7" width="22" height="18" rx="3" fill="#fde047" filter={`url(#${uid}-soft)`} />
-          <rect x="25" y="14" width="14" height="2" rx="1" fill="#ca8a04" opacity="0.55" />
-        </g>
-      );
-    case "pacifier":
-      return (
-        <g>
-          <circle cx="32" cy="44" r="7.5" fill="#f472b6" />
-          <circle cx="32" cy="44" r="4.5" fill="#fce7f3" />
-          <rect x="30" y="35" width="4" height="7" rx="2" fill="#ec4899" />
-        </g>
-      );
-    case "pancakes":
+    case "crown":
       return (
         <g>
-          <ellipse cx="32" cy="11" rx="15" ry="4.5" fill="#d97706" />
-          <ellipse cx="32" cy="7.5" rx="13" ry="3.8" fill="#fbbf24" />
-          <ellipse cx="32" cy="4.5" rx="10" ry="3" fill="#fde68a" />
-          <rect x="28" y="3" width="8" height="3.5" rx="1.5" fill="#f43f5e" />
-        </g>
-      );
-    case "icecream":
-      return (
-        <g>
-          <path d="M26 15 q6 -11 12 0 l-3.5 17 q-2.5 4 -8.5 0 z" fill="#f9a8d4" />
-          <ellipse cx="32" cy="13" rx="10" ry="6" fill="#fda4af" />
-        </g>
-      );
-    case "football":
-      return (
-        <g>
-          <ellipse cx="32" cy="10" rx="17" ry="10" fill="#854d0e" />
-          <path d="M17 10 h30" stroke="#fef3c7" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-        </g>
-      );
-    case "cycling":
-      return (
-        <g>
-          <path d="M11 22 q21 -17 42 0 v7 q-21 7 -42 0 z" fill="#0ea5e9" />
-          <rect x="28" y="14" width="8" height="5" rx="2" fill="#38bdf8" />
+          <path
+            d="M14 16 L18 8 L24 14 L32 5 L40 14 L46 8 L50 16 L48 20 H16 Z"
+            fill="#fbbf24"
+          />
+          <rect x="16" y="18" width="32" height="4" rx="1.5" fill="#d97706" />
+          <circle cx="24" cy="12" r="2" fill="#fef08a" />
+          <circle cx="32" cy="8" r="2.2" fill="#fef08a" />
+          <circle cx="40" cy="12" r="2" fill="#fef08a" />
         </g>
       );
     case "bow":
       return (
         <g>
-          <path d="M18 12 q14 9 28 0 q-14 9 -28 0" fill="#e11d48" />
-          <circle cx="32" cy="12" r="4.2" fill="#f43f5e" />
+          <ellipse cx="22" cy="9" rx="9" ry="6.5" fill="#ec4899" />
+          <ellipse cx="42" cy="9" rx="9" ry="6.5" fill="#ec4899" />
+          <circle cx="32" cy="9" r="4.5" fill="#db2777" />
+          <ellipse cx="22" cy="9" rx="4" ry="2.5" fill="#fbcfe8" opacity="0.65" />
+          <ellipse cx="42" cy="9" rx="4" ry="2.5" fill="#fbcfe8" opacity="0.65" />
+        </g>
+      );
+    case "plaster":
+      return (
+        <g transform="rotate(-16 42 38)">
+          <rect x="34" y="33.5" width="16" height="9" rx="2.2" fill="#fcd9bd" stroke="#d4a574" strokeWidth="0.7" />
+          <rect x="36.5" y="35.5" width="11" height="5" rx="1.2" fill="#faf6f0" />
+          <circle cx="39" cy="38" r="0.9" fill="#e7e5e4" />
+          <circle cx="42" cy="38" r="0.9" fill="#e7e5e4" />
+          <circle cx="45" cy="38" r="0.9" fill="#e7e5e4" />
+        </g>
+      );
+    case "wizard":
+      return (
+        <g>
+          <path d="M18 20 L32 2 L46 20 Z" fill="#6366f1" />
+          <path d="M22 20 L32 6 L42 20 Z" fill="#818cf8" opacity="0.55" />
+          <ellipse cx="32" cy="20" rx="18" ry="3" fill="#4f46e5" />
+          <circle cx="26" cy="12" r="1.5" fill="#fde047" />
+          <circle cx="32" cy="9" r="1.8" fill="#fde047" />
+          <circle cx="38" cy="13" r="1.4" fill="#fde047" />
+        </g>
+      );
+    case "halo":
+      return (
+        <g>
+          <ellipse cx="32" cy="8" rx="16" ry="4" fill="none" stroke="#fbbf24" strokeWidth="3.5" />
+          <ellipse cx="32" cy="8" rx="16" ry="4" fill="none" stroke="#fef08a" strokeWidth="1.5" opacity="0.65" />
+        </g>
+      );
+    case "horns":
+      return (
+        <g>
+          <path d="M18 18 Q14 4 22 10 Q20 16 18 18" fill="#ef4444" />
+          <path d="M46 18 Q50 4 42 10 Q44 16 46 18" fill="#ef4444" />
+          <path d="M19 16 Q16 8 21 12" fill="#fca5a5" opacity="0.55" />
+          <path d="M45 16 Q48 8 43 12" fill="#fca5a5" opacity="0.55" />
+        </g>
+      );
+    case "shades":
+      return (
+        <g>
+          <rect x="14" y="27" width="15" height="10" rx="4" fill="#1f2937" />
+          <rect x="35" y="27" width="15" height="10" rx="4" fill="#1f2937" />
+          <rect x="29" y="30" width="6" height="3" rx="1" fill="#374151" />
+          <rect x="16" y="29" width="5" height="2" rx="1" fill="#fff" opacity="0.15" />
+          <rect x="37" y="29" width="5" height="2" rx="1" fill="#fff" opacity="0.15" />
         </g>
       );
     default:
@@ -473,10 +539,11 @@ export function MannequinWithAccessory({ accessory, uid = "clay" }) {
 
 export function CompositeAvatar({ base, accessory, uid = "clay" }) {
   const resolved = resolvePickerBase(base);
+  const acc = accessory && accessory !== "none" ? accessory : null;
   return (
     <g>
       <PickerCharacter base={resolved} uid={uid} />
-      {accessory && accessory !== "none" ? <ClayAccessory id={accessory} uid={uid} /> : null}
+      {acc ? <ClayAccessory id={acc} uid={uid} /> : null}
     </g>
   );
 }

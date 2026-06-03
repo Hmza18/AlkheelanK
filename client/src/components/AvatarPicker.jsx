@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Logo from "./Logo.jsx";
-import Avatar, { ACCESSORIES, CHARACTER_VIBES, PICKER_BASES } from "./characters.jsx";
+import Avatar, { ACCESSORIES, ACCESSORY_VIBES, CHARACTER_VIBES, PICKER_BASES } from "./characters.jsx";
 import { copy } from "../lib/copy.js";
 
 function SegmentedTabs({ tab, onTab }) {
@@ -75,7 +75,7 @@ function AvatarGrid({ tab, avatar, setBase, setAccessory }) {
               key={id}
               selected={(avatar.accessory || "none") === id}
               onClick={() => setAccessory(id)}
-              label={id === "none" ? "No accessory" : `Accessory ${id}`}
+              label={ACCESSORY_VIBES[id] || id}
             >
               <Avatar config={{ base: "sun", accessory: id }} size={72} variant="mannequin" />
             </GridTile>

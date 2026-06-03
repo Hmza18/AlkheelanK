@@ -19,6 +19,7 @@ import HostControlDeck from "../components/HostControlDeck.jsx";
 import PhaseShell from "../components/PhaseShell.jsx";
 import { HostRecoveredBanner, HostStatusBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
+import { joinDisplayPath, joinQrUrl } from "../lib/site.js";
 
 const DEFAULT_SETTINGS = {
   mode: "solo",
@@ -443,27 +444,72 @@ function SetupView({ settings, setSettings, onCreate, onCancel }) {
   );
 }
 
+function formatLobbyPin(pinStr) {
+  return `${pinStr.slice(0, 3)} ${pinStr.slice(3, 6)}`;
+}
+
 function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
   const pinStr = String(pin || "").padStart(6, "•");
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const joinUrl = `${origin}/join?pin=${pin}`;
+  const joinUrl = joinQrUrl(pin);
   return (
     <div className="alkheelank-screen-host flex min-h-[88svh] flex-col">
       <div className="flex items-center justify-between">
         <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage"><Logo /></button>
         <div className="text-right"><p className="text-sm uppercase tracking-widest text-muted">Players</p><p className="font-display text-3xl font-bold">{players.length}</p></div>
       </div>
-      <div className="mt-10 flex flex-col items-center justify-center gap-8 sm:flex-row sm:gap-14">
-        <div className="flex flex-col items-center text-center">
-          <p className="alkheelank-label tracking-[0.3em]">{copy.lobby.pinLabel}</p>
-          <div className="pin-display mt-2 font-display text-7xl font-bold alkheelank-gradient-text sm:text-8xl">{pinStr.split("").join(" ")}</div>
-          {quizMeta && <p className="mt-3 text-muted">{quizMeta.title} · {quizMeta.questionCount} questions</p>}
-          <p className="mt-2 rounded-full bg-ink-700 px-3 py-1 text-xs font-bold uppercase tracking-widest text-muted">{mode === "teams" ? copy.lobby.modeTeams : copy.lobby.modeSolo}</p>
+
+      {quizMeta && (
+        <div className="lobby-quiz-badge mt-8 self-center">
+          {quizMeta.title} · {quizMeta.questionCount} questions
         </div>
-        {pin && <div className="flex flex-col items-center"><div className="rounded-3xl bg-ink-800/70 p-5 ring-1 ring-white/10"><QRCodeSVG value={joinUrl} size={150} bgColor="transparent" fgColor="#faf6f0" level="M" /></div><p className="mt-3 text-sm font-semibold text-muted">📱 {copy.lobby.scan}</p></div>}
+      )}
+
+      <div className="lobby-join-stage w-full max-w-6xl self-center">
+        <div className="lobby-join-panel-grid">
+          <div className="lobby-join-panel__instructions">
+            <p className="lobby-join-kicker">{copy.lobby.joinAt}</p>
+            <p className="lobby-join-url">{joinDisplayPath()}</p>
+            <p className="lobby-join-helper">
+              {copy.lobby.joinOr} <strong>{copy.lobby.joinQr}</strong>
+            </p>
+          </div>
+          <div className="lobby-join-panel__separator" aria-hidden="true" />
+          <div className="lobby-join-panel__pin">
+            <p className="lobby-join-panel__pin-label">{copy.lobby.pinLabel}</p>
+            <div className="pin-display-lobby lobby-join-panel__pin-number font-display alkheelank-gradient-text">
+              {formatLobbyPin(pinStr)}
+            </div>
+          </div>
+          {pin && (
+            <>
+              <div className="lobby-join-panel__separator" aria-hidden="true" />
+              <div className="lobby-join-panel__qr">
+                <QRCodeSVG value={joinUrl} size={160} bgColor="#faf6f0" fgColor="#1a1814" level="M" />
+              </div>
+            </>
+          )}
+        </div>
       </div>
+
+      {mode && (
+        <div className="mt-4 flex justify-center">
+          <p className="rounded-full bg-ink-700 px-3 py-1 text-xs font-bold uppercase tracking-widest text-muted ring-1 ring-white/10">
+            {mode === "teams" ? copy.lobby.modeTeams : copy.lobby.modeSolo}
+          </p>
+        </div>
+      )}
+
       <div className="mt-10 flex-1 overflow-y-auto">
-        {players.length === 0 ? <p className="mt-10 text-center text-xl text-muted animate-pulse">{copy.lobby.waiting}</p> : (
+        {players.length === 0 ? (
+          <p className="lobby-waiting-status mt-10" role="status" aria-live="polite">
+            <span className="lobby-waiting-status__label alkheelank-wait-shimmer">{copy.lobby.waiting}</span>
+            <span className="lobby-waiting-status__dots" aria-hidden="true">
+              <span className="lobby-waiting-status__dot" />
+              <span className="lobby-waiting-status__dot" />
+              <span className="lobby-waiting-status__dot" />
+            </span>
+          </p>
+        ) : (
           <div className="flex flex-wrap justify-center gap-3">
             <AnimatePresence>
               {players.map((p) => (

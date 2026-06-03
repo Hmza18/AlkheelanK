@@ -101,6 +101,9 @@ button:focus-visible {
   .alkheelank-screen-host {
     @apply alkheelank-safe-x alkheelank-safe-top alkheelank-safe-bottom mx-auto w-full max-w-6xl px-6 py-6;
   }
+  .host-phase-fill {
+    @apply min-h-0 min-h-dvh overflow-y-auto;
+  }
   .alkheelank-screen-player {
     @apply alkheelank-safe-x alkheelank-safe-top alkheelank-safe-bottom mx-auto w-full max-w-md px-5 py-6;
   }
@@ -342,6 +345,51 @@ button:focus-visible {
 
   .lobby-join-panel__pin-number {
     font-size: clamp(4rem, 12vw, 5rem);
+  }
+}
+
+/* Phone landscape: wide but short — host lobby stays horizontal, compact chrome */
+@media (orientation: landscape) and (max-height: 32rem) {
+  .alkheelank-screen-host {
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+  }
+
+  .host-chrome-toolbar {
+    top: max(0.5rem, env(safe-area-inset-top, 0px));
+    right: max(0.5rem, env(safe-area-inset-right, 0px));
+  }
+
+  .lobby-join-panel-grid {
+    grid-template-columns: minmax(0, 1fr) auto minmax(9rem, max-content) auto max-content;
+    gap: clamp(0.65rem, 2vw, 1rem);
+    text-align: center;
+  }
+
+  .lobby-join-panel__separator {
+    width: 1px;
+    min-height: 4.5rem;
+    height: auto;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.14), transparent);
+  }
+
+  .lobby-join-panel__pin-number {
+    font-size: clamp(2rem, 10vh, 2.75rem);
+  }
+
+  .lobby-join-panel__qr {
+    padding: 0.4rem;
+  }
+
+  .lobby-join-panel__qr svg {
+    width: 5.5rem !important;
+    height: 5.5rem !important;
+  }
+
+  .lobby-quiz-badge {
+    margin-top: 0.5rem;
   }
 }
 

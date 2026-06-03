@@ -464,9 +464,9 @@ export default function SocialReveal({
 
   return (
 
-    <div className="alkheelank-screen-host mx-auto flex min-h-[90vh] flex-col items-center">
+    <div className="alkheelank-screen-host host-phase-fill mx-auto flex min-h-0 flex-col items-center">
 
-      <header className="w-full max-w-3xl text-center">
+      <header className="w-full max-w-3xl shrink-0 text-center landscapePhone:max-w-none">
 
         {image && (
 
@@ -476,17 +476,17 @@ export default function SocialReveal({
 
             alt=""
 
-            className="mx-auto mb-4 hidden h-20 w-20 rounded-xl object-cover ring-1 ring-white/10 sm:block"
+            className="mx-auto mb-4 hidden h-20 w-20 rounded-xl object-cover ring-1 ring-white/10 sm:block landscapePhone:mb-2 landscapePhone:h-12 landscapePhone:w-12"
 
           />
 
         )}
 
-        <h1 className="alkheelank-heading text-3xl sm:text-5xl">{question.question}</h1>
+        <h1 className="alkheelank-heading text-3xl landscapePhone:text-xl landscapePhone:leading-snug sm:text-5xl">{question.question}</h1>
 
         {reveal.doublePoints && (
 
-          <div className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-brand-mid/25 px-5 py-2 text-lg font-extrabold text-paper ring-1 ring-brand-mid">
+          <div className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-brand-mid/25 px-5 py-2 text-lg font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mt-1 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-sm">
 
             ⚡ {copy.reveal.doublePoints}
 
@@ -504,9 +504,9 @@ export default function SocialReveal({
 
       <div
 
-        className={`mt-8 w-full max-w-3xl ${
+        className={`mt-8 w-full max-w-3xl landscapePhone:mt-3 landscapePhone:max-w-none ${
 
-          isTF ? "grid grid-cols-2 gap-6 sm:gap-8" : "grid grid-cols-2 gap-5 sm:grid-cols-4 sm:gap-6"
+          isTF ? "grid grid-cols-2 gap-6 sm:gap-8 landscapePhone:gap-3" : "grid grid-cols-2 gap-5 sm:grid-cols-4 sm:gap-6 landscapePhone:gap-2"
 
         }`}
 
@@ -546,9 +546,9 @@ export default function SocialReveal({
 
       {reveal.mode === "teams" && reveal.teamStandings?.length > 0 && (
 
-        <div className="mt-8 w-full max-w-2xl">
+        <div className="mt-8 w-full max-w-2xl landscapePhone:mt-3">
 
-          <h3 className="alkheelank-heading mb-3 text-center text-2xl text-muted">Team scores</h3>
+          <h3 className="alkheelank-heading mb-3 text-center text-2xl text-muted landscapePhone:mb-1 landscapePhone:text-lg">Team scores</h3>
 
           <div className="grid gap-2 sm:grid-cols-2">
 
@@ -590,9 +590,9 @@ export default function SocialReveal({
 
 
 
-      <div className="sticky bottom-6 mt-auto flex w-full max-w-3xl justify-center pt-10">
+      <div className="sticky bottom-6 mt-auto flex w-full max-w-3xl shrink-0 justify-center pt-10 landscapePhone:bottom-2 landscapePhone:pt-4">
 
-        <button type="button" onClick={onStandings} className="alkheelank-btn-primary px-16 text-2xl">
+        <button type="button" onClick={onStandings} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-8 landscapePhone:py-3 landscapePhone:text-lg">
 
           {copy.reveal.standingsCta} →
 

@@ -2,6 +2,16 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
+    screens: {
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+      landscapePhone: {
+        raw: "(orientation: landscape) and (max-height: 32rem)",
+      },
+    },
     extend: {
       colors: {
         // AlkheelanK identity — warm "living-room" charcoal with an amber→orange→coral

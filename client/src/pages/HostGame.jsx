@@ -15,7 +15,7 @@ import Standings from "../components/Standings.jsx";
 import Podium from "../components/Podium.jsx";
 import Avatar from "../components/characters.jsx";
 import SocialReveal, { revealStageName } from "../components/SocialReveal.jsx";
-import HostControlDeck from "../components/HostControlDeck.jsx";
+import HostChrome from "../components/HostChrome.jsx";
 import PhaseShell from "../components/PhaseShell.jsx";
 import { HostRecoveredBanner, HostStatusBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
@@ -260,7 +260,7 @@ export default function HostGame({ launch, onExit }) {
     <div className="min-h-screen">
       <HostRecoveredBanner show={hostRecovered} />
       <HostStatusBanner connected={hostConnected} />
-      <PhaseShell phaseKey={phase} className="min-h-screen">
+      <PhaseShell phaseKey={phase} className="min-h-screen landscapePhone:pt-12">
         {phase === "setup" && (
           <SetupView settings={settings} setSettings={setSettings} onCreate={createLobby} onCancel={onExit} />
         )}
@@ -344,8 +344,7 @@ export default function HostGame({ launch, onExit }) {
           </Centered>
         )}
       </PhaseShell>
-      <SettingsPanel corner="bottom-left" />
-      <HostControlDeck
+      <HostChrome
         phase={phase}
         pacing={settings.pacing || "normal"}
         paused={paused}
@@ -354,37 +353,35 @@ export default function HostGame({ launch, onExit }) {
         onResume={() => socket.emit("host:resume")}
         onSkipQuestion={() => socket.emit("host:closeQuestion")}
         onSkipReveal={() => socket.emit("host:advanceReveal")}
+        endLabel={copy.host.endConfirm}
+        onEndGame={() => {
+          if (window.confirm("End this game for everyone?")) {
+            socket.emit("host:end");
+            onExit();
+          }
+        }}
       />
-      {(phase === "lobby" || phase === "question" || phase === "reveal" || phase === "standings") && (
-        <button
-          onClick={() => {
-            if (window.confirm("End this game for everyone?")) {
-              socket.emit("host:end");
-              onExit();
-            }
-          }}
-          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] rounded-xl bg-ink-800/80 px-4 py-2 text-sm font-semibold text-muted ring-1 ring-white/10 hover:text-paper"
-        >
-          {copy.host.endConfirm}
-        </button>
-      )}
     </div>
   );
 }
 
 function Centered({ children }) {
-  return <div className="flex min-h-[80vh] flex-col items-center justify-center text-center">{children}</div>;
+  return (
+    <div className="host-phase-fill flex min-h-[80vh] flex-col items-center justify-center text-center landscapePhone:min-h-0">
+      {children}
+    </div>
+  );
 }
 
 function SetupView({ settings, setSettings, onCreate, onCancel }) {
   const toggle = (key) => setSettings((s) => ({ ...s, [key]: !s[key] }));
   return (
-    <div className="alkheelank-screen-host mx-auto max-w-2xl overflow-y-auto">
+    <div className="alkheelank-screen-host host-phase-fill mx-auto max-w-2xl">
       <div className="flex items-center justify-between">
         <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage"><Logo size="sm" /></button>
         <button onClick={onCancel} className="text-muted hover:text-paper">← Dashboard</button>
       </div>
-      <h1 className="mt-10 alkheelank-heading text-4xl">Tune your show</h1>
+      <h1 className="mt-10 alkheelank-heading text-4xl landscapePhone:mt-4 landscapePhone:text-3xl">Tune your show</h1>
       <p className="mt-1 text-muted">Set the vibe, then open the lobby.</p>
       <div className="mt-6 rounded-2xl bg-ink-700/60 p-4 ring-1 ring-white/10">
         <p className="text-sm font-bold uppercase tracking-widest text-muted">Mode</p>
@@ -452,14 +449,14 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
   const pinStr = String(pin || "").padStart(6, "•");
   const joinUrl = joinQrUrl(pin);
   return (
-    <div className="alkheelank-screen-host flex min-h-[88svh] flex-col">
-      <div className="flex items-center justify-between">
+    <div className="alkheelank-screen-host host-phase-fill flex min-h-0 flex-col">
+      <div className="flex shrink-0 items-center justify-between">
         <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage"><Logo /></button>
-        <div className="text-right"><p className="text-sm uppercase tracking-widest text-muted">Players</p><p className="font-display text-3xl font-bold">{players.length}</p></div>
+        <div className="text-right"><p className="text-sm uppercase tracking-widest text-muted">Players</p><p className="font-display text-3xl font-bold landscapePhone:text-2xl">{players.length}</p></div>
       </div>
 
       {quizMeta && (
-        <div className="lobby-quiz-badge mt-8 self-center">
+        <div className="lobby-quiz-badge mt-8 self-center landscapePhone:mt-2">
           {quizMeta.title} · {quizMeta.questionCount} questions
         </div>
       )}
@@ -484,7 +481,8 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
             <>
               <div className="lobby-join-panel__separator" aria-hidden="true" />
               <div className="lobby-join-panel__qr">
-                <QRCodeSVG value={joinUrl} size={160} bgColor="#faf6f0" fgColor="#1a1814" level="M" />
+                <QRCodeSVG value={joinUrl} size={160} bgColor="#faf6f0" fgColor="#1a1814" level="M" className="landscapePhone:hidden" />
+                <QRCodeSVG value={joinUrl} size={100} bgColor="#faf6f0" fgColor="#1a1814" level="M" className="hidden landscapePhone:block" />
               </div>
             </>
           )}
@@ -492,16 +490,16 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
       </div>
 
       {mode && (
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 flex justify-center landscapePhone:mt-2">
           <p className="rounded-full bg-ink-700 px-3 py-1 text-xs font-bold uppercase tracking-widest text-muted ring-1 ring-white/10">
             {mode === "teams" ? copy.lobby.modeTeams : copy.lobby.modeSolo}
           </p>
         </div>
       )}
 
-      <div className="mt-10 flex-1 overflow-y-auto">
+      <div className="mt-10 min-h-0 flex-1 overflow-y-auto landscapePhone:mt-2">
         {players.length === 0 ? (
-          <p className="lobby-waiting-status mt-10" role="status" aria-live="polite">
+          <p className="lobby-waiting-status mt-10 landscapePhone:mt-2" role="status" aria-live="polite">
             <span className="lobby-waiting-status__label alkheelank-wait-shimmer">{copy.lobby.waiting}</span>
             <span className="lobby-waiting-status__dots" aria-hidden="true">
               <span className="lobby-waiting-status__dot" />
@@ -513,8 +511,13 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
           <div className="flex flex-wrap justify-center gap-3">
             <AnimatePresence>
               {players.map((p) => (
-                <motion.span key={p.id} layout initial={{ scale: 0, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} exit={{ scale: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 18 }} className="flex items-center gap-2 rounded-2xl bg-ink-700 py-2 pl-2 pr-4 text-xl font-bold ring-1 ring-white/10">
-                  <Avatar config={p.character} size={40} ring />
+                <motion.span key={p.id} layout initial={{ scale: 0, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} exit={{ scale: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 18 }} className="flex items-center gap-2 rounded-2xl bg-ink-700 py-2 pl-2 pr-4 text-xl font-bold ring-1 ring-white/10 landscapePhone:text-base">
+                  <span className="landscapePhone:hidden">
+                    <Avatar config={p.character} size={40} ring />
+                  </span>
+                  <span className="hidden landscapePhone:inline-flex">
+                    <Avatar config={p.character} size={32} ring />
+                  </span>
                   {p.nick}
                   {mode === "teams" && p.team?.name && <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: `${p.team.color}33`, color: p.team.color }}>{p.team.name}</span>}
                 </motion.span>
@@ -524,8 +527,8 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
         )}
       </div>
       {error && <p className="mb-2 text-center font-semibold text-tile-triangle">{error}</p>}
-      <div className="sticky bottom-6 mt-6 flex justify-center">
-        <button onClick={onStart} disabled={players.length === 0} className="alkheelank-btn-primary px-16 text-2xl" title={players.length === 0 ? copy.lobby.emptyCta : ""}>
+      <div className="sticky bottom-6 mt-6 flex shrink-0 justify-center landscapePhone:bottom-2 landscapePhone:mt-3">
+        <button onClick={onStart} disabled={players.length === 0} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-8 landscapePhone:py-3 landscapePhone:text-lg" title={players.length === 0 ? copy.lobby.emptyCta : ""}>
           {copy.lobby.start}
         </button>
       </div>
@@ -548,36 +551,68 @@ function QuestionView({ question, image, answerCount, paused }) {
     };
   }, [question?.startedAt, question?.timeLimit, paused]);
   return (
-    <div className="alkheelank-screen-host flex min-h-[90svh] flex-col">
-      <div className="flex items-center justify-between text-muted">
-        <span className="font-semibold">Question {question.index + 1} of {question.total}{isTF && <span className="ml-3 rounded-full bg-ink-700 px-3 py-1 text-sm">True / False</span>}</span>
-        <span className="font-semibold">{answerCount.answered} answered</span>
+    <div className="alkheelank-screen-host host-phase-fill flex min-h-0 flex-col landscapePhone:flex-row landscapePhone:items-stretch landscapePhone:gap-3">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col landscapePhone:overflow-y-auto">
+        <div className="flex items-center justify-between text-muted landscapePhone:text-sm">
+          <span className="font-semibold">
+            Question {question.index + 1} of {question.total}
+            {isTF && <span className="ml-2 rounded-full bg-ink-700 px-2 py-0.5 text-xs landscapePhone:ml-1">True / False</span>}
+          </span>
+          <span className="font-semibold">{answerCount.answered} answered</span>
+        </div>
+        {question.doublePoints && (
+          <div className="mx-auto mt-2 inline-flex animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-4 py-1.5 text-base font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mt-1 landscapePhone:px-3 landscapePhone:text-sm">
+            ⚡ {copy.reveal.doublePoints}
+          </div>
+        )}
+        <h1 className="mt-3 text-center font-display text-4xl font-bold leading-tight landscapePhone:mt-1 landscapePhone:text-left landscapePhone:text-xl landscapePhone:leading-snug">
+          {question.question}
+        </h1>
+        {image && (
+          <div className="mt-3 landscapePhone:mt-1">
+            <motion.img
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              src={image}
+              alt=""
+              className="mx-auto max-h-[22svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 landscapePhone:mx-0 landscapePhone:max-h-20 sm:max-h-[34svh]"
+            />
+          </div>
+        )}
+        <div className="my-4 flex items-center justify-center landscapePhone:my-2 landscapePhone:justify-start">
+          <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound />
+        </div>
+        {paused && (
+          <>
+            <p className="text-center text-lg font-bold text-warning landscapePhone:hidden">⏸ Round paused — use show controls to resume</p>
+            <p className="hidden text-sm font-bold text-warning landscapePhone:block landscapePhone:text-left">⏸ Paused — show controls</p>
+          </>
+        )}
       </div>
-      {question.doublePoints && <div className="mx-auto mt-3 inline-flex animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-5 py-2 text-lg font-extrabold text-paper ring-1 ring-brand-mid">⚡ {copy.reveal.doublePoints}</div>}
-      <h1 className="mt-4 text-center font-display text-4xl font-bold leading-tight sm:text-5xl">{question.question}</h1>
-      {image && <div className="mt-5"><motion.img initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} src={image} alt="" className="mx-auto max-h-[22svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 sm:max-h-[34svh]" /></div>}
-      <div className="my-6 flex items-center justify-center"><Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound /></div>
-      <div className={`mt-auto grid gap-4 ${isTF ? "sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2"}`}>
-        {question.answers.map((a, i) => <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big />)}
+      <div
+        className={`mt-auto grid min-h-0 shrink-0 gap-2 landscapePhone:mt-0 landscapePhone:w-[min(48%,14rem)] landscapePhone:content-center landscapePhone:gap-1.5 ${
+          isTF ? "grid-cols-1 sm:grid-cols-2 landscapePhone:grid-cols-1" : "grid-cols-1 sm:grid-cols-2 landscapePhone:grid-cols-2"
+        }`}
+      >
+        {question.answers.map((a, i) => (
+          <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big compact />
+        ))}
       </div>
-      {paused && (
-        <p className="mt-6 text-center text-lg font-bold text-warning">⏸ Round paused — use show controls to resume</p>
-      )}
     </div>
   );
 }
 
 function StandingsView({ standings, onNext }) {
   return (
-    <div className="alkheelank-screen-host mx-auto flex min-h-[90svh] max-w-4xl flex-col">
-      <div className="text-center">
-        <p className="alkheelank-label tracking-[0.3em]">{copy.standings.subtitle(standings.index, standings.total)}</p>
-        <h1 className="mt-2 alkheelank-heading text-4xl alkheelank-gradient-text sm:text-5xl">{copy.standings.title}</h1>
+    <div className="alkheelank-screen-host host-phase-fill mx-auto flex min-h-0 max-w-4xl flex-col">
+      <div className="text-center landscapePhone:shrink-0">
+        <p className="alkheelank-label tracking-[0.3em] landscapePhone:tracking-widest">{copy.standings.subtitle(standings.index, standings.total)}</p>
+        <h1 className="mt-2 alkheelank-heading text-4xl alkheelank-gradient-text landscapePhone:text-2xl">{copy.standings.title}</h1>
       </div>
-      {standings.funStat && <div className="mx-auto mt-4 rounded-full bg-ink-700 px-5 py-2 text-center ring-1 ring-white/10"><span className="font-bold text-paper">{standings.funStat.title}:</span> <span className="text-muted">{standings.funStat.subtitle}</span></div>}
+      {standings.funStat && <div className="mx-auto mt-4 rounded-full bg-ink-700 px-5 py-2 text-center ring-1 ring-white/10 landscapePhone:mt-2 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-sm"><span className="font-bold text-paper">{standings.funStat.title}:</span> <span className="text-muted">{standings.funStat.subtitle}</span></div>}
       {standings.mode === "teams" && standings.teamStandings?.length > 0 && (
-        <div className="mt-8">
-          <h3 className="mb-3 text-center alkheelank-heading text-2xl text-muted">{copy.standings.teamRace}</h3>
+        <div className="mt-8 landscapePhone:mt-3">
+          <h3 className="mb-3 text-center alkheelank-heading text-2xl text-muted landscapePhone:mb-1 landscapePhone:text-lg">{copy.standings.teamRace}</h3>
           <div className="mx-auto grid max-w-3xl gap-2 sm:grid-cols-2">
             {standings.teamStandings.map((t) => (
               <div key={t.id} className="rounded-xl bg-ink-700/70 px-4 py-3 ring-1 ring-white/10">
@@ -591,9 +626,9 @@ function StandingsView({ standings, onNext }) {
           </div>
         </div>
       )}
-      <div className="mt-8"><Standings standings={standings.standings} max={8} /></div>
-      <div className="sticky bottom-6 mt-10 flex justify-center">
-        <button onClick={onNext} className="alkheelank-btn-primary px-16 text-2xl">
+      <div className="mt-8 min-h-0 flex-1 overflow-y-auto landscapePhone:mt-3"><Standings standings={standings.standings} max={8} /></div>
+      <div className="sticky bottom-6 mt-10 flex shrink-0 justify-center landscapePhone:bottom-2 landscapePhone:mt-3">
+        <button onClick={onNext} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-8 landscapePhone:py-3 landscapePhone:text-lg">
           {standings.hasNext ? `${copy.host.nextQuestion} →` : `${copy.host.finalResults} 🏆`}
         </button>
       </div>
@@ -607,7 +642,7 @@ function FinalView({ final, onHome }) {
 
   if (view === "recap") {
     return (
-      <div className="mx-auto flex min-h-[92svh] max-w-5xl flex-col items-center justify-center py-10">
+      <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-5xl flex-col items-center justify-center py-10 landscapePhone:py-4">
         <Recap recap={final.recap} title={final.title} standings={final.standings} />
         <p className="mt-4 text-center text-sm text-muted">📸 {copy.final.recapHint}</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -619,8 +654,8 @@ function FinalView({ final, onHome }) {
   }
 
   return (
-    <div className="mx-auto flex min-h-[92svh] max-w-5xl flex-col items-center justify-center py-10">
-      <h1 className="alkheelank-heading text-5xl alkheelank-gradient-text sm:text-7xl">{copy.final.title}</h1>
+    <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-5xl flex-col items-center justify-center overflow-y-auto py-10 landscapePhone:py-4">
+      <h1 className="alkheelank-heading text-5xl alkheelank-gradient-text landscapePhone:text-3xl sm:text-7xl">{copy.final.title}</h1>
       <p className="mt-2 text-muted">{final.title}</p>
       {final.mode === "teams" && final.teamPodium?.length > 0 ? (
         <TeamPodium teams={final.teamPodium} onComplete={() => setShowList(true)} />

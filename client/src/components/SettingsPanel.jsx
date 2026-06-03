@@ -5,8 +5,16 @@ import { getAudioSettings, setAudioSettings, sfx } from "../lib/sound.js";
 // A floating gear button + slide-in drawer for audio settings. Self-contained:
 // reads/writes the persisted audio store, and changes drive playback live.
 // Drop <SettingsPanel /> anywhere (dashboard, in-game) — it pins itself.
-export default function SettingsPanel({ corner = "bottom-left" }) {
-  const [open, setOpen] = useState(false);
+export default function SettingsPanel({
+  corner = "bottom-left",
+  triggerClassName = "",
+  open: openControlled,
+  onOpenChange,
+  hideTrigger = false,
+}) {
+  const [openInternal, setOpenInternal] = useState(false);
+  const open = openControlled ?? openInternal;
+  const setOpen = onOpenChange ?? setOpenInternal;
   const [s, setS] = useState(getAudioSettings());
 
   // Keep local UI in sync if settings change elsewhere.
@@ -21,26 +29,31 @@ export default function SettingsPanel({ corner = "bottom-left" }) {
   };
 
   const pos =
-    corner === "bottom-left"
+    corner === "inline"
+      ? ""
+      : corner === "bottom-left"
       ? "bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))]"
       : corner === "bottom-right"
       ? "bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))]"
       : corner === "top-right"
       ? "top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))]"
       : "top-[max(1rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))]";
+  const positionClass = corner === "inline" ? "relative" : `fixed ${pos}`;
 
   const masterPct = Math.round(s.master * 100);
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        title="Settings"
-        className={`fixed ${pos} z-40 alkheelank-touch-target h-12 w-12 rounded-xl bg-ink-800/80 text-xl ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700`}
-      >
-        ⚙️
-      </button>
+      {!hideTrigger && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          title="Settings"
+          className={`${positionClass} z-40 alkheelank-touch-target h-12 w-12 shrink-0 rounded-xl bg-ink-800/80 text-xl ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700 ${triggerClassName}`}
+        >
+          ⚙️
+        </button>
+      )}
 
       <AnimatePresence>
         {open && (

@@ -19,6 +19,8 @@ export default function HostControlDeck({
   onSkipReveal,
   onSkipQuestion,
   visible = true,
+  wrapperClassName = "",
+  panelAnchor = "above",
 }) {
   const [open, setOpen] = useState(false);
 
@@ -27,16 +29,26 @@ export default function HostControlDeck({
   const showQuestionControls = phase === "question";
   const showRevealControls = phase === "reveal";
 
+  const wrapperPos =
+    panelAnchor === "below"
+      ? "relative flex flex-col items-end gap-2"
+      : "fixed bottom-[max(5rem,env(safe-area-inset-bottom,0px)+4rem)] right-[max(1rem,env(safe-area-inset-right))] z-40 flex flex-col items-end gap-2";
+
+  const panelMotion =
+    panelAnchor === "below"
+      ? { initial: { opacity: 0, y: -8, scale: 0.96 }, animate: { opacity: 1, y: 0, scale: 1 }, exit: { opacity: 0, y: -6, scale: 0.98 } }
+      : { initial: { opacity: 0, y: 8, scale: 0.96 }, animate: { opacity: 1, y: 0, scale: 1 }, exit: { opacity: 0, y: 6, scale: 0.98 } };
+
   return (
-    <div className="fixed bottom-[max(5rem,env(safe-area-inset-bottom,0px)+4rem)] right-[max(1rem,env(safe-area-inset-right))] z-40 flex flex-col items-end gap-2">
+    <div className={`${wrapperPos} ${wrapperClassName}`}>
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            {...panelMotion}
             transition={{ type: "spring", stiffness: 380, damping: 28 }}
-            className="w-72 max-w-[calc(100vw-2rem)] rounded-2xl bg-ink-800/95 p-4 shadow-2xl ring-1 ring-white/10 backdrop-blur-md"
+            className={`w-72 max-w-[calc(100vw-2rem)] rounded-2xl bg-ink-800/95 p-4 shadow-2xl ring-1 ring-white/10 backdrop-blur-md ${
+              panelAnchor === "below" ? "absolute right-0 top-full z-50 mt-2" : ""
+            }`}
           >
             <p className="text-xs font-bold uppercase tracking-widest text-muted">
               {copy.host.pacing.label}

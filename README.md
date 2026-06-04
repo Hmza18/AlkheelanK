@@ -75,7 +75,7 @@ npm run setup:all
 Or manually:
 
 1. Create a free project at [supabase.com](https://supabase.com).
-2. **SQL Editor → New query**, paste [`supabase/schema.sql`](supabase/schema.sql) (or [`supabase/patch-missing-tables.sql`](supabase/patch-missing-tables.sql) if you already ran an older schema), and run it.
+2. **SQL Editor → New query**, paste [`supabase/schema.sql`](supabase/schema.sql) (or [`supabase/patch-missing-tables.sql`](supabase/patch-missing-tables.sql) if you already ran an older schema), and run it. If the project already exists, also run [`supabase/security-quiz-shares.sql`](supabase/security-quiz-shares.sql) once (locks down shared-quiz import).
 3. **Project Settings → API Keys**: copy the **Project URL** and **Publishable** key (`sb_publishable_...`) into `client/.env`:
 
 ```bash

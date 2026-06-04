@@ -437,7 +437,33 @@ export function getStarterForCopy(id) {
 // string (a pasted URL or a base64 data URL) — stored inline with the question.
 
 const MAX_QUESTIONS = 30;
-const MAX_IMAGE_LEN = 4_000_000; // ~4MB of base64 — generous, downscaled client-side
+const MAX_IMAGE_LEN = 900_000; // per-question inline image cap (~900KB base64)
+const MAX_QUIZ_IMAGE_BYTES = 4_000_000; // total inline image bytes per quiz
+
+function sanitizeQuestionImage(image, questionIndex) {
+  if (!image) return { image: null };
+  const s = String(image).trim();
+  if (!s) return { image: null };
+  if (s.startsWith("data:image/")) {
+    if (s.length > MAX_IMAGE_LEN) {
+      return { error: `Question ${questionIndex + 1}'s image is too large — pick a smaller one.` };
+    }
+    return { image: s };
+  }
+  let url;
+  try {
+    url = new URL(s);
+  } catch {
+    return { error: `Question ${questionIndex + 1}: use an https image URL or upload a file.` };
+  }
+  if (url.protocol !== "https:") {
+    return { error: `Question ${questionIndex + 1}: image URLs must use https.` };
+  }
+  if (s.length > 2048) {
+    return { error: `Question ${questionIndex + 1}: image URL is too long.` };
+  }
+  return { image: s };
+}
 
 export function validateCustomQuiz(raw) {
   if (!raw || typeof raw !== "object") return { error: "Invalid quiz." };
@@ -452,6 +478,7 @@ export function validateCustomQuiz(raw) {
   }
 
   const questions = [];
+  let totalImageBytes = 0;
   for (let i = 0; i < raw.questions.length; i++) {
     const q = raw.questions[i] || {};
     const text = String(q.question || "").trim();
@@ -482,9 +509,14 @@ export function validateCustomQuiz(raw) {
     if (!Number.isFinite(timeLimit)) timeLimit = 20;
     timeLimit = Math.min(120, Math.max(5, Math.round(timeLimit)));
 
-    let image = q.image ? String(q.image) : null;
-    if (image && image.length > MAX_IMAGE_LEN) {
-      return { error: `Question ${i + 1}'s image is too large — pick a smaller one.` };
+    const imgRes = sanitizeQuestionImage(q.image, i);
+    if (imgRes.error) return { error: imgRes.error };
+    const image = imgRes.image;
+    if (image) {
+      totalImageBytes += image.length;
+      if (totalImageBytes > MAX_QUIZ_IMAGE_BYTES) {
+        return { error: "Total image size across the quiz is too large." };
+      }
     }
 
     questions.push({

@@ -3,7 +3,7 @@ import { supabase } from "./supabase.js";
 // Data access for saved quizzes, question bank, quiz shares, and game history.
 // Row Level Security on the server guarantees a user only ever reads/writes
 // their own rows; we still scope every query by user_id for clarity.
-// (Exception: quiz_shares SELECT is public — anyone with the code can import.)
+// Quiz shares: import by code via get_quiz_share_by_code RPC (not a public table listing).
 
 // Detects the "tables/policies aren't set up yet" class of error so the UI can
 // show a precise call-to-action instead of a cryptic message.
@@ -44,19 +44,20 @@ export async function createQuiz(userId, { title, questions }) {
     .single();
 }
 
-export async function updateQuiz(id, { title, questions }) {
+export async function updateQuiz(userId, id, { title, questions }) {
   if (!supabase) return { error: { message: "Login required." } };
   return supabase
     .from("quizzes")
     .update({ title, questions, updated_at: new Date().toISOString() })
     .eq("id", id)
+    .eq("user_id", userId)
     .select()
     .single();
 }
 
-export async function deleteQuiz(id) {
+export async function deleteQuiz(userId, id) {
   if (!supabase) return { error: { message: "Login required." } };
-  return supabase.from("quizzes").delete().eq("id", id);
+  return supabase.from("quizzes").delete().eq("id", id).eq("user_id", userId);
 }
 
 export async function duplicateQuiz(userId, quiz) {
@@ -99,9 +100,9 @@ export async function addBankQuestion(userId, q) {
     .single();
 }
 
-export async function deleteBankQuestion(id) {
+export async function deleteBankQuestion(userId, id) {
   if (!supabase) return { error: { message: "Login required." } };
-  return supabase.from("question_bank").delete().eq("id", id);
+  return supabase.from("question_bank").delete().eq("id", id).eq("user_id", userId);
 }
 
 // Normalise a bank row back to the editor question shape.
@@ -151,16 +152,17 @@ export async function createQuizShare(ownerId, quiz) {
 
 export async function getQuizShare(code) {
   if (!supabase) return { error: { message: "Not configured." } };
-  return supabase
-    .from("quiz_shares")
-    .select("id, code, quiz_title, questions, created_at")
-    .eq("code", code.toUpperCase())
-    .single();
+  const { data, error } = await supabase.rpc("get_quiz_share_by_code", {
+    share_code: code.trim(),
+  });
+  if (error) return { data: null, error };
+  const row = Array.isArray(data) ? data[0] : data;
+  return { data: row ?? null, error: row ? null : { message: "Not found" } };
 }
 
-export async function deleteQuizShare(id) {
+export async function deleteQuizShare(userId, id) {
   if (!supabase) return { error: { message: "Login required." } };
-  return supabase.from("quiz_shares").delete().eq("id", id);
+  return supabase.from("quiz_shares").delete().eq("id", id).eq("owner_id", userId);
 }
 
 // ---------------------------------------------------------------------------

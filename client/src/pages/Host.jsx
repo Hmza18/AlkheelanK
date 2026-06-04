@@ -50,7 +50,7 @@ export default function Host() {
   const handleSave = async (quizData) => {
     if (!user) return { message: "Log in to save." };
     const res = editing?.id
-      ? await updateQuiz(editing.id, quizData)
+      ? await updateQuiz(user.id, editing.id, quizData)
       : await createQuiz(user.id, quizData);
     if (res.error) return res.error;
     // Track the new id so subsequent saves update instead of duplicating.

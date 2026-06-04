@@ -92,11 +92,33 @@ create index if not exists quiz_shares_code_idx on public.quiz_shares (code);
 
 alter table public.quiz_shares enable row level security;
 
--- Anyone with the code can view a share (to preview + import).
+-- Owners can list their shares; public import uses get_quiz_share_by_code() RPC only.
 drop policy if exists "shares: select public" on public.quiz_shares;
-create policy "shares: select public"
+drop policy if exists "shares: select own" on public.quiz_shares;
+create policy "shares: select own"
   on public.quiz_shares for select
-  using (true);
+  using (auth.uid() = owner_id);
+
+create or replace function public.get_quiz_share_by_code(share_code text)
+returns table (
+  id uuid,
+  code text,
+  quiz_title text,
+  questions jsonb,
+  created_at timestamptz
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select s.id, s.code, s.quiz_title, s.questions, s.created_at
+  from public.quiz_shares s
+  where s.code = upper(trim(share_code))
+  limit 1;
+$$;
+
+revoke all on function public.get_quiz_share_by_code(text) from public;
+grant execute on function public.get_quiz_share_by_code(text) to anon, authenticated;
 
 -- Only the owner can create a share.
 drop policy if exists "shares: insert own" on public.quiz_shares;

@@ -481,6 +481,16 @@ function ImagePicker({ image, onChange }) {
   const applyUrl = () => {
     const u = url.trim();
     if (!u) return;
+    try {
+      const parsed = new URL(u);
+      if (parsed.protocol !== "https:") {
+        setErr("Image URLs must use https.");
+        return;
+      }
+    } catch {
+      setErr("Enter a valid https image URL, or upload a file.");
+      return;
+    }
     onChange(u);
     setUrl("");
     setOpen(false);

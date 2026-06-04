@@ -54,8 +54,9 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
   }, [refresh]);
 
   const handleDelete = async (id) => {
+    if (!user) return;
     setQuizzes((qs) => qs.filter((q) => q.id !== id));
-    await deleteQuiz(id);
+    await deleteQuiz(user.id, id);
   };
   const handleDuplicate = async (quiz) => {
     const { data } = await duplicateQuiz(user.id, quiz);

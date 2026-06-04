@@ -72,6 +72,7 @@ export default function PlayScreen() {
           character: saved.character,
           teamId: saved.teamId,
           pid: saved.pid,
+          joinToken: saved.joinToken,
         });
       } catch (err) {
         setJoining(false);
@@ -95,6 +96,7 @@ export default function PlayScreen() {
         character: info.character,
         teamId: info.teamId,
         pid: info.pid,
+        joinToken: info.joinToken,
       });
     };
     const onMeta = (m) => {
@@ -114,6 +116,7 @@ export default function PlayScreen() {
         character: player.character,
         teamId: player.teamId,
         pid: player.pid,
+        joinToken: player.joinToken,
       };
       joinInfoRef.current = session;
       savePlayerSession(session);

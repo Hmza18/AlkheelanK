@@ -12,6 +12,7 @@
 
 import { buildFunStat, buildRevealHighlight } from "./gameStats.js";
 import { getRevealTiming, sanitizePacing } from "./pacing.js";
+import { securePin, secureToken } from "./crypto.js";
 
 const games = new Map();
 const MAX_NICK_LEN = 16;
@@ -65,11 +66,11 @@ function pick(list, value, fallback) {
   return list.includes(value) ? value : fallback;
 }
 function genId() {
-  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  return secureToken(12);
 }
 function generatePin() {
   let pin;
-  do pin = String(Math.floor(100000 + Math.random() * 900000));
+  do pin = securePin();
   while (games.has(pin));
   return pin;
 }
@@ -175,7 +176,7 @@ export function createGame(hostSocketId, quiz, settings) {
   const game = {
     pin,
     hostSocketId,
-    hostToken: genId(),
+    hostToken: secureToken(24),
     hostConnected: true,
     hostGraceTimer: null,
     quiz: applySettings(quiz, safeSettings),
@@ -243,6 +244,7 @@ export function addPlayer(game, socketId, rawNick, rawCharacter, teamId) {
   if (game.players.size >= 100) return { error: "This game is full." };
   const player = {
     pid: genId(),
+    joinToken: secureToken(18),
     socketId,
     nick,
     character: sanitizeAvatar(rawCharacter),
@@ -256,6 +258,13 @@ export function addPlayer(game, socketId, rawNick, rawCharacter, teamId) {
   game.sockets.set(socketId, player.pid);
   return { player };
 }
+export function verifyJoinToken(game, pid, joinToken) {
+  const player = game.players.get(pid);
+  if (!player || !joinToken) return null;
+  if (player.joinToken !== String(joinToken)) return null;
+  return player;
+}
+
 export function attachSocket(game, pid, socketId, rawCharacter) {
   const player = game.players.get(pid);
   if (!player) return null;
@@ -285,9 +294,9 @@ export function markDisconnected(game, socketId) {
   return p;
 }
 
+/** Lobby/player roster — omits internal ids so other clients cannot hijack sessions. */
 export function playerList(game) {
   return [...game.players.values()].map((p) => ({
-    id: p.pid,
     nick: p.nick,
     character: p.character,
     score: p.score,

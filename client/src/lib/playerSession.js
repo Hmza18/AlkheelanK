@@ -2,7 +2,7 @@ const KEY = "alkheelank.player";
 
 /** Persist player identity so refresh/tab-drop can rejoin the same game. */
 export function savePlayerSession(session) {
-  if (!session?.pin || !session?.pid) return;
+  if (!session?.pin || !session?.pid || !session?.joinToken) return;
   try {
     sessionStorage.setItem(KEY, JSON.stringify(session));
   } catch {
@@ -15,7 +15,7 @@ export function loadPlayerSession() {
     const raw = sessionStorage.getItem(KEY);
     if (!raw) return null;
     const s = JSON.parse(raw);
-    if (!s?.pin || !s?.pid) return null;
+    if (!s?.pin || !s?.pid || !s?.joinToken) return null;
     return s;
   } catch {
     return null;

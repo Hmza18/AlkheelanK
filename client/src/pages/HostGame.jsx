@@ -570,7 +570,7 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
           <div className="flex flex-wrap justify-center gap-3">
             <AnimatePresence>
               {players.map((p) => (
-                <motion.span key={p.id} layout initial={{ scale: 0, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} exit={{ scale: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 18 }} className="flex items-center gap-2 rounded-2xl bg-ink-700 py-2 pl-2 pr-4 text-xl font-bold ring-1 ring-white/10 landscapePhone:text-base">
+                <motion.span key={p.nick} layout initial={{ scale: 0, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} exit={{ scale: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 18 }} className="flex items-center gap-2 rounded-2xl bg-ink-700 py-2 pl-2 pr-4 text-xl font-bold ring-1 ring-white/10 landscapePhone:text-base">
                   <span className="landscapePhone:hidden">
                     <Avatar config={p.character} size={40} ring />
                   </span>

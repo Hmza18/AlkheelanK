@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 
 import * as GM from "./gameManager.js";
 import { getQuiz, quizSummaries, validateCustomQuiz, getStarterForCopy } from "./quizzes.js";
+import { createRateLimiter, clientKey } from "./rateLimit.js";
 
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
@@ -46,9 +47,13 @@ const SEND_IMAGE_TO_PLAYERS = true;
 // genuinely-gone host doesn't strand players forever.
 const HOST_GRACE_MS = 45_000;
 
+const limitHostCreate = createRateLimiter({ windowMs: 60_000, max: 8 });
+const limitPlayerPeek = createRateLimiter({ windowMs: 60_000, max: 40 });
+const limitPlayerJoin = createRateLimiter({ windowMs: 60_000, max: 30 });
+
 const app = express();
 app.use(cors({ origin: corsOrigin }));
-app.use(express.json());
+app.use(express.json({ limit: "32kb" }));
 
 app.get("/", (_req, res) => {
   res.json({ name: "Alkheeloot server", status: "ok", ...GM.stats() });
@@ -73,6 +78,7 @@ const io = new Server(server, {
   allowUpgrades: true,
   pingTimeout: 60_000,
   pingInterval: 25_000,
+  maxHttpBufferSize: 2e6,
 });
 
 const gameRoom = (pin) => `game:${pin}`;
@@ -192,6 +198,13 @@ function syncPlayer(game, socket) {
 io.on("connection", (socket) => {
   // --- HOST ---------------------------------------------------------------
   socket.on("host:create", ({ quizId, quiz, settings } = {}, ack) => {
+    const ip = clientKey(socket);
+    if (!limitHostCreate(ip)) {
+      const message = "Too many games started. Wait a minute and try again.";
+      socket.emit("host:error", { message });
+      if (typeof ack === "function") ack({ error: message });
+      return;
+    }
     let chosen;
     if (quiz) {
       const { quiz: valid, error } = validateCustomQuiz(quiz);
@@ -315,6 +328,12 @@ io.on("connection", (socket) => {
 
   // --- PLAYER -------------------------------------------------------------
   socket.on("player:peek", ({ pin } = {}, ack) => {
+    if (!limitPlayerPeek(clientKey(socket))) {
+      const err = { message: "Too many attempts. Wait a moment and try again." };
+      if (typeof ack === "function") ack({ error: err.message });
+      socket.emit("player:error", err);
+      return;
+    }
     const game = GM.getGame(pin);
     if (!game) {
       const err = { message: "No game found with that PIN." };
@@ -327,7 +346,13 @@ io.on("connection", (socket) => {
     socket.emit("player:meta", meta);
   });
 
-  socket.on("player:join", ({ pin, nickname, character, pid, teamId } = {}, ack) => {
+  socket.on("player:join", ({ pin, nickname, character, pid, joinToken, teamId } = {}, ack) => {
+    if (!limitPlayerJoin(clientKey(socket))) {
+      const err = { message: "Too many join attempts. Wait a moment and try again." };
+      socket.emit("player:error", err);
+      if (typeof ack === "function") ack({ error: err.message });
+      return;
+    }
     const game = GM.getGame(pin);
     if (!game) {
       const err = { message: "No game found with that PIN." };
@@ -341,6 +366,7 @@ io.on("connection", (socket) => {
       const ok = {
         id: player.pid,
         pid: player.pid,
+        joinToken: player.joinToken,
         nick: player.nick,
         character: player.character,
         teamId: player.teamId,
@@ -357,9 +383,16 @@ io.on("connection", (socket) => {
       if (reconnected) syncPlayer(game, socket);
     };
 
-    // 1) Reconnect by pid (the robust path — survives nickname edge cases).
-    if (pid && game.players.has(pid)) {
-      const player = GM.attachSocket(game, pid, socket.id, character);
+    // 1) Reconnect with pid + joinToken (issued only to this player on first join).
+    if (pid) {
+      const player = GM.verifyJoinToken(game, pid, joinToken);
+      if (!player) {
+        const err = { message: "Couldn't verify your player session. Rejoin with your nickname in the lobby, or use the same device after refresh." };
+        socket.emit("player:error", err);
+        if (typeof ack === "function") ack({ error: err.message });
+        return;
+      }
+      GM.attachSocket(game, pid, socket.id, character);
       finish(player, true);
       return;
     }
@@ -373,14 +406,6 @@ io.on("connection", (socket) => {
         return;
       }
       finish(player, false);
-      return;
-    }
-
-    // 3) Active game: reconnect by matching nickname, restoring score + streak.
-    const existing = GM.findPlayerByNick(game, nickname);
-    if (existing) {
-      const player = GM.attachSocket(game, existing.pid, socket.id, character);
-      finish(player, true);
       return;
     }
 

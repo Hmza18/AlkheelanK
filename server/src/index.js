@@ -122,6 +122,10 @@ function showStandings(game) {
 }
 
 function advance(game) {
+  if (game.timer) {
+    clearTimeout(game.timer);
+    game.timer = null;
+  }
   const q = GM.startNextQuestion(game);
   if (!q) {
     const final = GM.buildFinal(game);
@@ -277,8 +281,15 @@ io.on("connection", (socket) => {
   socket.on("host:next", () => {
     const game = GM.getGameByHost(socket.id);
     if (!game) return;
-    if (game.status === "question") closeQuestion(game);
-    advance(game);
+    if (game.status === "question") {
+      closeQuestion(game);
+      return;
+    }
+    if (game.status === "reveal") {
+      showStandings(game);
+      return;
+    }
+    if (game.status === "standings") advance(game);
   });
 
   socket.on("host:pause", () => {
@@ -337,6 +348,7 @@ io.on("connection", (socket) => {
         mode: game.settings.mode,
         teams: game.teams,
         quizTitle: game.quizTitle,
+        gameStatus: game.status,
         reconnected: !!reconnected,
       };
       socket.emit("player:joined", ok);

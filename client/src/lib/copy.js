@@ -6,6 +6,7 @@ export const copy = {
     waking: "Waking up server — the first launch after idle can take up to a minute.",
     slow: "Still connecting…",
     creating: "Creating your room…",
+    restoring: "Restoring your game…",
     verySlow: "Almost there — free servers are slow to wake the first time.",
   },
   lobby: {

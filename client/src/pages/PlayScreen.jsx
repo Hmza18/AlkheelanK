@@ -10,6 +10,7 @@ import AvatarPicker from "../components/AvatarPicker.jsx";
 import PostAnswerWaiting from "../components/PostAnswerWaiting.jsx";
 import { HostStatusBanner, PlayerReconnectBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
+import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
 
 export default function PlayScreen() {
@@ -41,6 +42,46 @@ export default function PlayScreen() {
   pinRef.current = pin;
   teamIdRef.current = teamId;
 
+  // Restore session after refresh — rejoin with saved pid before the join form.
+  useEffect(() => {
+    const saved = loadPlayerSession();
+    if (!saved?.pid || !saved?.pin) return;
+    const urlPin = pinParam.length === 6 ? pinParam : null;
+    if (urlPin && urlPin !== saved.pin) return;
+
+    joinInfoRef.current = saved;
+    pinRef.current = saved.pin;
+    setPin(saved.pin);
+    setNickname(saved.nick || "");
+    setAvatar(saved.character || DEFAULT_AVATAR);
+    if (saved.teamId) {
+      teamIdRef.current = saved.teamId;
+      setTeamId(saved.teamId);
+    }
+    setStep("profile");
+    setJoining(true);
+    setError(null);
+
+    (async () => {
+      try {
+        await wakeServer();
+        await connectSocket();
+        socket.emit("player:join", {
+          pin: saved.pin,
+          nickname: saved.nick,
+          character: saved.character,
+          teamId: saved.teamId,
+          pid: saved.pid,
+        });
+      } catch (err) {
+        setJoining(false);
+        clearPlayerSession();
+        setError(formatConnectError(err));
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     wakeServer().catch(() => {});
     ensureConnected();
@@ -67,18 +108,21 @@ export default function PlayScreen() {
     const onJoined = (info) => {
       const player = { ...info, id: info.id ?? info.pid };
       setMe(player);
-      joinInfoRef.current = {
+      const session = {
         pin: pinRef.current.replace(/\D/g, "").slice(0, 6),
         nick: player.nick,
         character: player.character,
         teamId: player.teamId,
         pid: player.pid,
       };
+      joinInfoRef.current = session;
+      savePlayerSession(session);
       setJoining(false);
       setError(null);
       if (info.reconnected) {
         setShowReconnectBanner(true);
         setTimeout(() => setShowReconnectBanner(false), 3500);
+        if (info.gameStatus === "lobby") setPhase("lobby");
       } else {
         setPhase("lobby");
       }
@@ -121,7 +165,11 @@ export default function PlayScreen() {
       setFinalRank(f.standings.find((p) => p.id === myId));
       setPhase("final");
     };
-    const onEnded = () => setPhase("ended");
+    const onEnded = () => {
+      clearPlayerSession();
+      joinInfoRef.current = null;
+      setPhase("ended");
+    };
     const onPlayerError = ({ message }) => {
       setError(message);
       setJoining(false);

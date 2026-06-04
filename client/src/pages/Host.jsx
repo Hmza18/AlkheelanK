@@ -6,6 +6,7 @@ import { createQuiz, updateQuiz } from "../lib/db.js";
 import Dashboard from "./Dashboard.jsx";
 import QuizEditor from "./QuizEditor.jsx";
 import HostGame from "./HostGame.jsx";
+import { clearHostSession, loadHostSession } from "../lib/hostSession.js";
 
 // Auth-gated host orchestrator. Switches between the dashboard, the quiz editor,
 // and the live game without remounting the whole tree.
@@ -13,9 +14,12 @@ export default function Host() {
   const { user, loading, configured } = useAuth();
   const [params] = useSearchParams();
   const [guest] = useState(params.get("guest") === "1");
-  const [view, setView] = useState("dashboard"); // dashboard | editor | game
   const [editing, setEditing] = useState(null); // saved quiz being edited, or null
-  const [launch, setLaunch] = useState(null); // { quiz } | { quizId }
+  const [launch, setLaunch] = useState(() => {
+    const saved = loadHostSession();
+    return saved ? { reconnect: true } : null;
+  });
+  const [view, setView] = useState(() => (loadHostSession() ? "game" : "dashboard"));
 
   // Guests are allowed without an account; if Supabase isn't configured we
   // auto-fall into guest mode so the app still works end to end.
@@ -37,6 +41,7 @@ export default function Host() {
   }
 
   const goDashboard = () => {
+    clearHostSession();
     setEditing(null);
     setLaunch(null);
     setView("dashboard");
@@ -63,6 +68,7 @@ export default function Host() {
           onCancel={goDashboard}
           onSave={handleSave}
           onLaunch={(quiz) => {
+            clearHostSession();
             setLaunch({ quiz });
             setView("game");
           }}
@@ -88,10 +94,12 @@ export default function Host() {
           setView("editor");
         }}
         onLaunchSaved={(quiz) => {
+          clearHostSession();
           setLaunch({ quiz: { title: quiz.title, questions: quiz.questions } });
           setView("game");
         }}
         onLaunchBuiltin={(quizId) => {
+          clearHostSession();
           setLaunch({ quizId });
           setView("game");
         }}

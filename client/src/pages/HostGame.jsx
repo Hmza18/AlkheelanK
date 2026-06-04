@@ -20,6 +20,7 @@ import PhaseShell from "../components/PhaseShell.jsx";
 import { HostRecoveredBanner, HostStatusBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
 import { joinDisplayPath, joinQrUrl } from "../lib/site.js";
+import { saveHostSession, loadHostSession, clearHostSession } from "../lib/hostSession.js";
 
 const DEFAULT_SETTINGS = {
   mode: "solo",
@@ -37,6 +38,7 @@ const TEAM_PRESET_LABELS = {
 };
 
 export default function HostGame({ launch, onExit }) {
+  const resumeOnly = Boolean(launch?.reconnect);
   const { user } = useAuth();
   const [phase, setPhase] = useState("setup");
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
@@ -101,6 +103,7 @@ export default function HostGame({ launch, onExit }) {
       setPin(pin);
       pinRef.current = pin;
       hostTokenRef.current = hostToken;
+      saveHostSession({ pin, hostToken });
       setQuizMeta(quiz);
       if (s) setSettings(s);
       setHostError(null);
@@ -110,6 +113,7 @@ export default function HostGame({ launch, onExit }) {
       setPin(state.pin);
       pinRef.current = state.pin;
       hostTokenRef.current = state.hostToken;
+      saveHostSession({ pin: state.pin, hostToken: state.hostToken });
       setQuizMeta(state.quiz);
       if (state.settings) setSettings(state.settings);
       setPlayers(state.players || []);
@@ -184,6 +188,7 @@ export default function HostGame({ launch, onExit }) {
     const onError = ({ message }) => setHostError(message);
     const onEnded = ({ reason }) => {
       hostTokenRef.current = null;
+      clearHostSession();
       setEndedReason(reason || "Game ended.");
       setPhase("ended");
     };
@@ -243,6 +248,55 @@ export default function HostGame({ launch, onExit }) {
       await wakeServer();
       setConnectHint(copy.connecting.server);
       await connectSocket({ timeoutMs: 45_000 });
+
+      const saved = loadHostSession();
+      if (saved?.pin && saved?.hostToken) {
+        setConnectHint(copy.connecting.restoring);
+        try {
+          const state = await emitWithAck(
+            "host:reconnect",
+            { pin: saved.pin, hostToken: saved.hostToken },
+            15_000,
+          );
+          pinRef.current = state.pin;
+          hostTokenRef.current = state.hostToken;
+          setPin(state.pin);
+          if (state.settings) setSettings(state.settings);
+          setQuizMeta(state.quiz);
+          setPlayers(state.players || []);
+          setAnswerCount(state.answerCount || { answered: 0, total: 0 });
+          setPaused(!!state.paused);
+          if (state.question) setQuestion(state.question);
+          if (state.reveal) {
+            setReveal(state.reveal);
+            setRevealStage(revealStageName(state.reveal.revealStage ?? 0));
+          }
+          if (state.standings) setStandings(state.standings);
+          if (state.final) setFinal(state.final);
+          const map = {
+            lobby: "lobby",
+            question: "question",
+            reveal: "reveal",
+            standings: "standings",
+            ended: state.final ? "final" : "ended",
+          };
+          setPhase(map[state.status] || "lobby");
+          setCreatingRoom(false);
+          return;
+        } catch {
+          clearHostSession();
+          if (resumeOnly) {
+            setHostError("Couldn't restore your game — it may have ended.");
+            setCreatingRoom(false);
+            return;
+          }
+        }
+      } else if (resumeOnly) {
+        setHostError("Couldn't restore your game — it may have ended.");
+        setCreatingRoom(false);
+        return;
+      }
+
       setConnectHint(copy.connecting.creating);
       await emitWithAck("host:create", { ...launch, settings }, 15_000);
       // host:created moves us to lobby; ack is a backstop if that event was missed.
@@ -255,6 +309,11 @@ export default function HostGame({ launch, onExit }) {
   };
 
   const currentImage = question ? question.image ?? images[question.index] ?? null : null;
+
+  useEffect(() => {
+    if (resumeOnly) createLobby();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeOnly]);
 
   return (
     <div className="min-h-screen">

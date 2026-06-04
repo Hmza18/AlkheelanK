@@ -10,6 +10,7 @@ import AvatarPicker from "../components/AvatarPicker.jsx";
 import PostAnswerWaiting from "../components/PostAnswerWaiting.jsx";
 import { HostStatusBanner, PlayerReconnectBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
+import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
 
@@ -354,11 +355,15 @@ export default function PlayScreen() {
     );
   }
   if (phase === "final") {
+    const onPodium = isPodiumRank(finalRank?.rank);
     return (
       <CenterCard>
-        <h2 className="alkheelank-heading text-3xl">{copy.player.final}</h2>
-        <p className="mt-2 text-2xl font-bold alkheelank-gradient-text">#{finalRank?.rank ?? "-"}</p>
-        <p className="mt-1 text-muted">{(finalRank?.score ?? 0).toLocaleString()} pts total</p>
+        <h2 className="alkheelank-heading text-3xl">{onPodium ? copy.player.onPodium : copy.player.final}</h2>
+        {!onPodium && (
+          <p className="mt-2 text-2xl font-bold alkheelank-gradient-text">#{finalRank?.rank ?? "-"}</p>
+        )}
+        {onPodium && <p className="mt-2 text-muted">{copy.player.onPodiumTeaser}</p>}
+        <p className={`${onPodium ? "mt-4" : "mt-1"} text-muted`}>{(finalRank?.score ?? 0).toLocaleString()} pts total</p>
         <button type="button" onClick={() => navigate("/")} className="alkheelank-btn-primary mt-6 w-full">
           {copy.player.playAgain}
         </button>
@@ -474,7 +479,7 @@ function ResultCard({ result, q }) {
         {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
       </p>
       <p className="mt-2 text-muted">
-        {copy.player.result.rank(result?.rank, result?.totalPlayers)} ·{" "}
+        {playerRankLine(result?.rank, result?.totalPlayers)} ·{" "}
         {(result?.totalScore ?? 0).toLocaleString()} pts total
       </p>
       {result?.team?.name && (
@@ -500,7 +505,10 @@ function StandingsCard({ standings, meId }) {
           <span className="font-bold">{standings.funStat.title}:</span> {standings.funStat.subtitle}
         </p>
       )}
-      <p className="mt-4 text-5xl font-bold alkheelank-gradient-text">#{me?.rank ?? "-"}</p>
+      <p className="mt-4 text-5xl font-bold alkheelank-gradient-text">
+        {me?.rank ? playerRankHeadline(me.rank) : "-"}
+      </p>
+      {isPodiumRank(me?.rank) && <p className="mt-2 text-sm text-muted">{copy.player.onPodiumTeaser}</p>}
       <p className="mt-2 text-xl font-bold">{(me?.score ?? 0).toLocaleString()} pts</p>
       {standings?.mode === "teams" && standings?.teamStandings?.length > 0 && (
         <div className="mt-4 w-full text-left">
@@ -510,7 +518,7 @@ function StandingsCard({ standings, meId }) {
               className="mb-2 flex items-center justify-between rounded-xl bg-ink-700/60 px-3 py-2"
             >
               <span className="font-bold" style={{ color: t.color }}>
-                {t.rank}. {t.name}
+                {teamPodiumLabel(t)}
               </span>
               <span>{t.score.toLocaleString()}</span>
             </div>

@@ -62,6 +62,8 @@ export const copy = {
       watchScreen: "Watch the big screen for the drama.",
     },
     standings: "Where you stand",
+    onPodium: "On the podium!",
+    onPodiumTeaser: "Your exact spot is coming on the big screen.",
     final: "You placed",
     gameOver: "That's a wrap",
     playAgain: "Play again",

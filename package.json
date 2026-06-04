@@ -5,6 +5,7 @@
     "setup": "node scripts/verify-setup.mjs",
     "setup:all": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
     "apply-schema": "node scripts/apply-schema.mjs",
+    "apply-security": "node scripts/apply-schema.mjs --security",
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server"
   }

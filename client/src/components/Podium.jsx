@@ -6,7 +6,7 @@ import Avatar from "./characters.jsx";
 
 const COLORS = ["#fbbf24", "#cbd5e1", "#f59e0b"]; // gold, silver, bronze
 const ORDER = [1, 0, 2]; // render 2nd, 1st, 3rd left→right
-const HEIGHTS = ["h-56", "h-72", "h-40"]; // by place index (1st tallest)
+const HEIGHTS = ["h-72", "h-56", "h-40"]; // by place index (1st tallest)
 const MEDALS = ["🥇", "🥈", "🥉"];
 const PLACE_WORDS = ["First place", "Second place", "Third place"];
 

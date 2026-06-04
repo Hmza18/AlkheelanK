@@ -556,7 +556,7 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
         </div>
       )}
 
-      <div className="mt-10 min-h-0 flex-1 overflow-y-auto landscapePhone:mt-4 landscapePhone:pt-2">
+      <div className="lobby-players-stage mt-10 min-h-0 flex-1 overflow-y-auto landscapePhone:mt-4 landscapePhone:pt-2">
         {players.length === 0 ? (
           <p className="lobby-waiting-status" role="status" aria-live="polite">
             <span className="lobby-waiting-status__label alkheelank-wait-shimmer">{copy.lobby.waiting}</span>
@@ -586,7 +586,7 @@ function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
         )}
       </div>
       {error && <p className="mb-2 text-center font-semibold text-tile-triangle">{error}</p>}
-      <div className="sticky bottom-6 mt-3 flex shrink-0 justify-center landscapePhone:bottom-2 landscapePhone:mt-3">
+      <div className="lobby-cta-bar sticky bottom-6 flex shrink-0 justify-center landscapePhone:bottom-2">
         <button onClick={onStart} disabled={players.length === 0} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-6 landscapePhone:py-2.5 landscapePhone:text-base" title={players.length === 0 ? copy.lobby.emptyCta : ""}>
           {copy.lobby.start}
         </button>

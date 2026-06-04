@@ -33,11 +33,9 @@ const supabase = createClient(url, key);
 const list = await supabase.from("quiz_shares").select("id").limit(1);
 const rpc = await supabase.rpc("get_quiz_share_by_code", { share_code: "00000000" });
 
-const listBlocked =
-  list.error &&
-  (list.error.code === "42501" || /permission|policy/i.test(list.error.message || ""));
+const listLeaks = Array.isArray(list.data) && list.data.length > 0;
 const rpcOk = !rpc.error;
 
-console.log("quiz_shares open list blocked:", listBlocked ? "yes" : "no", list.error?.code || "ok");
+console.log("quiz_shares anon enumeration:", listLeaks ? "LEAK" : "blocked (0 rows)");
 console.log("get_quiz_share_by_code RPC:", rpcOk ? "ok" : rpc.error?.message);
-process.exit(listBlocked && rpcOk ? 0 : 1);
+process.exit(!listLeaks && rpcOk ? 0 : 1);

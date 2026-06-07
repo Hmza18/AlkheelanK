@@ -297,6 +297,7 @@ export function markDisconnected(game, socketId) {
 /** Lobby/player roster — omits internal ids so other clients cannot hijack sessions. */
 export function playerList(game) {
   return [...game.players.values()].map((p) => ({
+    pid: p.pid,
     nick: p.nick,
     character: p.character,
     score: p.score,

@@ -1,25 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { QRCodeSVG } from "qrcode.react";
 import { socket, ensureConnected, wakeServer, connectSocket, emitWithAck, formatConnectError } from "../socket.js";
 import { sfx, music } from "../lib/sound.js";
-import SettingsPanel from "../components/SettingsPanel.jsx";
 import Recap from "../components/Recap.jsx";
 import { logGame } from "../lib/db.js";
 import { useAuth } from "../lib/auth.jsx";
-import Logo from "../components/Logo.jsx";
 import AnswerTile from "../components/AnswerTile.jsx";
 import Timer from "../components/Timer.jsx";
 import Leaderboard from "../components/Leaderboard.jsx";
 import Standings from "../components/Standings.jsx";
 import Podium from "../components/Podium.jsx";
-import Avatar from "../components/characters.jsx";
 import SocialReveal, { revealStageName } from "../components/SocialReveal.jsx";
 import HostChrome from "../components/HostChrome.jsx";
 import PhaseShell from "../components/PhaseShell.jsx";
+import SetupView from "../components/host/SetupView.jsx";
+import ConnectingView from "../components/host/ConnectingView.jsx";
+import LobbyView from "../components/host/LobbyView.jsx";
 import { HostRecoveredBanner, HostStatusBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
-import { joinDisplayPath, joinQrUrl } from "../lib/site.js";
 import { saveHostSession, loadHostSession, clearHostSession } from "../lib/hostSession.js";
 
 const DEFAULT_SETTINGS = {
@@ -30,11 +28,6 @@ const DEFAULT_SETTINGS = {
   randomizeAnswers: false,
   speedScoring: true,
   pacing: "normal",
-};
-
-const TEAM_PRESET_LABELS = {
-  kidsAdults: "Kids vs Adults",
-  colorClash: "Color Clash",
 };
 
 export default function HostGame({ launch, onExit }) {
@@ -59,6 +52,7 @@ export default function HostGame({ launch, onExit }) {
   const [hostConnected, setHostConnected] = useState(true);
   const [connectHint, setConnectHint] = useState(copy.connecting.server);
   const [creatingRoom, setCreatingRoom] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const loggedRef = useRef(false);
   const hostTokenRef = useRef(null);
   const pinRef = useRef(null);
@@ -321,42 +315,29 @@ export default function HostGame({ launch, onExit }) {
       <HostStatusBanner connected={hostConnected} />
       <PhaseShell phaseKey={phase} className="min-h-screen landscapePhone:pt-12">
         {phase === "setup" && (
-          <SetupView settings={settings} setSettings={setSettings} onCreate={createLobby} onCancel={onExit} />
+          <SetupView
+            settings={settings}
+            setSettings={setSettings}
+            onCreate={createLobby}
+            onCancel={onExit}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
         )}
         {phase === "connecting" && (
-          <Centered>
-            <p className="text-xl text-muted animate-pulse">{connectHint}</p>
-            {hostError && (
-              <>
-                <p className="mt-4 max-w-md font-semibold text-tile-triangle">{hostError}</p>
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <button onClick={createLobby} className="alkheelank-btn-primary px-6">
-                    Try again
-                  </button>
-                  <button
-                    onClick={() => {
-                      setHostError(null);
-                      setPhase("setup");
-                    }}
-                    className="rounded-xl bg-ink-700 px-6 py-3 text-sm font-semibold text-muted ring-1 ring-white/10 hover:text-paper"
-                  >
-                    ← Back
-                  </button>
-                </div>
-              </>
-            )}
-            {!hostError && (
-              <button
-                onClick={() => setPhase("setup")}
-                className="mt-8 text-sm font-semibold text-muted underline-offset-4 hover:text-paper hover:underline"
-              >
-                Cancel
-              </button>
-            )}
-          </Centered>
+          <ConnectingView
+            connectHint={connectHint}
+            hostError={hostError}
+            onRetry={createLobby}
+            onBack={() => {
+              setHostError(null);
+              setPhase("setup");
+            }}
+            onCancel={() => setPhase("setup")}
+            onOpenSettings={() => setSettingsOpen(true)}
+          />
         )}
         {phase === "lobby" && (
-          <Lobby
+          <LobbyView
             pin={pin}
             quizMeta={quizMeta}
             players={players}
@@ -366,6 +347,7 @@ export default function HostGame({ launch, onExit }) {
               socket.emit("host:start");
             }}
             error={hostError}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
         {phase === "question" && question && (
@@ -413,6 +395,8 @@ export default function HostGame({ launch, onExit }) {
         onSkipQuestion={() => socket.emit("host:closeQuestion")}
         onSkipReveal={() => socket.emit("host:advanceReveal")}
         endLabel={copy.host.endConfirm}
+        settingsOpen={settingsOpen}
+        onSettingsOpenChange={setSettingsOpen}
         onEndGame={() => {
           if (window.confirm("End this game for everyone?")) {
             socket.emit("host:end");
@@ -428,169 +412,6 @@ function Centered({ children }) {
   return (
     <div className="host-phase-fill flex min-h-[80vh] flex-col items-center justify-center text-center landscapePhone:min-h-0">
       {children}
-    </div>
-  );
-}
-
-function SetupView({ settings, setSettings, onCreate, onCancel }) {
-  const toggle = (key) => setSettings((s) => ({ ...s, [key]: !s[key] }));
-  return (
-    <div className="alkheelank-screen-host host-phase-fill mx-auto max-w-2xl">
-      <div className="flex items-center justify-between">
-        <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage"><Logo size="sm" /></button>
-        <button onClick={onCancel} className="text-muted hover:text-paper">← Dashboard</button>
-      </div>
-      <h1 className="mt-10 alkheelank-heading text-4xl landscapePhone:mt-4 landscapePhone:text-3xl">Tune your show</h1>
-      <p className="mt-1 text-muted">Set the vibe, then open the lobby.</p>
-      <div className="mt-6 rounded-2xl bg-ink-700/60 p-4 ring-1 ring-white/10">
-        <p className="text-sm font-bold uppercase tracking-widest text-muted">Mode</p>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {["solo", "teams"].map((mode) => (
-            <button key={mode} onClick={() => setSettings((s) => ({ ...s, mode }))} className={`rounded-xl px-4 py-3 font-bold ring-1 ${settings.mode === mode ? "bg-brand-mid/25 ring-brand-mid text-paper" : "bg-ink-800 ring-white/10 text-muted"}`}>
-              {mode === "solo" ? "Solo" : "Teams"}
-            </button>
-          ))}
-        </div>
-        {settings.mode === "teams" && (
-          <div className="mt-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted">Team setup</p>
-            <div className="mt-2 flex gap-2">
-              {Object.entries(TEAM_PRESET_LABELS).map(([id, label]) => (
-                <button key={id} onClick={() => setSettings((s) => ({ ...s, teamPreset: id }))} className={`rounded-xl px-3 py-2 text-sm font-bold ring-1 ${settings.teamPreset === id ? "bg-brand-mid/25 ring-brand-mid text-paper" : "bg-ink-800 ring-white/10 text-muted"}`}>{label}</button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="mt-5 flex flex-col gap-3">
-        <div className="mt-5 rounded-2xl bg-ink-700/60 p-4 ring-1 ring-white/10">
-          <p className="alkheelank-label">Show pace</p>
-          <p className="mt-1 text-sm text-muted">How snappy reveals feel on the big screen.</p>
-          <div className="mt-3 flex gap-2">
-            {["quick", "normal", "cinematic"].map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setSettings((s) => ({ ...s, pacing: p }))}
-                className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold ring-1 ${
-                  (settings.pacing || "normal") === p ? "bg-brand-mid/25 ring-brand-mid text-paper" : "bg-ink-800 ring-white/10 text-muted"
-                }`}
-              >
-                {copy.host.pacing[p]}
-              </button>
-            ))}
-          </div>
-        </div>
-        {[
-          ["music", "Lobby groove", "Soft music while the crew gathers."],
-          ["speedScoring", "Speed bonus", "Quick taps earn more. Off = flat points."],
-          ["randomizeQuestions", "Shuffle rounds", "Different question order each game."],
-          ["randomizeAnswers", "Shuffle tiles", "Mix answer spots (True/False stays put)."],
-        ].map(([key, title, desc]) => (
-          <button key={key} onClick={() => toggle(key)} className={`flex items-center justify-between gap-4 rounded-2xl p-5 text-left ring-1 ${settings[key] ? "bg-brand-mid/15 ring-brand-mid" : "bg-ink-700/60 ring-white/10 hover:bg-ink-700"}`}>
-            <div><p className="font-display text-xl font-bold">{title}</p><p className="mt-0.5 text-sm text-muted">{desc}</p></div>
-            <span className={`relative h-8 w-14 shrink-0 rounded-full ${settings[key] ? "bg-brand-mid" : "bg-ink-500"}`}>
-              <motion.span layout transition={{ type: "spring", stiffness: 500, damping: 30 }} className={`absolute top-1 h-6 w-6 rounded-full bg-paper ${settings[key] ? "right-1" : "left-1"}`} />
-            </span>
-          </button>
-        ))}
-      </div>
-      <button onClick={onCreate} className="alkheelank-btn-primary mt-6 w-full text-xl">Open lobby →</button>
-    </div>
-  );
-}
-
-function formatLobbyPin(pinStr) {
-  return `${pinStr.slice(0, 3)} ${pinStr.slice(3, 6)}`;
-}
-
-function Lobby({ pin, quizMeta, players, mode, onStart, error }) {
-  const pinStr = String(pin || "").padStart(6, "•");
-  const joinUrl = joinQrUrl(pin);
-  return (
-    <div className="alkheelank-screen-host host-phase-fill flex min-h-0 flex-col">
-      <div className="flex shrink-0 items-center justify-between">
-        <button type="button" onClick={() => window.location.assign("/")} className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid" aria-label="Go to homepage"><Logo /></button>
-        <div className="text-right"><p className="text-sm uppercase tracking-widest text-muted">Players</p><p className="font-display text-3xl font-bold landscapePhone:text-2xl">{players.length}</p></div>
-      </div>
-
-      {quizMeta && (
-        <div className="lobby-quiz-badge mt-8 self-center landscapePhone:mt-2">
-          {quizMeta.title} · {quizMeta.questionCount} questions
-        </div>
-      )}
-
-      <div className="lobby-join-stage w-full max-w-6xl self-center">
-        <div className="lobby-join-panel-grid">
-          <div className="lobby-join-panel__instructions">
-            <p className="lobby-join-kicker">{copy.lobby.joinAt}</p>
-            <p className="lobby-join-url">{joinDisplayPath()}</p>
-            <p className="lobby-join-helper">
-              {copy.lobby.joinOr} <strong>{copy.lobby.joinQr}</strong>
-            </p>
-          </div>
-          <div className="lobby-join-panel__separator" aria-hidden="true" />
-          <div className="lobby-join-panel__pin">
-            <p className="lobby-join-panel__pin-label">{copy.lobby.pinLabel}</p>
-            <div className="pin-display-lobby lobby-join-panel__pin-number font-display alkheelank-gradient-text">
-              {formatLobbyPin(pinStr)}
-            </div>
-          </div>
-          {pin && (
-            <>
-              <div className="lobby-join-panel__separator" aria-hidden="true" />
-              <div className="lobby-join-panel__qr">
-                <QRCodeSVG value={joinUrl} size={160} bgColor="#faf6f0" fgColor="#1a1814" level="M" className="landscapePhone:hidden" />
-                <QRCodeSVG value={joinUrl} size={100} bgColor="#faf6f0" fgColor="#1a1814" level="M" className="hidden landscapePhone:block" />
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {mode && (
-        <div className="mt-4 flex justify-center landscapePhone:mt-2">
-          <p className="rounded-full bg-ink-700 px-3 py-1 text-xs font-bold uppercase tracking-widest text-muted ring-1 ring-white/10">
-            {mode === "teams" ? copy.lobby.modeTeams : copy.lobby.modeSolo}
-          </p>
-        </div>
-      )}
-
-      <div className="lobby-players-stage mt-10 min-h-0 flex-1 overflow-y-auto landscapePhone:mt-4 landscapePhone:pt-2">
-        {players.length === 0 ? (
-          <p className="lobby-waiting-status" role="status" aria-live="polite">
-            <span className="lobby-waiting-status__label alkheelank-wait-shimmer">{copy.lobby.waiting}</span>
-            <span className="lobby-waiting-status__dots" aria-hidden="true">
-              <span className="lobby-waiting-status__dot" />
-              <span className="lobby-waiting-status__dot" />
-              <span className="lobby-waiting-status__dot" />
-            </span>
-          </p>
-        ) : (
-          <div className="flex flex-wrap justify-center gap-3">
-            <AnimatePresence>
-              {players.map((p) => (
-                <motion.span key={p.nick} layout initial={{ scale: 0, opacity: 0, rotate: -12 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} exit={{ scale: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 18 }} className="flex items-center gap-2 rounded-2xl bg-ink-700 py-2 pl-2 pr-4 text-xl font-bold ring-1 ring-white/10 landscapePhone:text-base">
-                  <span className="landscapePhone:hidden">
-                    <Avatar config={p.character} size={40} ring />
-                  </span>
-                  <span className="hidden landscapePhone:inline-flex">
-                    <Avatar config={p.character} size={32} ring />
-                  </span>
-                  {p.nick}
-                  {mode === "teams" && p.team?.name && <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: `${p.team.color}33`, color: p.team.color }}>{p.team.name}</span>}
-                </motion.span>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
-      {error && <p className="mb-2 text-center font-semibold text-tile-triangle">{error}</p>}
-      <div className="lobby-cta-bar sticky bottom-6 flex shrink-0 justify-center landscapePhone:bottom-2">
-        <button onClick={onStart} disabled={players.length === 0} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-6 landscapePhone:py-2.5 landscapePhone:text-base" title={players.length === 0 ? copy.lobby.emptyCta : ""}>
-          {copy.lobby.start}
-        </button>
-      </div>
     </div>
   );
 }

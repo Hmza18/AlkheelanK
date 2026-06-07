@@ -2,6 +2,7 @@
 
 export const copy = {
   connecting: {
+    title: "Getting your room ready",
     server: "Connecting to game server…",
     waking: "Waking up server — the first launch after idle can take up to a minute.",
     slow: "Still connecting…",
@@ -10,6 +11,7 @@ export const copy = {
     verySlow: "Almost there — free servers are slow to wake the first time.",
   },
   lobby: {
+    playersLabel: "Players",
     waiting: "Waiting for players",
     emptyCta: "Need at least one player on the board",
     start: "Let's play",

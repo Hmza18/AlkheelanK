@@ -62,6 +62,16 @@ export default function PostAnswerWaiting({
           </motion.div>
         )}
 
+        {question?.image && (
+          <motion.img
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            src={question.image}
+            alt=""
+            className="relative mx-auto mt-5 max-h-32 w-auto rounded-xl object-contain shadow-lg ring-1 ring-white/10"
+          />
+        )}
+
         <motion.p
           key={message}
           initial={{ opacity: 0, scale: 0.92 }}

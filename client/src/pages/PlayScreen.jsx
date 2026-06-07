@@ -438,6 +438,17 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
         </div>
       )}
       <h2 className="mt-3 text-center text-2xl font-bold">{q?.question}</h2>
+      {q?.image && (
+        <div className="mt-3 flex justify-center">
+          <motion.img
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            src={q.image}
+            alt=""
+            className="max-h-[28svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10"
+          />
+        </div>
+      )}
       <div className="mt-5 grid flex-1 grid-cols-1 content-end gap-4">
         {q?.answers?.map((a, i) => (
           <AnswerTile

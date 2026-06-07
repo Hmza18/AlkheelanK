@@ -13,6 +13,7 @@ export const copy = {
   lobby: {
     playersLabel: "Players",
     waiting: "Waiting for players",
+    waitingHint: "Share the PIN or QR — they'll pop up here",
     emptyCta: "Need at least one player on the board",
     start: "Let's play",
     pinLabel: "Game PIN:",

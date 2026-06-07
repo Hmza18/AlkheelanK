@@ -616,14 +616,6 @@ button:focus-visible {
   color: var(--alkheelank-muted);
 }
 
-.pregame-join-panel__pin-glow {
-  display: inline-block;
-  padding: 0.35rem 0.75rem;
-  border-radius: 1rem;
-  box-shadow: 0 0 32px -8px rgba(217, 119, 6, 0.45);
-  border: 1px solid rgba(234, 88, 12, 0.2);
-}
-
 .pregame-join-panel__pin-number {
   font-size: var(--pregame-pin-size);
   font-weight: 900;
@@ -707,67 +699,83 @@ button:focus-visible {
   font-weight: 700;
 }
 
-.pregame-waiting-status {
+.pregame-waiting {
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.65rem 1.25rem;
-  margin: 0;
-  padding: 0.75rem 1rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.5rem 1rem 1rem;
   text-align: center;
-  font-size: clamp(1rem, 2.2vw, 1.25rem);
-  font-weight: 700;
 }
 
-.pregame-waiting-status__label {
-  font-size: inherit;
-  font-weight: inherit;
+.pregame-waiting__stage {
+  position: relative;
+  width: clamp(7rem, 18vw, 9.5rem);
+  height: clamp(7rem, 18vw, 9.5rem);
 }
 
-.pregame-waiting-status__dots {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 0.5rem;
-  height: 1.35rem;
-  padding-bottom: 0.2rem;
-  margin-left: 0.15rem;
-}
-
-.pregame-waiting-status__dot {
-  display: block;
-  width: 0.5rem;
-  height: 0.5rem;
+.pregame-waiting__ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
   border-radius: 9999px;
-  animation: pregame-waiting-bounce 1.05s ease-in-out infinite;
+  border: 2px solid rgba(217, 119, 6, 0.45);
+  pointer-events: none;
 }
 
-.pregame-waiting-status__dot:nth-child(1) {
-  background: var(--alkheelank-brand-start);
-  animation-delay: 0s;
+.pregame-waiting__core {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 9999px;
+  background: linear-gradient(
+    135deg,
+    rgba(217, 119, 6, 0.28),
+    rgba(234, 88, 12, 0.18)
+  );
+  border: 1px solid rgba(234, 88, 12, 0.35);
+  box-shadow: 0 0 24px -6px rgba(217, 119, 6, 0.5);
 }
 
-.pregame-waiting-status__dot:nth-child(2) {
-  background: var(--alkheelank-brand-mid);
-  animation-delay: 0.16s;
+.pregame-waiting__core-icon {
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
-.pregame-waiting-status__dot:nth-child(3) {
-  background: var(--alkheelank-brand-end);
-  animation-delay: 0.32s;
+.pregame-waiting__ghost {
+  position: absolute;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.875rem 0 0 -0.875rem;
+  border-radius: 9999px;
+  background: linear-gradient(
+    135deg,
+    var(--alkheelank-brand-start),
+    var(--alkheelank-brand-mid)
+  );
+  box-shadow: 0 0 12px -2px rgba(217, 119, 6, 0.55);
 }
 
-@keyframes pregame-waiting-bounce {
-  0%,
-  55%,
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.4;
-  }
-  28% {
-    transform: translateY(-0.55rem) scale(1.08);
-    opacity: 1;
-  }
+.pregame-waiting__label {
+  margin: 0;
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  font-weight: 800;
+}
+
+.pregame-waiting__hint {
+  margin: 0;
+  max-width: 18rem;
+  font-size: clamp(0.8rem, 1.6vw, 0.95rem);
+  font-weight: 600;
+  color: var(--alkheelank-muted);
+  line-height: 1.4;
 }
 
 @media (max-width: 1120px) {
@@ -848,13 +856,8 @@ button:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pregame-waiting-status__dot,
   .pregame-connecting__pulse {
     animation: none;
-  }
-
-  .pregame-waiting-status__dot {
-    opacity: 0.75;
   }
 }
 

@@ -1,10 +1,6 @@
 import Logo from "../Logo.jsx";
 import { copy } from "../../lib/copy.js";
-import HostPregameShell, {
-  PregameHeaderLink,
-  PregameLogoButton,
-  PregameSettingsTrigger,
-} from "./HostPregameShell.jsx";
+import HostPregameShell, { PregameHeaderLink, PregameLogoButton } from "./HostPregameShell.jsx";
 
 const STEPS = [
   { key: "server", label: "Connecting" },
@@ -30,7 +26,6 @@ export default function ConnectingView({
   onRetry,
   onBack,
   onCancel,
-  onOpenSettings,
 }) {
   const stepIdx = activeStepIndex(connectHint);
 
@@ -41,7 +36,7 @@ export default function ConnectingView({
           <Logo size="sm" />
         </PregameLogoButton>
       }
-      headerRight={<PregameSettingsTrigger onClick={onOpenSettings} />}
+      headerRight={null}
       footer={
         !hostError ? (
           <button type="button" onClick={onCancel} className="pregame-cancel-btn alkheelank-btn-ghost">

@@ -31,14 +31,6 @@ export default function HostPregameShell({
   );
 }
 
-export function PregameSettingsTrigger({ onClick }) {
-  return (
-    <button type="button" onClick={onClick} className="pregame-header-btn">
-      Settings
-    </button>
-  );
-}
-
 export function PregameHeaderLink({ onClick, children }) {
   return (
     <button type="button" onClick={onClick} className="pregame-header-link">

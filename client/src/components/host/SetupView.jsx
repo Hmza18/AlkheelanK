@@ -3,7 +3,6 @@ import { copy } from "../../lib/copy.js";
 import HostPregameShell, {
   PregameHeaderLink,
   PregameLogoButton,
-  PregameSettingsTrigger,
   PregameStartButton,
 } from "./HostPregameShell.jsx";
 import SegmentControl from "./SegmentControl.jsx";
@@ -21,7 +20,7 @@ const TOGGLE_OPTIONS = [
   ["randomizeAnswers", "Shuffle tiles", "Mix answer spots (True/False stays put)."],
 ];
 
-export default function SetupView({ settings, setSettings, onCreate, onCancel, onOpenSettings }) {
+export default function SetupView({ settings, setSettings, onCreate, onCancel }) {
   const toggle = (key) => setSettings((s) => ({ ...s, [key]: !s[key] }));
 
   return (
@@ -31,12 +30,7 @@ export default function SetupView({ settings, setSettings, onCreate, onCancel, o
           <Logo size="sm" />
         </PregameLogoButton>
       }
-      headerRight={
-        <>
-          <PregameSettingsTrigger onClick={onOpenSettings} />
-          <PregameHeaderLink onClick={onCancel}>← Dashboard</PregameHeaderLink>
-        </>
-      }
+      headerRight={<PregameHeaderLink onClick={onCancel}>← Dashboard</PregameHeaderLink>}
       footer={
         <PregameStartButton onClick={onCreate}>Open lobby →</PregameStartButton>
       }

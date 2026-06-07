@@ -320,7 +320,6 @@ export default function HostGame({ launch, onExit }) {
             setSettings={setSettings}
             onCreate={createLobby}
             onCancel={onExit}
-            onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
         {phase === "connecting" && (
@@ -333,7 +332,6 @@ export default function HostGame({ launch, onExit }) {
               setPhase("setup");
             }}
             onCancel={() => setPhase("setup")}
-            onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
         {phase === "lobby" && (
@@ -347,7 +345,6 @@ export default function HostGame({ launch, onExit }) {
               socket.emit("host:start");
             }}
             error={hostError}
-            onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
         {phase === "question" && question && (

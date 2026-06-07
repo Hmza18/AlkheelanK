@@ -4,17 +4,14 @@ import Logo from "../Logo.jsx";
 import Avatar from "../characters.jsx";
 import { copy } from "../../lib/copy.js";
 import { joinDisplayPath, joinQrUrl } from "../../lib/site.js";
-import HostPregameShell, {
-  PregameLogoButton,
-  PregameSettingsTrigger,
-  PregameStartButton,
-} from "./HostPregameShell.jsx";
+import HostPregameShell, { PregameLogoButton, PregameStartButton } from "./HostPregameShell.jsx";
+import WaitingForPlayers from "./WaitingForPlayers.jsx";
 
 function formatLobbyPin(pinStr) {
   return `${pinStr.slice(0, 3)} ${pinStr.slice(3, 6)}`;
 }
 
-export default function LobbyView({ pin, quizMeta, players, mode, onStart, error, onOpenSettings }) {
+export default function LobbyView({ pin, quizMeta, players, mode, onStart, error }) {
   const pinStr = String(pin || "").padStart(6, "•");
   const joinUrl = joinQrUrl(pin);
 
@@ -32,7 +29,6 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, error
             <p className="pregame-header__count-label">Players</p>
             <p className="pregame-header__count-value">{players.length}</p>
           </div>
-          <PregameSettingsTrigger onClick={onOpenSettings} />
         </>
       }
       joinSlot={
@@ -55,10 +51,8 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, error
               <div className="pregame-join-panel__separator" aria-hidden="true" />
               <div className="pregame-join-panel__pin">
                 <p className="pregame-join-panel__pin-label">{copy.lobby.pinLabel}</p>
-                <div className="pregame-join-panel__pin-glow">
-                  <div className="pin-display-lobby pregame-join-panel__pin-number font-display alkheelank-gradient-text">
-                    {formatLobbyPin(pinStr)}
-                  </div>
+                <div className="pin-display-lobby pregame-join-panel__pin-number font-display alkheelank-gradient-text">
+                  {formatLobbyPin(pinStr)}
                 </div>
               </div>
               {pin && (
@@ -90,14 +84,7 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, error
         <>
           <p className="pregame-section-label">{copy.lobby.playersLabel}</p>
           {players.length === 0 ? (
-            <p className="pregame-waiting-status" role="status" aria-live="polite">
-              <span className="pregame-waiting-status__label alkheelank-wait-shimmer">{copy.lobby.waiting}</span>
-              <span className="pregame-waiting-status__dots" aria-hidden="true">
-                <span className="pregame-waiting-status__dot" />
-                <span className="pregame-waiting-status__dot" />
-                <span className="pregame-waiting-status__dot" />
-              </span>
-            </p>
+            <WaitingForPlayers />
           ) : (
             <div className="pregame-player-chips">
               <AnimatePresence>

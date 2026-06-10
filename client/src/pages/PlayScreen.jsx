@@ -13,6 +13,7 @@ import { copy } from "../lib/copy.js";
 import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
+import Timer from "../components/Timer.jsx";
 
 export default function PlayScreen() {
   const navigate = useNavigate();
@@ -426,51 +427,54 @@ function JoinPin({ pin, setPin, goProfile, error }) {
 function QuestionCard({ q, selected, onAnswer, paused }) {
   const isTF = q?.type === "tf";
   return (
-    <div className="player-phase-fill alkheelank-safe-x relative mx-auto flex w-full max-w-md flex-col overflow-hidden px-5 py-6 pb-20 landscapePhone:flex-row landscapePhone:items-stretch landscapePhone:gap-2 landscapePhone:px-3 landscapePhone:py-2 landscapePhone:pb-2">
-      <div className="flex min-h-0 min-w-0 flex-col landscapePhone:flex-1 landscapePhone:justify-center">
-        <div className="flex shrink-0 items-center justify-between text-sm font-semibold text-muted landscapePhone:text-xs">
-          <span>
-            Q{q?.index + 1} / {q?.total}
-          </span>
-          <span>{isTF ? "True or false?" : "Speed counts"}</span>
-        </div>
-        {q?.doublePoints && (
-          <div className="mx-auto mt-3 inline-flex shrink-0 animate-pulse rounded-full bg-brand-mid/25 px-4 py-1 text-sm font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mx-0 landscapePhone:mt-1 landscapePhone:px-2 landscapePhone:py-0.5 landscapePhone:text-xs">
-            ⚡ 2X POINTS
-          </div>
-        )}
-        <h2 className="mt-3 shrink-0 text-center text-2xl font-bold leading-tight landscapePhone:mt-1 landscapePhone:text-left landscapePhone:text-[clamp(0.8125rem,2.8vh,1rem)] landscapePhone:leading-snug">
-          {q?.question}
-        </h2>
-        {q?.image && (
-          <div className="mt-3 flex shrink-0 justify-center landscapePhone:mt-1 landscapePhone:justify-start">
-            <motion.img
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              src={q.image}
-              alt=""
-              className="max-h-[28svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 landscapePhone:max-h-14 landscapePhone:rounded-xl sm:max-h-[34svh] landscapePhone:sm:max-h-14"
-            />
-          </div>
-        )}
+    <div className="player-phase-fill alkheelank-safe-x relative mx-auto flex w-full max-w-md flex-col overflow-hidden px-5 py-6 pb-20 landscapePhone:px-3 landscapePhone:py-2 landscapePhone:pb-2">
+      <div className="flex shrink-0 items-center justify-between text-sm font-semibold text-muted landscapePhone:text-xs">
+        <span>
+          Q{q?.index + 1} / {q?.total}
+        </span>
+        <span>{isTF ? "True or false?" : "Speed counts"}</span>
       </div>
-      <div
-        className={`mt-5 grid min-h-0 shrink-0 gap-4 landscapePhone:mt-0 landscapePhone:w-[min(46%,12rem)] landscapePhone:content-center landscapePhone:gap-1.5 ${
-          isTF ? "grid-cols-1 landscapePhone:grid-cols-2" : "grid-cols-1 flex-1 content-end landscapePhone:grid-cols-2 landscapePhone:flex-none"
-        }`}
-      >
-        {q?.answers?.map((a, i) => (
-          <AnswerTile
-            key={i}
-            index={i}
-            type={q.type}
-            text={a.text}
-            onClick={() => onAnswer(i)}
-            selected={selected === i}
-            disabled={selected !== null || paused}
-            big
+      {q?.doublePoints && (
+        <div className="mx-auto mt-3 inline-flex shrink-0 animate-pulse rounded-full bg-brand-mid/25 px-4 py-1 text-sm font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mt-1 landscapePhone:px-2 landscapePhone:py-0.5 landscapePhone:text-xs">
+          ⚡ 2X POINTS
+        </div>
+      )}
+      <h2 className="mt-3 shrink-0 text-center text-2xl font-bold leading-tight landscapePhone:mt-1 landscapePhone:text-[clamp(0.8125rem,2.8vh,1rem)] landscapePhone:leading-snug">
+        {q?.question}
+      </h2>
+      {q?.image && (
+        <div className="mt-3 flex min-h-0 shrink justify-center landscapePhone:mt-1 landscapePhone:min-h-0 landscapePhone:flex-1 landscapePhone:items-center">
+          <motion.img
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            src={q.image}
+            alt=""
+            className="max-h-[28svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 sm:max-h-[34svh] landscapePhone:max-h-full landscapePhone:max-w-full landscapePhone:rounded-xl landscapePhone:sm:max-h-full"
           />
-        ))}
+        </div>
+      )}
+      <div className="mt-5 flex min-h-0 shrink-0 flex-col landscapePhone:mt-1 landscapePhone:flex-row landscapePhone:items-end landscapePhone:gap-2">
+        <div className="hidden shrink-0 landscapePhone:block">
+          <Timer timeLimit={q?.timeLimit} startedAt={q?.startedAt} paused={paused} size={64} />
+        </div>
+        <div
+          className={`grid min-w-0 flex-1 gap-4 landscapePhone:gap-1.5 ${
+            isTF ? "grid-cols-1 landscapePhone:grid-cols-2" : "grid-cols-1 flex-1 content-end landscapePhone:grid-cols-2 landscapePhone:flex-none landscapePhone:content-stretch"
+          }`}
+        >
+          {q?.answers?.map((a, i) => (
+            <AnswerTile
+              key={i}
+              index={i}
+              type={q.type}
+              text={a.text}
+              onClick={() => onAnswer(i)}
+              selected={selected === i}
+              disabled={selected !== null || paused}
+              big
+            />
+          ))}
+        </div>
       </div>
       {paused && (
         <motion.div

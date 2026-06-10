@@ -428,35 +428,38 @@ function QuestionView({ question, image, answerCount, paused }) {
     };
   }, [question?.startedAt, question?.timeLimit, paused]);
   return (
-    <div className="host-phase-fill host-phase-fill--fit alkheelank-screen-host flex min-h-0 flex-col overflow-hidden landscapePhone:flex-row landscapePhone:items-stretch landscapePhone:gap-3">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col landscapePhone:justify-center">
-        <div className="flex shrink-0 items-center justify-between text-muted landscapePhone:text-sm">
-          <span className="font-semibold">
-            Question {question.index + 1} of {question.total}
-            {isTF && <span className="ml-2 rounded-full bg-ink-700 px-2 py-0.5 text-xs landscapePhone:ml-1">True / False</span>}
-          </span>
-          <span className="font-semibold">{answerCount.answered} answered</span>
+    <div className="host-phase-fill host-phase-fill--fit alkheelank-screen-host flex min-h-0 flex-col overflow-hidden">
+      <div className="flex shrink-0 items-center justify-between text-muted landscapePhone:text-sm">
+        <span className="font-semibold">
+          Question {question.index + 1} of {question.total}
+          {isTF && <span className="ml-2 rounded-full bg-ink-700 px-2 py-0.5 text-xs landscapePhone:ml-1">True / False</span>}
+        </span>
+        <span className="font-semibold">{answerCount.answered} answered</span>
+      </div>
+      {question.doublePoints && (
+        <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-4 py-1.5 text-base font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mt-1 landscapePhone:px-3 landscapePhone:text-sm">
+          ⚡ {copy.reveal.doublePoints}
         </div>
-        {question.doublePoints && (
-          <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-4 py-1.5 text-base font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mx-0 landscapePhone:mt-1 landscapePhone:px-3 landscapePhone:text-sm">
-            ⚡ {copy.reveal.doublePoints}
-          </div>
-        )}
-        <h1 className="mt-3 shrink-0 text-center font-display text-4xl font-bold leading-tight landscapePhone:mt-1 landscapePhone:text-left landscapePhone:text-[clamp(0.875rem,3vh,1.25rem)] landscapePhone:leading-snug">
-          {question.question}
-        </h1>
-        {image && (
-          <div className="mt-3 shrink-0 landscapePhone:mt-1">
-            <motion.img
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              src={image}
-              alt=""
-              className="mx-auto max-h-[22svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 landscapePhone:mx-0 landscapePhone:max-h-16 sm:max-h-[34svh] landscapePhone:sm:max-h-16"
-            />
-          </div>
-        )}
-        <div className="my-4 flex shrink-0 items-center justify-center landscapePhone:my-1 landscapePhone:justify-start">
+      )}
+      <h1 className="mt-3 shrink-0 text-center font-display text-4xl font-bold leading-tight landscapePhone:mt-1 landscapePhone:text-[clamp(0.875rem,3vh,1.25rem)] landscapePhone:leading-snug">
+        {question.question}
+      </h1>
+      {image && (
+        <div className="mt-3 flex min-h-0 shrink justify-center landscapePhone:mt-1 landscapePhone:min-h-0 landscapePhone:flex-1 landscapePhone:items-center">
+          <motion.img
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            src={image}
+            alt=""
+            className="max-h-[22svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 sm:max-h-[34svh] landscapePhone:max-h-full landscapePhone:max-w-full landscapePhone:rounded-xl landscapePhone:sm:max-h-full"
+          />
+        </div>
+      )}
+      {paused && (
+        <p className="mt-2 shrink-0 text-center text-lg font-bold text-warning landscapePhone:text-sm">⏸ Round paused — use show controls to resume</p>
+      )}
+      <div className="mt-auto flex min-h-0 shrink-0 flex-col items-center gap-4 landscapePhone:mt-1 landscapePhone:flex-row landscapePhone:items-end landscapePhone:gap-3">
+        <div className="shrink-0 landscapePhone:pb-0.5">
           <div className="landscapePhone:hidden">
             <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound />
           </div>
@@ -464,21 +467,15 @@ function QuestionView({ question, image, answerCount, paused }) {
             <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound size={72} />
           </div>
         </div>
-        {paused && (
-          <>
-            <p className="shrink-0 text-center text-lg font-bold text-warning landscapePhone:hidden">⏸ Round paused — use show controls to resume</p>
-            <p className="hidden shrink-0 text-sm font-bold text-warning landscapePhone:block landscapePhone:text-left">⏸ Paused — show controls</p>
-          </>
-        )}
-      </div>
-      <div
-        className={`mt-auto grid min-h-0 shrink-0 gap-2 landscapePhone:mt-0 landscapePhone:w-[min(46%,13rem)] landscapePhone:content-center landscapePhone:gap-1.5 ${
-          isTF ? "grid-cols-1 sm:grid-cols-2 landscapePhone:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 landscapePhone:grid-cols-2"
-        }`}
-      >
-        {question.answers.map((a, i) => (
-          <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big compact />
-        ))}
+        <div
+          className={`grid w-full min-w-0 flex-1 gap-2 landscapePhone:gap-1.5 ${
+            isTF ? "max-w-md grid-cols-1 sm:grid-cols-2 landscapePhone:max-w-none landscapePhone:grid-cols-2" : "max-w-2xl grid-cols-1 sm:grid-cols-2 landscapePhone:max-w-none landscapePhone:grid-cols-2"
+          }`}
+        >
+          {question.answers.map((a, i) => (
+            <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big compact />
+          ))}
+        </div>
       </div>
     </div>
   );

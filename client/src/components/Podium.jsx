@@ -6,7 +6,7 @@ import Avatar from "./characters.jsx";
 
 const COLORS = ["#fbbf24", "#cbd5e1", "#f59e0b"]; // gold, silver, bronze
 const ORDER = [1, 0, 2]; // render 2nd, 1st, 3rd left→right
-const HEIGHTS = ["h-72", "h-56", "h-40"]; // by place index (1st tallest)
+const HEIGHTS = ["h-72 landscapePhone:h-24", "h-56 landscapePhone:h-20", "h-40 landscapePhone:h-16"]; // by place index (1st tallest)
 const MEDALS = ["🥇", "🥈", "🥉"];
 const PLACE_WORDS = ["First place", "Second place", "Third place"];
 
@@ -60,7 +60,7 @@ export default function Podium({ podium = [], sound = true, onComplete }) {
   return (
     <div className="flex w-full flex-col items-center">
       {/* Announcement banner for the place currently being revealed */}
-      <div className="mb-6 h-12">
+      <div className="mb-6 h-12 landscapePhone:mb-2 landscapePhone:h-8">
         <AnimatePresence mode="wait">
           {announce !== null && (
             <motion.div
@@ -69,7 +69,7 @@ export default function Podium({ podium = [], sound = true, onComplete }) {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ type: "spring", stiffness: 400, damping: 16 }}
-              className="font-display text-3xl font-bold alkheelank-gradient-text sm:text-4xl"
+              className="font-display text-3xl font-bold alkheelank-gradient-text sm:text-4xl landscapePhone:text-lg landscapePhone:sm:text-lg"
             >
               {announce === 0 ? "🏆 " : ""}
               {PLACE_WORDS[announce]}
@@ -79,13 +79,11 @@ export default function Podium({ podium = [], sound = true, onComplete }) {
         </AnimatePresence>
       </div>
 
-      <div className="flex w-full items-end justify-center gap-3 sm:gap-6">
+      <div className="flex w-full items-end justify-center gap-3 sm:gap-6 landscapePhone:gap-2">
         {slots.map(({ placeIdx, player }) => {
           const shown = shownPlaces.has(placeIdx);
-          // Always reserve the block footprint so the layout doesn't jump as
-          // each winner rises into place; the content fades/rises in when shown.
           return (
-            <div key={player.id ?? player.nick} className="flex w-28 flex-col items-center sm:w-44">
+            <div key={player.id ?? player.nick} className="flex w-28 flex-col items-center sm:w-44 landscapePhone:w-20 landscapePhone:sm:w-24">
               {shown ? (
                 <motion.div
                   initial={{ y: 220, opacity: 0 }}
@@ -93,23 +91,26 @@ export default function Podium({ podium = [], sound = true, onComplete }) {
                   transition={{ type: "spring", stiffness: 130, damping: 14 }}
                   className="flex w-full flex-col items-center"
                 >
-                  <div className="mb-3 flex flex-col items-center text-center">
+                  <div className="mb-3 flex flex-col items-center text-center landscapePhone:mb-1">
                     <motion.div
                       animate={placeIdx === 0 ? { scale: [1, 1.12, 1] } : {}}
                       transition={{ duration: 0.6, repeat: placeIdx === 0 ? Infinity : 0, repeatDelay: 1.2 }}
                     >
-                      <Avatar config={player.character} size={placeIdx === 0 ? 84 : 64} ring />
+                      <Avatar config={player.character} size={placeIdx === 0 ? 84 : 64} ring className="landscapePhone:hidden" />
+                      <span className="hidden landscapePhone:inline-flex">
+                        <Avatar config={player.character} size={placeIdx === 0 ? 48 : 40} ring />
+                      </span>
                     </motion.div>
-                    <div className="mt-1 text-3xl">{MEDALS[placeIdx]}</div>
-                    <div className="max-w-full truncate text-xl font-bold text-paper sm:text-2xl">
+                    <div className="mt-1 text-3xl landscapePhone:text-lg">{MEDALS[placeIdx]}</div>
+                    <div className="max-w-full truncate text-xl font-bold text-paper sm:text-2xl landscapePhone:text-sm landscapePhone:sm:text-sm">
                       {player.nick}
                     </div>
-                    <div className="font-display text-2xl font-bold alkheelank-gradient-text tabular-nums">
+                    <div className="font-display text-2xl font-bold alkheelank-gradient-text tabular-nums landscapePhone:text-base">
                       {player.score.toLocaleString()}
                     </div>
                   </div>
                   <div
-                    className={`flex w-full items-start justify-center rounded-t-2xl ${HEIGHTS[placeIdx]} pt-3 font-display text-4xl font-bold text-ink-900`}
+                    className={`flex w-full items-start justify-center rounded-t-2xl pt-3 font-display text-4xl font-bold text-ink-900 landscapePhone:rounded-t-xl landscapePhone:pt-1 landscapePhone:text-2xl ${HEIGHTS[placeIdx]}`}
                     style={{
                       background: `linear-gradient(180deg, ${COLORS[placeIdx]}, ${COLORS[placeIdx]}aa)`,
                     }}

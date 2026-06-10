@@ -8,7 +8,7 @@ import { sfx } from "../lib/sound.js";
 // When `paused` is true the loop freezes on the current value. On resume the
 // server sends a fresh `startedAt` (shifted to exclude the pause) and the effect
 // re-runs, so the countdown picks up exactly where it left off.
-export default function Timer({ timeLimit, startedAt, sound = false, paused = false, onExpire }) {
+export default function Timer({ timeLimit, startedAt, sound = false, paused = false, onExpire, size = 128 }) {
   const [remaining, setRemaining] = useState(timeLimit);
   const lastTickRef = useRef(Math.ceil(timeLimit));
   const firedRef = useRef(false);
@@ -46,33 +46,36 @@ export default function Timer({ timeLimit, startedAt, sound = false, paused = fa
   }, [timeLimit, startedAt, paused]);
 
   const pct = Math.max(0, Math.min(1, remaining / timeLimit));
-  const R = 52;
+  const R = (size / 128) * 52;
   const C = 2 * Math.PI * R;
   const offset = C * (1 - pct);
   const seconds = Math.ceil(remaining);
   const danger = remaining <= 5 && !paused;
   const urgent = remaining <= Math.max(8, timeLimit * 0.25) && !paused;
+  const cx = size / 2;
+  const strokeW = (size / 128) * 12;
+  const fontSize = size <= 80 ? "text-3xl" : "text-5xl";
 
   return (
     <div className={`relative grid place-items-center ${urgent ? "scale-[1.03]" : ""}`}>
       <svg
-        width="128"
-        height="128"
-        viewBox="0 0 128 128"
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
         className={danger ? "animate-pulse" : urgent ? "animate-[pulse_1.8s_ease-in-out_infinite]" : ""}
       >
-        <circle cx="64" cy="64" r={R} fill="none" stroke="rgba(250,246,240,0.12)" strokeWidth="12" />
+        <circle cx={cx} cy={cx} r={R} fill="none" stroke="rgba(250,246,240,0.12)" strokeWidth={strokeW} />
         <circle
-          cx="64"
-          cy="64"
+          cx={cx}
+          cy={cx}
           r={R}
           fill="none"
           stroke={paused ? "#b8a99a" : danger ? "#f43f5e" : urgent ? "#fb923c" : "#ea580c"}
-          strokeWidth="12"
+          strokeWidth={strokeW}
           strokeLinecap="round"
           strokeDasharray={C}
           strokeDashoffset={offset}
-          transform="rotate(-90 64 64)"
+          transform={`rotate(-90 ${cx} ${cx})`}
           style={{
             transition: "stroke-dashoffset 0.1s linear",
             filter: urgent ? "drop-shadow(0 0 6px rgba(244,63,94,0.65))" : "none",
@@ -80,7 +83,7 @@ export default function Timer({ timeLimit, startedAt, sound = false, paused = fa
         />
       </svg>
       <span
-        className={`absolute font-display text-5xl font-bold tabular-nums ${
+        className={`absolute font-display font-bold tabular-nums ${fontSize} ${
           paused ? "text-muted" : danger ? "text-tile-triangle" : "text-paper"
         }`}
       >

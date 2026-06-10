@@ -70,7 +70,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
       transition={spring.soft}
 
-      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[2rem] bg-ink-800 p-7 shadow-2xl ring-1 ring-white/10"
+      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[2rem] bg-ink-800 p-7 shadow-2xl ring-1 ring-white/10 landscapePhone:max-h-[calc(100dvh-2rem)] landscapePhone:overflow-y-auto landscapePhone:p-4 landscapePhone:rounded-3xl"
 
     >
 

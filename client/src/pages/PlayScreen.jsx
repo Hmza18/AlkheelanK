@@ -296,15 +296,15 @@ export default function PlayScreen() {
         <HostStatusBanner connected={hostConnected} forPlayer />
         <CenterCard>
           <PlayerReconnectBanner show={showReconnectBanner} />
-          <Avatar config={me?.character} size={96} ring />
-          <h2 className="mt-4 alkheelank-heading text-2xl">{copy.player.joined}</h2>
-          <p className="mt-1 text-3xl font-bold alkheelank-gradient-text">{me?.nick}</p>
+          <Avatar config={me?.character} size={80} ring />
+          <h2 className="mt-4 alkheelank-heading text-2xl landscapePhone:mt-2 landscapePhone:text-xl">{copy.player.joined}</h2>
+          <p className="mt-1 text-3xl font-bold alkheelank-gradient-text landscapePhone:text-2xl">{me?.nick}</p>
           {me?.team?.name && (
-            <p className="mt-2 text-sm font-bold" style={{ color: me.team.color }}>
+            <p className="mt-2 text-sm font-bold landscapePhone:mt-1" style={{ color: me.team.color }}>
               {me.team.name}
             </p>
           )}
-          <p className="mt-6 text-muted animate-pulse">{copy.player.lobbyWait}</p>
+          <p className="mt-6 text-muted animate-pulse landscapePhone:mt-3 landscapePhone:text-sm">{copy.player.lobbyWait}</p>
         </CenterCard>
       </>
     );
@@ -358,13 +358,13 @@ export default function PlayScreen() {
     const onPodium = isPodiumRank(finalRank?.rank);
     return (
       <CenterCard>
-        <h2 className="alkheelank-heading text-3xl">{onPodium ? copy.player.onPodium : copy.player.final}</h2>
+        <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{onPodium ? copy.player.onPodium : copy.player.final}</h2>
         {!onPodium && (
-          <p className="mt-2 text-2xl font-bold alkheelank-gradient-text">#{finalRank?.rank ?? "-"}</p>
+          <p className="mt-2 text-2xl font-bold alkheelank-gradient-text landscapePhone:mt-1 landscapePhone:text-xl">#{finalRank?.rank ?? "-"}</p>
         )}
-        {onPodium && <p className="mt-2 text-muted">{copy.player.onPodiumTeaser}</p>}
-        <p className={`${onPodium ? "mt-4" : "mt-1"} text-muted`}>{(finalRank?.score ?? 0).toLocaleString()} pts total</p>
-        <button type="button" onClick={() => navigate("/")} className="alkheelank-btn-primary mt-6 w-full">
+        {onPodium && <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">{copy.player.onPodiumTeaser}</p>}
+        <p className={`${onPodium ? "mt-4" : "mt-1"} text-muted landscapePhone:mt-2 landscapePhone:text-sm`}>{(finalRank?.score ?? 0).toLocaleString()} pts total</p>
+        <button type="button" onClick={() => navigate("/")} className="alkheelank-btn-primary mt-6 w-full landscapePhone:mt-3">
           {copy.player.playAgain}
         </button>
       </CenterCard>
@@ -382,16 +382,16 @@ export default function PlayScreen() {
 
 function CenterCard({ children }) {
   return (
-    <div className="alkheelank-screen-player alkheelank-screen-fill flex items-center text-center">
-      <div className="alkheelank-card w-full p-8">{children}</div>
+    <div className="alkheelank-screen-player player-phase-fill flex items-center overflow-y-auto text-center landscapePhone:py-2">
+      <div className="alkheelank-card w-full p-8 landscapePhone:p-4">{children}</div>
     </div>
   );
 }
 
 function JoinPin({ pin, setPin, goProfile, error }) {
   return (
-    <div className="alkheelank-screen-player alkheelank-screen-fill flex flex-col">
-      <div className="mt-6 flex justify-center">
+    <div className="alkheelank-screen-player player-phase-fill flex flex-col landscapePhone:py-2">
+      <div className="mt-6 flex shrink-0 justify-center landscapePhone:mt-2">
         <Logo size="md" />
       </div>
       <form
@@ -399,7 +399,7 @@ function JoinPin({ pin, setPin, goProfile, error }) {
           e.preventDefault();
           goProfile();
         }}
-        className="alkheelank-card mt-10 flex flex-col gap-4 p-6"
+        className="alkheelank-card mt-10 flex flex-col gap-4 p-6 landscapePhone:mt-4 landscapePhone:gap-3 landscapePhone:p-4"
       >
         <label className="alkheelank-label text-center">{copy.lobby.pinLabel}</label>
         <input
@@ -424,32 +424,41 @@ function JoinPin({ pin, setPin, goProfile, error }) {
 }
 
 function QuestionCard({ q, selected, onAnswer, paused }) {
+  const isTF = q?.type === "tf";
   return (
-    <div className="alkheelank-screen-fill alkheelank-safe-x relative mx-auto flex max-w-md flex-col px-5 py-6 pb-20">
-      <div className="flex items-center justify-between text-sm font-semibold text-muted">
-        <span>
-          Q{q?.index + 1} / {q?.total}
-        </span>
-        <span>{q?.type === "tf" ? "True or false?" : "Speed counts"}</span>
+    <div className="player-phase-fill alkheelank-safe-x relative mx-auto flex w-full max-w-md flex-col overflow-hidden px-5 py-6 pb-20 landscapePhone:flex-row landscapePhone:items-stretch landscapePhone:gap-2 landscapePhone:px-3 landscapePhone:py-2 landscapePhone:pb-2">
+      <div className="flex min-h-0 min-w-0 flex-col landscapePhone:flex-1 landscapePhone:justify-center">
+        <div className="flex shrink-0 items-center justify-between text-sm font-semibold text-muted landscapePhone:text-xs">
+          <span>
+            Q{q?.index + 1} / {q?.total}
+          </span>
+          <span>{isTF ? "True or false?" : "Speed counts"}</span>
+        </div>
+        {q?.doublePoints && (
+          <div className="mx-auto mt-3 inline-flex shrink-0 animate-pulse rounded-full bg-brand-mid/25 px-4 py-1 text-sm font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mx-0 landscapePhone:mt-1 landscapePhone:px-2 landscapePhone:py-0.5 landscapePhone:text-xs">
+            ⚡ 2X POINTS
+          </div>
+        )}
+        <h2 className="mt-3 shrink-0 text-center text-2xl font-bold leading-tight landscapePhone:mt-1 landscapePhone:text-left landscapePhone:text-[clamp(0.8125rem,2.8vh,1rem)] landscapePhone:leading-snug">
+          {q?.question}
+        </h2>
+        {q?.image && (
+          <div className="mt-3 flex shrink-0 justify-center landscapePhone:mt-1 landscapePhone:justify-start">
+            <motion.img
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              src={q.image}
+              alt=""
+              className="max-h-[28svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 landscapePhone:max-h-14 landscapePhone:rounded-xl sm:max-h-[34svh] landscapePhone:sm:max-h-14"
+            />
+          </div>
+        )}
       </div>
-      {q?.doublePoints && (
-        <div className="mx-auto mt-3 inline-flex animate-pulse rounded-full bg-brand-mid/25 px-4 py-1 text-sm font-extrabold text-paper ring-1 ring-brand-mid">
-          ⚡ 2X POINTS
-        </div>
-      )}
-      <h2 className="mt-3 text-center text-2xl font-bold">{q?.question}</h2>
-      {q?.image && (
-        <div className="mt-3 flex justify-center">
-          <motion.img
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            src={q.image}
-            alt=""
-            className="max-h-[28svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10"
-          />
-        </div>
-      )}
-      <div className="mt-5 grid flex-1 grid-cols-1 content-end gap-4">
+      <div
+        className={`mt-5 grid min-h-0 shrink-0 gap-4 landscapePhone:mt-0 landscapePhone:w-[min(46%,12rem)] landscapePhone:content-center landscapePhone:gap-1.5 ${
+          isTF ? "grid-cols-1 landscapePhone:grid-cols-2" : "grid-cols-1 flex-1 content-end landscapePhone:grid-cols-2 landscapePhone:flex-none"
+        }`}
+      >
         {q?.answers?.map((a, i) => (
           <AnswerTile
             key={i}
@@ -469,8 +478,8 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
           animate={{ opacity: 1 }}
           className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-ink-900/80 backdrop-blur-sm"
         >
-          <div className="text-6xl">⏸</div>
-          <h2 className="mt-4 alkheelank-heading text-3xl">{copy.player.paused}</h2>
+          <div className="text-6xl landscapePhone:text-4xl">⏸</div>
+          <h2 className="mt-4 alkheelank-heading text-3xl landscapePhone:mt-2 landscapePhone:text-xl">{copy.player.paused}</h2>
         </motion.div>
       )}
     </div>
@@ -485,23 +494,23 @@ function ResultCard({ result, q }) {
     : copy.player.result.timeout;
   return (
     <CenterCard>
-      <h2 className="alkheelank-heading text-3xl">{title}</h2>
-      <p className="mt-2 text-2xl font-bold">
+      <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{title}</h2>
+      <p className="mt-2 text-2xl font-bold landscapePhone:mt-1 landscapePhone:text-xl">
         {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
       </p>
-      <p className="mt-2 text-muted">
+      <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">
         {playerRankLine(result?.rank, result?.totalPlayers)} ·{" "}
         {(result?.totalScore ?? 0).toLocaleString()} pts total
       </p>
       {result?.team?.name && (
-        <p className="mt-2 text-sm font-bold" style={{ color: result.team.color }}>
+        <p className="mt-2 text-sm font-bold landscapePhone:mt-1" style={{ color: result.team.color }}>
           {result.team.name}
         </p>
       )}
       {q?.doublePoints && (
-        <p className="mt-2 text-xs font-bold text-brand-end">Double-points question</p>
+        <p className="mt-2 text-xs font-bold text-brand-end landscapePhone:mt-1">Double-points question</p>
       )}
-      <p className="mt-4 text-muted animate-pulse">{copy.player.result.watchScreen}</p>
+      <p className="mt-4 text-muted animate-pulse landscapePhone:mt-2 landscapePhone:text-sm">{copy.player.result.watchScreen}</p>
     </CenterCard>
   );
 }
@@ -510,23 +519,23 @@ function StandingsCard({ standings, meId }) {
   const me = standings?.standings?.find((p) => p.id === meId);
   return (
     <CenterCard>
-      <h2 className="alkheelank-heading text-3xl">{copy.player.standings}</h2>
+      <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{copy.player.standings}</h2>
       {standings?.funStat && (
-        <p className="mt-2 text-sm">
+        <p className="mt-2 text-sm landscapePhone:mt-1 landscapePhone:text-xs">
           <span className="font-bold">{standings.funStat.title}:</span> {standings.funStat.subtitle}
         </p>
       )}
-      <p className="mt-4 text-5xl font-bold alkheelank-gradient-text">
+      <p className="mt-4 text-5xl font-bold alkheelank-gradient-text landscapePhone:mt-2 landscapePhone:text-4xl">
         {me?.rank ? playerRankHeadline(me.rank) : "-"}
       </p>
-      {isPodiumRank(me?.rank) && <p className="mt-2 text-sm text-muted">{copy.player.onPodiumTeaser}</p>}
-      <p className="mt-2 text-xl font-bold">{(me?.score ?? 0).toLocaleString()} pts</p>
+      {isPodiumRank(me?.rank) && <p className="mt-2 text-sm text-muted landscapePhone:mt-1 landscapePhone:text-xs">{copy.player.onPodiumTeaser}</p>}
+      <p className="mt-2 text-xl font-bold landscapePhone:mt-1 landscapePhone:text-lg">{(me?.score ?? 0).toLocaleString()} pts</p>
       {standings?.mode === "teams" && standings?.teamStandings?.length > 0 && (
-        <div className="mt-4 w-full text-left">
+        <div className="mt-4 w-full text-left landscapePhone:mt-2">
           {standings.teamStandings.slice(0, 3).map((t) => (
             <div
               key={t.id}
-              className="mb-2 flex items-center justify-between rounded-xl bg-ink-700/60 px-3 py-2"
+              className="mb-2 flex items-center justify-between rounded-xl bg-ink-700/60 px-3 py-2 landscapePhone:mb-1 landscapePhone:px-2 landscapePhone:py-1.5 landscapePhone:text-sm"
             >
               <span className="font-bold" style={{ color: t.color }}>
                 {teamPodiumLabel(t)}

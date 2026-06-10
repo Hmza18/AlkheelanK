@@ -22,17 +22,17 @@ export default function Leaderboard({ entries = [], highlightId = null, max = 8 
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ type: "spring", stiffness: 500, damping: 40 }}
-              className={`flex items-center gap-4 rounded-2xl px-4 py-3 text-xl font-bold ring-1 ${
+              className={`flex items-center gap-4 rounded-2xl px-4 py-3 text-xl font-bold ring-1 landscapePhone:gap-2 landscapePhone:px-3 landscapePhone:py-2 landscapePhone:text-base ${
                 mine
                   ? "bg-gradient-to-r from-brand-start/40 to-brand-mid/40 ring-brand-mid"
                   : "bg-ink-700/70 ring-white/10"
               }`}
             >
-              <span className="w-8 text-center text-2xl">
+              <span className="w-8 shrink-0 text-center text-2xl landscapePhone:w-6 landscapePhone:text-lg">
                 {rank <= 3 ? medal[rank - 1] : <span className="text-muted">{rank}</span>}
               </span>
               <Avatar config={p.character} size={40} ring />
-              <span className="flex-1 truncate">
+              <span className="min-w-0 flex-1 truncate landscapePhone:text-sm">
                 {p.nick}
                 {mine && <span className="ml-2 text-sm text-brand-end">you</span>}
               </span>

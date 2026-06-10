@@ -313,7 +313,7 @@ export default function HostGame({ launch, onExit }) {
     <div className="min-h-screen">
       <HostRecoveredBanner show={hostRecovered} />
       <HostStatusBanner connected={hostConnected} />
-      <PhaseShell phaseKey={phase} className="min-h-screen landscapePhone:pt-12">
+      <PhaseShell phaseKey={phase} className="min-h-screen landscapePhone:h-dvh landscapePhone:max-h-dvh landscapePhone:min-h-0 landscapePhone:overflow-hidden landscapePhone:pt-12">
         {phase === "setup" && (
           <SetupView
             settings={settings}
@@ -428,9 +428,9 @@ function QuestionView({ question, image, answerCount, paused }) {
     };
   }, [question?.startedAt, question?.timeLimit, paused]);
   return (
-    <div className="alkheelank-screen-host host-phase-fill flex min-h-0 flex-col landscapePhone:flex-row landscapePhone:items-stretch landscapePhone:gap-3">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col landscapePhone:overflow-y-auto">
-        <div className="flex items-center justify-between text-muted landscapePhone:text-sm">
+    <div className="host-phase-fill host-phase-fill--fit alkheelank-screen-host flex min-h-0 flex-col overflow-hidden landscapePhone:flex-row landscapePhone:items-stretch landscapePhone:gap-3">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col landscapePhone:justify-center">
+        <div className="flex shrink-0 items-center justify-between text-muted landscapePhone:text-sm">
           <span className="font-semibold">
             Question {question.index + 1} of {question.total}
             {isTF && <span className="ml-2 rounded-full bg-ink-700 px-2 py-0.5 text-xs landscapePhone:ml-1">True / False</span>}
@@ -438,37 +438,42 @@ function QuestionView({ question, image, answerCount, paused }) {
           <span className="font-semibold">{answerCount.answered} answered</span>
         </div>
         {question.doublePoints && (
-          <div className="mx-auto mt-2 inline-flex animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-4 py-1.5 text-base font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mt-1 landscapePhone:px-3 landscapePhone:text-sm">
+          <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-4 py-1.5 text-base font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mx-0 landscapePhone:mt-1 landscapePhone:px-3 landscapePhone:text-sm">
             ⚡ {copy.reveal.doublePoints}
           </div>
         )}
-        <h1 className="mt-3 text-center font-display text-4xl font-bold leading-tight landscapePhone:mt-1 landscapePhone:text-left landscapePhone:text-xl landscapePhone:leading-snug">
+        <h1 className="mt-3 shrink-0 text-center font-display text-4xl font-bold leading-tight landscapePhone:mt-1 landscapePhone:text-left landscapePhone:text-[clamp(0.875rem,3vh,1.25rem)] landscapePhone:leading-snug">
           {question.question}
         </h1>
         {image && (
-          <div className="mt-3 landscapePhone:mt-1">
+          <div className="mt-3 shrink-0 landscapePhone:mt-1">
             <motion.img
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               src={image}
               alt=""
-              className="mx-auto max-h-[22svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 landscapePhone:mx-0 landscapePhone:max-h-20 sm:max-h-[34svh]"
+              className="mx-auto max-h-[22svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 landscapePhone:mx-0 landscapePhone:max-h-16 sm:max-h-[34svh] landscapePhone:sm:max-h-16"
             />
           </div>
         )}
-        <div className="my-4 flex items-center justify-center landscapePhone:my-2 landscapePhone:justify-start">
-          <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound />
+        <div className="my-4 flex shrink-0 items-center justify-center landscapePhone:my-1 landscapePhone:justify-start">
+          <div className="landscapePhone:hidden">
+            <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound />
+          </div>
+          <div className="hidden landscapePhone:block">
+            <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound size={72} />
+          </div>
         </div>
         {paused && (
           <>
-            <p className="text-center text-lg font-bold text-warning landscapePhone:hidden">⏸ Round paused — use show controls to resume</p>
-            <p className="hidden text-sm font-bold text-warning landscapePhone:block landscapePhone:text-left">⏸ Paused — show controls</p>
+            <p className="shrink-0 text-center text-lg font-bold text-warning landscapePhone:hidden">⏸ Round paused — use show controls to resume</p>
+            <p className="hidden shrink-0 text-sm font-bold text-warning landscapePhone:block landscapePhone:text-left">⏸ Paused — show controls</p>
           </>
         )}
       </div>
       <div
-        className={`mt-auto grid min-h-0 shrink-0 gap-2 landscapePhone:mt-0 landscapePhone:w-[min(48%,14rem)] landscapePhone:content-center landscapePhone:gap-1.5 ${
-          isTF ? "grid-cols-1 sm:grid-cols-2 landscapePhone:grid-cols-1" : "grid-cols-1 sm:grid-cols-2 landscapePhone:grid-cols-2"
+        className={`mt-auto grid min-h-0 shrink-0 gap-2 landscapePhone:mt-0 landscapePhone:w-[min(46%,13rem)] landscapePhone:content-center landscapePhone:gap-1.5 ${
+          isTF ? "grid-cols-1 sm:grid-cols-2 landscapePhone:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 landscapePhone:grid-cols-2"
         }`}
       >
         {question.answers.map((a, i) => (
@@ -481,10 +486,10 @@ function QuestionView({ question, image, answerCount, paused }) {
 
 function StandingsView({ standings, onNext }) {
   return (
-    <div className="alkheelank-screen-host host-phase-fill mx-auto flex min-h-0 max-w-4xl flex-col">
+    <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-4xl flex-col overflow-x-hidden">
       <div className="text-center landscapePhone:shrink-0">
-        <p className="alkheelank-label tracking-[0.3em] landscapePhone:tracking-widest">{copy.standings.subtitle(standings.index, standings.total)}</p>
-        <h1 className="mt-2 alkheelank-heading text-4xl alkheelank-gradient-text landscapePhone:text-2xl">{copy.standings.title}</h1>
+        <p className="alkheelank-label tracking-[0.3em] landscapePhone:tracking-widest landscapePhone:text-[10px]">{copy.standings.subtitle(standings.index, standings.total)}</p>
+        <h1 className="mt-2 alkheelank-heading text-4xl alkheelank-gradient-text landscapePhone:mt-1 landscapePhone:text-2xl">{copy.standings.title}</h1>
       </div>
       {standings.funStat && <div className="mx-auto mt-4 rounded-full bg-ink-700 px-5 py-2 text-center ring-1 ring-white/10 landscapePhone:mt-2 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-sm"><span className="font-bold text-paper">{standings.funStat.title}:</span> <span className="text-muted">{standings.funStat.subtitle}</span></div>}
       {standings.mode === "teams" && standings.teamStandings?.length > 0 && (
@@ -503,7 +508,7 @@ function StandingsView({ standings, onNext }) {
           </div>
         </div>
       )}
-      <div className="mt-8 min-h-0 flex-1 overflow-y-auto landscapePhone:mt-3"><Standings standings={standings.standings} max={8} /></div>
+      <div className="mt-8 min-h-0 flex-1 overflow-y-auto overflow-x-hidden landscapePhone:mt-2"><Standings standings={standings.standings} max={8} compactLandscape /></div>
       <div className="sticky bottom-6 mt-10 flex shrink-0 justify-center landscapePhone:bottom-2 landscapePhone:mt-3">
         <button onClick={onNext} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-8 landscapePhone:py-3 landscapePhone:text-lg">
           {standings.hasNext ? `${copy.host.nextQuestion} →` : `${copy.host.finalResults} 🏆`}
@@ -531,25 +536,25 @@ function FinalView({ final, onHome }) {
   }
 
   return (
-    <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-5xl flex-col items-center justify-center overflow-y-auto py-10 landscapePhone:py-4">
-      <h1 className="alkheelank-heading text-5xl alkheelank-gradient-text landscapePhone:text-3xl sm:text-7xl">{copy.final.title}</h1>
-      <p className="mt-2 text-muted">{final.title}</p>
+    <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-5xl flex-col items-center justify-center overflow-x-hidden overflow-y-auto py-10 landscapePhone:py-3">
+      <h1 className="shrink-0 alkheelank-heading text-5xl alkheelank-gradient-text landscapePhone:text-2xl sm:text-7xl landscapePhone:sm:text-2xl">{copy.final.title}</h1>
+      <p className="mt-2 shrink-0 text-muted landscapePhone:mt-1 landscapePhone:text-sm">{final.title}</p>
       {final.mode === "teams" && final.teamPodium?.length > 0 ? (
         <TeamPodium teams={final.teamPodium} onComplete={() => setShowList(true)} />
       ) : (
-        <div className="mt-12 w-full"><Podium podium={final.podium} onComplete={() => setShowList(true)} /></div>
+        <div className="mt-12 w-full shrink-0 landscapePhone:mt-3"><Podium podium={final.podium} onComplete={() => setShowList(true)} /></div>
       )}
       <AnimatePresence>
         {showList && final.standings.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mt-14 w-full max-w-2xl">
-            <h3 className="mb-4 text-center alkheelank-heading text-2xl text-muted">{final.mode === "teams" ? copy.final.topContributors : copy.final.podiumRest}</h3>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mt-14 w-full max-w-2xl landscapePhone:mt-4">
+            <h3 className="mb-4 text-center alkheelank-heading text-2xl text-muted landscapePhone:mb-2 landscapePhone:text-lg">{final.mode === "teams" ? copy.final.topContributors : copy.final.podiumRest}</h3>
             <Leaderboard entries={final.mode === "teams" ? final.standings.slice(0, 10) : final.standings.slice(3)} max={10} />
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="mt-12 flex flex-wrap justify-center gap-3">
-        <button onClick={() => setView("recap")} className="alkheelank-btn-primary px-10 text-lg">🎉 {copy.final.recapCta}</button>
-        <button onClick={onHome} className="alkheelank-btn-ghost px-8">Back to dashboard</button>
+      <div className="mt-12 flex shrink-0 flex-wrap justify-center gap-3 landscapePhone:mt-4 landscapePhone:gap-2">
+        <button onClick={() => setView("recap")} className="alkheelank-btn-primary px-10 text-lg landscapePhone:px-6 landscapePhone:py-2 landscapePhone:text-base">🎉 {copy.final.recapCta}</button>
+        <button onClick={onHome} className="alkheelank-btn-ghost px-8 landscapePhone:px-5 landscapePhone:py-2 landscapePhone:text-sm">Back to dashboard</button>
       </div>
     </div>
   );
@@ -561,11 +566,11 @@ function TeamPodium({ teams, onComplete }) {
     return () => clearTimeout(t);
   }, [onComplete]);
   return (
-    <div className="mt-10 flex w-full max-w-3xl items-end justify-center gap-4">
+    <div className="mt-10 flex w-full max-w-3xl items-end justify-center gap-4 landscapePhone:mt-3 landscapePhone:gap-2">
       {teams.map((t, i) => (
-        <motion.div key={t.id} initial={{ y: 120, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.3 }} className="flex w-44 flex-col items-center">
-          <div className="mb-3 text-center"><p className="font-display text-2xl font-bold" style={{ color: t.color }}>{t.name}</p><p className="text-3xl font-extrabold tabular-nums">{t.score.toLocaleString()}</p></div>
-          <div className={`w-full rounded-t-2xl ${i === 0 ? "h-52" : i === 1 ? "h-44" : "h-36"} grid place-items-start pt-3 font-display text-4xl font-bold text-ink-900`} style={{ backgroundColor: t.color }}>{i + 1}</div>
+        <motion.div key={t.id} initial={{ y: 120, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.3 }} className="flex w-44 flex-col items-center landscapePhone:w-24 landscapePhone:sm:w-28">
+          <div className="mb-3 text-center landscapePhone:mb-1"><p className="font-display text-2xl font-bold landscapePhone:text-sm" style={{ color: t.color }}>{t.name}</p><p className="text-3xl font-extrabold tabular-nums landscapePhone:text-lg">{t.score.toLocaleString()}</p></div>
+          <div className={`w-full rounded-t-2xl grid place-items-start pt-3 font-display text-4xl font-bold text-ink-900 landscapePhone:rounded-t-xl landscapePhone:pt-1 landscapePhone:text-2xl ${i === 0 ? "h-52 landscapePhone:h-20" : i === 1 ? "h-44 landscapePhone:h-16" : "h-36 landscapePhone:h-14"}`} style={{ backgroundColor: t.color }}>{i + 1}</div>
         </motion.div>
       ))}
     </div>

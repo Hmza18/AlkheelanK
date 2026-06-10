@@ -464,7 +464,7 @@ export default function SocialReveal({
 
   return (
 
-    <div className="alkheelank-screen-host host-phase-fill mx-auto flex min-h-0 flex-col items-center">
+    <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 flex-col items-center overflow-x-hidden">
 
       <header className="w-full max-w-3xl shrink-0 text-center landscapePhone:max-w-none">
 
@@ -482,7 +482,7 @@ export default function SocialReveal({
 
         )}
 
-        <h1 className="alkheelank-heading text-3xl landscapePhone:text-xl landscapePhone:leading-snug sm:text-5xl">{question.question}</h1>
+        <h1 className="alkheelank-heading text-3xl landscapePhone:text-xl landscapePhone:leading-snug sm:text-5xl landscapePhone:sm:text-xl">{question.question}</h1>
 
         {reveal.doublePoints && (
 

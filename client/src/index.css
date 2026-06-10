@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 :root {
   color-scheme: dark;
   --alkheelank-ink-900: #1a1814;
@@ -88,6 +93,9 @@ button:focus-visible {
   .alkheelank-screen-fill {
     min-height: 100dvh;
   }
+  .player-phase-fill {
+    @apply min-h-0 h-dvh max-h-dvh overflow-x-hidden;
+  }
   .alkheelank-safe-top {
     padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
   }
@@ -108,7 +116,7 @@ button:focus-visible {
     @apply alkheelank-safe-x alkheelank-safe-top alkheelank-safe-bottom mx-auto w-full max-w-6xl px-6 py-6;
   }
   .host-phase-fill {
-    @apply min-h-0 min-h-dvh overflow-y-auto;
+    @apply min-h-0 h-dvh max-h-dvh overflow-x-hidden overflow-y-auto;
   }
   .alkheelank-screen-player {
     @apply alkheelank-safe-x alkheelank-safe-top alkheelank-safe-bottom mx-auto w-full max-w-md px-5 py-6;
@@ -810,6 +818,21 @@ button:focus-visible {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
     padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
     padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+  }
+
+  .alkheelank-screen-player {
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+    padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+  }
+
+  .player-phase-fill {
+    overflow-y: hidden;
+  }
+
+  .host-phase-fill--fit {
+    overflow-y: hidden;
   }
 
   .host-chrome-toolbar {

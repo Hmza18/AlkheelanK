@@ -10,7 +10,7 @@ import ShareImport from "./pages/ShareImport.jsx";
 export default function App() {
   return (
     <AuthProvider>
-      <div className="relative min-h-full font-body">
+      <div className="relative min-h-full overflow-x-hidden font-body">
         <Background />
         <Routes>
           <Route path="/" element={<Landing />} />

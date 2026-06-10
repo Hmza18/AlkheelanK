@@ -37,24 +37,26 @@ export default function AnswerTile({
       onClick={onClick}
       disabled={disabled}
       whileTap={disabled ? undefined : { scale: 0.96 }}
-      className={`relative flex w-full items-center gap-4 rounded-2xl px-5 font-bold text-paper shadow-tile transition
+      className={`answer-tile relative flex w-full items-center gap-4 rounded-2xl px-5 font-bold text-paper shadow-tile transition
         ${compact ? "min-h-[2.75rem] gap-2 px-3 py-3 text-base landscapePhone:min-h-[2.5rem] landscapePhone:py-2 landscapePhone:text-sm" : ""}
-        ${big && !compact ? "min-h-[3.5rem] py-7 text-2xl sm:min-h-[4rem] sm:text-3xl landscapePhone:min-h-0 landscapePhone:gap-2 landscapePhone:px-3 landscapePhone:py-2 landscapePhone:text-sm landscapePhone:sm:min-h-0 landscapePhone:sm:py-2 landscapePhone:sm:text-sm" : ""}
+        ${big && !compact ? "min-h-[3.5rem] py-7 text-2xl sm:min-h-[4rem] sm:text-3xl" : ""}
         ${!big && !compact ? "min-h-touch py-6 text-xl sm:text-2xl" : ""}
-        ${isTF && !compact ? "min-h-[4.5rem] justify-center py-8 sm:min-h-[5.5rem] sm:py-12 landscapePhone:min-h-0 landscapePhone:py-2 landscapePhone:sm:min-h-0 landscapePhone:sm:py-2" : ""}
+        ${isTF && !compact ? "min-h-[4.5rem] justify-center py-8 sm:min-h-[5.5rem] sm:py-12" : ""}
         ${isTF && compact ? "min-h-[3rem] justify-center py-4 landscapePhone:min-h-[2.75rem] landscapePhone:py-3" : ""}
         ${dim} ${ring} ${disabled ? "cursor-default" : "active:translate-y-1 hover:brightness-105"}`}
       style={{ backgroundColor: s.color }}
       aria-pressed={selected}
     >
       {isTF ? (
-        <span className="text-4xl sm:text-5xl landscapePhone:text-2xl landscapePhone:sm:text-2xl">{s.glyph}</span>
+        <span className="answer-tile__icon text-4xl sm:text-5xl">{s.glyph}</span>
       ) : (
-        <span className={`flex shrink-0 items-center justify-center ${compact ? "h-7 w-7" : big ? "h-10 w-10 landscapePhone:h-7 landscapePhone:w-7" : "h-10 w-10"}`}>
+        <span className={`answer-tile__icon flex shrink-0 items-center justify-center ${compact ? "h-7 w-7" : big ? "h-10 w-10" : "h-10 w-10"}`}>
           <Shape type={s.shape} size={compact ? 24 : big ? 38 : 30} />
         </span>
       )}
-      <span className={`leading-tight drop-shadow ${isTF ? "text-3xl sm:text-4xl landscapePhone:text-base landscapePhone:sm:text-base" : "flex-1 text-left landscapePhone:text-sm"}`}>
+      <span
+        className={`answer-tile__label leading-tight drop-shadow ${isTF ? "answer-tile__label--tf text-3xl sm:text-4xl" : "flex-1 text-left"}`}
+      >
         {text}
       </span>
 

@@ -9,7 +9,7 @@ export default {
       xl: "1280px",
       "2xl": "1536px",
       landscapePhone: {
-        raw: "(orientation: landscape) and (max-height: 32rem)",
+        raw: "(orientation: landscape) and (max-height: 36rem)",
       },
     },
     extend: {

@@ -129,6 +129,211 @@ button:focus-visible {
   }
 }
 
+/* Kahoot-style question screen — landscape rules use plain CSS to beat Tailwind sm: conflicts */
+.question-screen {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
+.question-screen--player {
+  padding: 1.5rem 1.25rem 5rem;
+}
+
+.question-screen--host {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.question-screen__prompt {
+  margin-top: 0.75rem;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.question-screen--host .question-screen__prompt {
+  font-family: var(--tw-font-display, "Fredoka", system-ui, sans-serif);
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+
+.question-screen__media {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-shrink: 1;
+  justify-content: center;
+  min-height: 0;
+}
+
+.question-screen__img {
+  max-height: 28svh;
+  width: auto;
+  max-width: 100%;
+  border-radius: 1rem;
+  object-fit: contain;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+  outline: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.question-screen__spacer {
+  display: none;
+}
+
+.question-screen__dock {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.question-screen__timer {
+  flex-shrink: 0;
+}
+
+.question-screen--player .question-screen__timer {
+  display: none;
+}
+
+.question-screen--host .question-screen__answers {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 640px) {
+  .question-screen--host .question-screen__answers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.question-screen__answers {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-content: end;
+}
+
+@media (orientation: landscape) and (max-height: 36rem) {
+  .question-screen--player {
+    max-width: none;
+    width: 100%;
+    padding: max(0.375rem, env(safe-area-inset-top, 0px)) max(0.5rem, env(safe-area-inset-right, 0px))
+      max(0.375rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px));
+  }
+
+  .question-screen--host {
+    padding-top: max(0.375rem, env(safe-area-inset-top, 0px));
+    padding-bottom: max(0.375rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .question-screen__prompt {
+    margin-top: 0.2rem;
+    font-size: clamp(0.8125rem, 2.8dvh, 1.0625rem);
+    line-height: 1.35;
+  }
+
+  .question-screen--host .question-screen__prompt {
+    font-size: clamp(0.875rem, 3dvh, 1.25rem);
+  }
+
+  .question-screen__media {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 0.25rem;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .question-screen__img {
+    max-height: 100% !important;
+    max-width: 100% !important;
+    height: auto;
+    border-radius: 0.75rem;
+  }
+
+  .question-screen__spacer {
+    display: block;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .question-screen__dock {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    width: 100%;
+  }
+
+  .question-screen--player .question-screen__timer,
+  .question-screen--host .question-screen__timer {
+    display: block;
+  }
+
+  .question-screen__answers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.375rem;
+    flex: 1 1 auto;
+    align-content: stretch;
+  }
+
+  .question-screen__answers .answer-tile {
+    min-height: 0 !important;
+    padding: 0.4rem 0.5rem !important;
+    font-size: 0.8125rem !important;
+    gap: 0.35rem !important;
+  }
+
+  .question-screen__answers .answer-tile .answer-tile__icon {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    font-size: 1.125rem !important;
+  }
+
+  .question-screen__answers .answer-tile .answer-tile__label {
+    font-size: 0.8125rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .question-screen__answers .answer-tile .answer-tile__label--tf {
+    font-size: 0.875rem !important;
+  }
+
+  .settings-fab--player {
+    bottom: auto !important;
+    top: max(0.5rem, env(safe-area-inset-top, 0px)) !important;
+    left: max(0.5rem, env(safe-area-inset-left, 0px)) !important;
+  }
+
+  .question-screen__timer-compact {
+    display: block;
+  }
+
+  .question-screen__timer-full {
+    display: none;
+  }
+}
+
+.question-screen__timer-compact {
+  display: none;
+}
+
+.question-screen__timer-full {
+  display: block;
+}
+
 @keyframes alkheelank-wait-shimmer {
   0% {
     background-position: 200% 0;
@@ -812,7 +1017,7 @@ button:focus-visible {
   }
 }
 
-@media (orientation: landscape) and (max-height: 32rem) {
+@media (orientation: landscape) and (max-height: 36rem) {
   .alkheelank-screen-host {
     padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));

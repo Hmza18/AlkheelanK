@@ -7,6 +7,7 @@ import { logGame } from "../lib/db.js";
 import { useAuth } from "../lib/auth.jsx";
 import AnswerTile from "../components/AnswerTile.jsx";
 import Timer from "../components/Timer.jsx";
+import QuestionScreen from "../components/QuestionScreen.jsx";
 import Leaderboard from "../components/Leaderboard.jsx";
 import Standings from "../components/Standings.jsx";
 import Podium from "../components/Podium.jsx";
@@ -428,56 +429,47 @@ function QuestionView({ question, image, answerCount, paused }) {
     };
   }, [question?.startedAt, question?.timeLimit, paused]);
   return (
-    <div className="host-phase-fill host-phase-fill--fit alkheelank-screen-host flex min-h-0 flex-col overflow-hidden">
-      <div className="flex shrink-0 items-center justify-between text-muted landscapePhone:text-sm">
-        <span className="font-semibold">
-          Question {question.index + 1} of {question.total}
-          {isTF && <span className="ml-2 rounded-full bg-ink-700 px-2 py-0.5 text-xs landscapePhone:ml-1">True / False</span>}
-        </span>
-        <span className="font-semibold">{answerCount.answered} answered</span>
-      </div>
-      {question.doublePoints && (
-        <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-4 py-1.5 text-base font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mt-1 landscapePhone:px-3 landscapePhone:text-sm">
-          ⚡ {copy.reveal.doublePoints}
+    <QuestionScreen
+      variant="host"
+      promptTag="h1"
+      header={
+        <div className="question-screen__meta flex shrink-0 items-center justify-between text-muted">
+          <span className="font-semibold">
+            Question {question.index + 1} of {question.total}
+            {isTF && <span className="ml-2 rounded-full bg-ink-700 px-2 py-0.5 text-xs">True / False</span>}
+          </span>
+          <span className="font-semibold">{answerCount.answered} answered</span>
         </div>
-      )}
-      <h1 className="mt-3 shrink-0 text-center font-display text-4xl font-bold leading-tight landscapePhone:mt-1 landscapePhone:text-[clamp(0.875rem,3vh,1.25rem)] landscapePhone:leading-snug">
-        {question.question}
-      </h1>
-      {image && (
-        <div className="mt-3 flex min-h-0 shrink justify-center landscapePhone:mt-1 landscapePhone:min-h-0 landscapePhone:flex-1 landscapePhone:items-center">
-          <motion.img
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            src={image}
-            alt=""
-            className="max-h-[22svh] w-auto rounded-2xl object-contain shadow-xl ring-1 ring-white/10 sm:max-h-[34svh] landscapePhone:max-h-full landscapePhone:max-w-full landscapePhone:rounded-xl landscapePhone:sm:max-h-full"
-          />
-        </div>
-      )}
-      {paused && (
-        <p className="mt-2 shrink-0 text-center text-lg font-bold text-warning landscapePhone:text-sm">⏸ Round paused — use show controls to resume</p>
-      )}
-      <div className="mt-auto flex min-h-0 shrink-0 flex-col items-center gap-4 landscapePhone:mt-1 landscapePhone:flex-row landscapePhone:items-end landscapePhone:gap-3">
-        <div className="shrink-0 landscapePhone:pb-0.5">
-          <div className="landscapePhone:hidden">
+      }
+      badge={
+        question.doublePoints ? (
+          <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-4 py-1.5 text-base font-extrabold text-paper ring-1 ring-brand-mid">
+            ⚡ {copy.reveal.doublePoints}
+          </div>
+        ) : null
+      }
+      prompt={question.question}
+      image={image}
+      animateImage
+      timer={
+        <>
+          <div className="question-screen__timer-full">
             <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound />
           </div>
-          <div className="hidden landscapePhone:block">
+          <div className="question-screen__timer-compact">
             <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound size={72} />
           </div>
-        </div>
-        <div
-          className={`grid w-full min-w-0 flex-1 gap-2 landscapePhone:gap-1.5 ${
-            isTF ? "max-w-md grid-cols-1 sm:grid-cols-2 landscapePhone:max-w-none landscapePhone:grid-cols-2" : "max-w-2xl grid-cols-1 sm:grid-cols-2 landscapePhone:max-w-none landscapePhone:grid-cols-2"
-          }`}
-        >
-          {question.answers.map((a, i) => (
-            <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big compact />
-          ))}
-        </div>
-      </div>
-    </div>
+        </>
+      }
+      answers={question.answers.map((a, i) => (
+        <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big compact />
+      ))}
+      notice={
+        paused ? (
+          <p className="mt-2 shrink-0 text-center text-lg font-bold text-warning">⏸ Round paused — use show controls to resume</p>
+        ) : null
+      }
+    />
   );
 }
 

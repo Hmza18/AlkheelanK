@@ -457,7 +457,7 @@ function QuestionView({ question, image, answerCount, paused }) {
             <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound />
           </div>
           <div className="question-screen__timer-compact">
-            <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound size={72} />
+            <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound size={48} />
           </div>
         </>
       }

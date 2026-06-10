@@ -2,8 +2,9 @@ import { motion } from "framer-motion";
 
 /**
  * Kahoot-style question layout:
- * portrait  — question → image → answers (stacked)
- * landscape — question → large image → [timer | 2×2 answers]
+ *   top  — meta, question
+ *   stage — large image (flexible)
+ *   dock — timer (left) + 2×2 answers (right) in landscape / on host desktop
  */
 export default function QuestionScreen({
   variant = "player",
@@ -34,17 +35,19 @@ export default function QuestionScreen({
 
   return (
     <div className={`${rootClass} ${className}`.trim()}>
-      {header}
-      {badge}
-      <PromptTag className="question-screen__prompt">{prompt}</PromptTag>
-      {image ? (
-        <div className="question-screen__media">
-          <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
-        </div>
-      ) : (
-        <div className="question-screen__spacer" aria-hidden />
-      )}
-      {notice}
+      <div className="question-screen__body">
+        {header}
+        {badge}
+        <PromptTag className="question-screen__prompt">{prompt}</PromptTag>
+        {image ? (
+          <div className="question-screen__media">
+            <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
+          </div>
+        ) : (
+          <div className="question-screen__spacer" aria-hidden />
+        )}
+        {notice}
+      </div>
       <div className="question-screen__dock">
         {timer ? <div className="question-screen__timer">{timer}</div> : null}
         <div className="question-screen__answers">{answers}</div>

@@ -455,7 +455,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
       prompt={q?.question}
       image={q?.image}
       animateImage
-      timer={<Timer timeLimit={q?.timeLimit} startedAt={q?.startedAt} paused={paused} size={64} />}
+      timer={<Timer timeLimit={q?.timeLimit} startedAt={q?.startedAt} paused={paused} size={48} />}
       answers={q?.answers?.map((a, i) => (
         <AnswerTile
           key={i}
@@ -465,7 +465,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
           onClick={() => onAnswer(i)}
           selected={selected === i}
           disabled={selected !== null || paused}
-          big
+          compact
         />
       ))}
       overlay={

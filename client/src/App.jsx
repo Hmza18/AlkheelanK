@@ -6,6 +6,7 @@ import Auth from "./pages/Auth.jsx";
 import Host from "./pages/Host.jsx";
 import Play from "./pages/PlayScreen.jsx";
 import ShareImport from "./pages/ShareImport.jsx";
+import QuestionPreview from "./pages/QuestionPreview.jsx";
 
 export default function App() {
   return (
@@ -20,6 +21,9 @@ export default function App() {
           <Route path="/join" element={<Play />} />
           <Route path="/share" element={<ShareImport />} />
           <Route path="/share/:code" element={<ShareImport />} />
+          {import.meta.env.DEV && (
+            <Route path="/dev/question-preview" element={<QuestionPreview />} />
+          )}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

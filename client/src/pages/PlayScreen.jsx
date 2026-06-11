@@ -481,7 +481,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
           onClick={() => onAnswer(i)}
           selected={selected === i}
           disabled={selected !== null || paused}
-          staggerIndex={i}
+          kahoot
           compact
         />
       ))}

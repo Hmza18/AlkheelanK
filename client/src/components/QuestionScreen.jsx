@@ -3,8 +3,8 @@ import { fadeUp, spring } from "../lib/motion.js";
 
 /**
  * Kahoot-style question layout:
- *   top   — countdown strip, meta row, then the question in a prominent bar
- *   stage — timer circle (host desktop) · large photo (center) · info bubble
+ *   top   — countdown strip, question bar
+ *   stage — large photo (center)
  *   dock  — full-width answer grid (2×2, or 1×2 for true/false)
  */
 export default function QuestionScreen({
@@ -28,56 +28,43 @@ export default function QuestionScreen({
   className = "",
 }) {
   const tfClass = questionType === "tf" ? "question-screen--tf" : "";
+  const isPlayer = variant === "player";
   const rootClass =
     variant === "host"
       ? `question-screen question-screen--host host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}`
-      : `question-screen question-screen--player player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}`;
+      : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}`;
 
-  const ImageEl = animateImage ? motion.img : "img";
-  const imageProps = animateImage
-    ? {
-        initial: { opacity: 0, scale: 0.94, y: 8 },
-        animate: { opacity: 1, scale: 1, y: 0 },
-        transition: { ...spring.soft, delay: 0.08 },
-      }
-    : {};
-
-  const PromptMotion = PromptTag === "h1" ? motion.h1 : motion.h2;
-  const promptProps = animatePrompt
-    ? {
-        key: questionKey ?? prompt,
-        ...fadeUp,
-        transition: spring.soft,
-      }
-    : {};
-
-  const shellProps =
-    questionKey != null
+  const ImageEl = animateImage && !isPlayer ? motion.img : "img";
+  const imageProps =
+    animateImage && !isPlayer
       ? {
-          key: questionKey,
-          initial: { opacity: 0 },
-          animate: { opacity: 1 },
-          transition: { duration: 0.22 },
+          initial: { opacity: 0, scale: 0.94, y: 8 },
+          animate: { opacity: 1, scale: 1, y: 0 },
+          transition: { ...spring.soft, delay: 0.08 },
         }
       : {};
 
-  const RootEl = questionKey != null ? motion.div : "div";
+  const PromptMotion = PromptTag === "h1" ? motion.h1 : motion.h2;
+  const PromptEl = animatePrompt && !isPlayer ? PromptMotion : PromptTag;
+  const promptProps =
+    animatePrompt && !isPlayer
+      ? {
+          key: questionKey ?? prompt,
+          ...fadeUp,
+          transition: spring.soft,
+        }
+      : {};
 
   return (
-    <RootEl className={`${rootClass} ${className}`.trim()} {...shellProps}>
-      <div className="question-screen__ambient" aria-hidden />
+    <div className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
       {timerStrip}
       <div className="question-screen__body">
-        {header}
+        {header ? <div className="question-screen__header">{header}</div> : null}
         {progress}
-        {badge}
-        {animatePrompt ? (
-          <PromptMotion className="question-screen__prompt" {...promptProps}>
-            {prompt}
-          </PromptMotion>
-        ) : (
-          <PromptTag className="question-screen__prompt">{prompt}</PromptTag>
-        )}
+        {badge ? <div className="question-screen__badge">{badge}</div> : null}
+        <PromptEl className="question-screen__prompt" {...promptProps}>
+          {prompt}
+        </PromptEl>
         <div className="question-screen__stage">
           {timer ? (
             <div className="question-screen__stage-side question-screen__timer">{timer}</div>
@@ -105,6 +92,6 @@ export default function QuestionScreen({
         <div className="question-screen__answers">{answers}</div>
       </div>
       {overlay}
-    </RootEl>
+    </div>
   );
 }

@@ -2325,11 +2325,11 @@ button:focus-visible {
 .lobby-lock {
   display: grid;
   place-items: center;
-  width: clamp(2.5rem, 6vw, 3.25rem);
-  height: clamp(2.5rem, 6vw, 3.25rem);
+  width: clamp(2.2rem, 5.5vw, 2.9rem);
+  height: clamp(2.2rem, 5.5vw, 2.9rem);
   padding: 0;
-  border-radius: 0.75rem;
-  font-size: clamp(1.2rem, 2.8vw, 1.6rem);
+  border-radius: 0.7rem;
+  font-size: clamp(1.05rem, 2.5vw, 1.4rem);
   color: var(--alkheelank-paper);
   background: rgba(36, 32, 25, 0.88);
 }
@@ -2340,10 +2340,10 @@ button:focus-visible {
 }
 
 .lobby-start {
-  height: clamp(2.5rem, 6vw, 3.25rem);
-  padding: 0 clamp(1rem, 3vw, 1.75rem);
-  border-radius: 0.75rem;
-  font-size: clamp(0.9rem, 2.2vw, 1.2rem);
+  height: clamp(2.2rem, 5.5vw, 2.9rem);
+  padding: 0 clamp(0.85rem, 2.8vw, 1.5rem);
+  border-radius: 0.7rem;
+  font-size: clamp(0.82rem, 2vw, 1.1rem);
   color: var(--alkheelank-paper);
   background: rgba(36, 32, 25, 0.88);
 }
@@ -2368,12 +2368,12 @@ button:focus-visible {
 .lobby-close {
   display: grid;
   place-items: center;
-  width: clamp(2.5rem, 5vw, 3rem);
-  height: clamp(2.5rem, 5vw, 3rem);
+  width: clamp(2.2rem, 5vw, 2.75rem);
+  height: clamp(2.2rem, 5vw, 2.75rem);
   border-radius: 9999px;
   background: rgba(46, 41, 34, 0.82);
   color: var(--alkheelank-paper);
-  font-size: clamp(1.1rem, 2.4vw, 1.4rem);
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
 }
 
 /* Bottom-right utility bar (count · audio · settings) */
@@ -2443,38 +2443,182 @@ button:focus-visible {
   }
 }
 
-/* Narrow phones — header wraps; keep PIN/QR large; compact top bar */
+/* Narrow phones — header wraps; keep PIN/QR large; more breathing room */
 @media (max-width: 560px) {
-  .lobby-header-card {
-    max-width: calc(100vw - 1.5rem);
-    top: max(4rem, calc(env(safe-area-inset-top, 0px) + 3.75rem));
-    padding: 0.75rem 1rem;
-  }
-
-  .lobby-header-card__url {
-    font-size: clamp(0.85rem, 3.6vw, 1.05rem);
-  }
-
-  .lobby-header-card__pin {
-    font-size: clamp(2rem, 9vw, 2.75rem);
-  }
-
-  .lobby-header-card__qr svg {
-    width: clamp(4.75rem, 24vw, 6.5rem);
-    height: clamp(4.75rem, 24vw, 6.5rem);
+  .lobby-stage {
+    gap: clamp(1.65rem, 5.5dvh, 2.75rem);
+    padding-bottom: max(6rem, calc(env(safe-area-inset-bottom, 0px) + 5rem));
   }
 
   .lobby-center {
-    padding-top: clamp(7rem, 20dvh, 10rem);
+    gap: clamp(1.65rem, 5.5dvh, 2.5rem);
+    padding-top: clamp(6.5rem, 18dvh, 9.5rem);
+  }
+
+  .lobby-logo {
+    transform: scale(0.86);
+  }
+
+  .lobby-top-bar {
+    gap: 0.4rem;
+  }
+
+  .lobby-actions {
+    gap: 0.35rem;
+  }
+
+  .lobby-lock {
+    width: 2.05rem;
+    height: 2.05rem;
+    font-size: 0.95rem;
+    border-radius: 0.65rem;
+  }
+
+  .lobby-close {
+    width: 2.05rem;
+    height: 2.05rem;
+    font-size: 0.95rem;
+  }
+
+  .lobby-header-card {
+    max-width: calc(100vw - 1.25rem);
+    top: max(3.75rem, calc(env(safe-area-inset-top, 0px) + 3.35rem));
+    padding: 0.9rem 1.15rem;
+    gap: 0.85rem 1.1rem;
+  }
+
+  .lobby-header-card__main {
+    gap: 1rem;
+  }
+
+  .lobby-header-card__url {
+    font-size: clamp(0.88rem, 3.8vw, 1.08rem);
+  }
+
+  .lobby-header-card__pin {
+    font-size: clamp(2.15rem, 10vw, 3rem);
+    letter-spacing: 0.05em;
+  }
+
+  .lobby-header-card__qr {
+    padding: 0.5rem;
+  }
+
+  .lobby-header-card__qr svg {
+    width: clamp(5rem, 26vw, 7rem);
+    height: clamp(5rem, 26vw, 7rem);
   }
 
   .lobby-status-pill {
     width: min(100%, 20rem);
+    font-size: clamp(1rem, 4.5vw, 1.35rem);
+    padding-block: 0.65rem;
+  }
+
+  .lobby-players {
+    max-height: clamp(6.5rem, 24dvh, 14rem);
   }
 
   .lobby-start {
-    padding-inline: 0.85rem;
-    font-size: 0.85rem;
+    height: 2.05rem;
+    padding-inline: 0.7rem;
+    font-size: 0.78rem;
+    border-radius: 0.65rem;
+  }
+}
+
+/* Host question — phone portrait: larger prompt text and photo */
+@media (max-width: 560px) and (orientation: portrait) {
+  .question-screen--host.alkheelank-screen-host {
+    padding:
+      max(0.3rem, env(safe-area-inset-top, 0px))
+      max(0.4rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))
+      max(0.3rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .question-screen--host {
+    --qs-pad-x: max(0.35rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    --qs-pad-top: max(0.2rem, env(safe-area-inset-top, 0px));
+    --qs-pad-bottom: max(0.2rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .question-screen--host .host-meta {
+    gap: 0.35rem;
+  }
+
+  .question-screen--host .host-meta__index,
+  .question-screen--host .host-meta__answered {
+    padding: 0.2rem 0.55rem;
+  }
+
+  .question-screen--host .host-meta__index-now {
+    font-size: 0.88rem;
+  }
+
+  .question-screen--host .host-meta__answered {
+    font-size: 0.72rem;
+  }
+
+  .question-screen--host .host-meta__answered-count {
+    font-size: 0.88rem;
+  }
+
+  .question-screen--host .host-answer-progress {
+    margin-top: 0.2rem;
+    height: 3px;
+  }
+
+  .question-screen--host .question-screen__prompt {
+    margin-top: 0.2rem;
+    font-size: clamp(1.6rem, 5.8vw + 0.45rem, 2.1rem);
+    line-height: 1.24;
+    padding: 0.75rem 1rem;
+    -webkit-line-clamp: 3;
+    border-radius: 1rem;
+  }
+
+  /* Timer side columns steal width on narrow phones — photo uses full stage. */
+  .question-screen--host .question-screen__stage-side {
+    display: none;
+  }
+
+  .question-screen--host .question-screen__stage {
+    min-height: clamp(12.5rem, 42dvh, 26rem);
+    margin-top: 0.15rem;
+    gap: 0;
+  }
+
+  .question-screen--host .question-screen__media,
+  .question-screen--host .question-screen__media-frame {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-height: 100%;
+  }
+
+  .question-screen--host .question-screen__img {
+    max-height: min(52dvh, 100%);
+    max-width: 100%;
+    width: auto;
+    border-radius: 0.75rem;
+  }
+
+  .question-screen--host .question-screen__dock {
+    margin-top: 0.25rem;
+  }
+
+  .question-screen--host .question-screen__answers {
+    max-height: clamp(5.5rem, 21dvh, 9.75rem);
+    gap: 0.4rem;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .question-screen--host.question-screen--tf .question-screen__answers {
+    max-height: clamp(3.75rem, 14dvh, 6.5rem);
+  }
+
+  .question-screen--host .question-screen__body {
+    gap: 0.25rem;
   }
 }
 

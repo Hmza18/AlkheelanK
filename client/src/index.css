@@ -920,8 +920,98 @@ button:focus-visible {
     border-radius: 0.625rem;
   }
 
+  /* Host landscape — do not inherit the player-tight prompt/dock; bound the stage
+     so images cannot blow past 100dvh and get clipped. */
+  .question-screen--host {
+    --qs-dock-h: clamp(3.75rem, 22dvh, 6rem);
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .question-screen--host.alkheelank-screen-host {
+    padding:
+      max(0.3rem, env(safe-area-inset-top, 0px))
+      max(0.4rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))
+      max(0.25rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .question-screen--host .question-screen__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    gap: 0.2rem;
+  }
+
+  .question-screen--host .host-meta {
+    gap: 0.3rem;
+  }
+
+  .question-screen--host .host-meta__index,
+  .question-screen--host .host-meta__answered {
+    padding: 0.18rem 0.5rem;
+  }
+
+  .question-screen--host .host-meta__index-now {
+    font-size: 0.8rem;
+  }
+
+  .question-screen--host .host-meta__answered {
+    font-size: 0.68rem;
+  }
+
+  .question-screen--host .host-answer-progress {
+    margin-top: 0.15rem;
+    height: 3px;
+  }
+
   .question-screen--host .question-screen__prompt {
-    font-size: clamp(0.8125rem, 2.8dvh, 1.0625rem);
+    font-size: clamp(1.05rem, 4dvh, 1.35rem);
+    line-height: 1.22;
+    padding: 0.45rem 0.75rem;
+    margin-top: 0.15rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .question-screen--host .question-screen__stage-side {
+    display: none;
+  }
+
+  .question-screen--host .question-screen__stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: min(100%, calc(100dvh - var(--qs-dock-h) - 5.25rem));
+    margin-top: 0.1rem;
+    overflow: hidden;
+  }
+
+  .question-screen--host .question-screen__media,
+  .question-screen--host .question-screen__media-frame {
+    min-height: 0;
+    max-height: 100%;
+    height: 100%;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .question-screen--host .question-screen__img {
+    max-height: min(100%, 48dvh);
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .question-screen--host .question-screen__dock {
+    margin-top: 0.15rem;
+    height: var(--qs-dock-h);
+    max-height: var(--qs-dock-h);
+    flex-shrink: 0;
+  }
+
+  .question-screen--host .question-screen__answers {
+    max-height: 100%;
+    height: 100%;
   }
 
   .question-screen__stage {

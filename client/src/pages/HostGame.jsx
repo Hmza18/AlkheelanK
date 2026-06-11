@@ -353,6 +353,12 @@ export default function HostGame({ launch, onExit }) {
               sfx.confirm();
               socket.emit("host:start");
             }}
+            onClose={() => {
+              if (window.confirm("Close this lobby for everyone?")) {
+                socket.emit("host:end");
+                onExit();
+              }
+            }}
             error={hostError}
           />
         )}
@@ -391,6 +397,9 @@ export default function HostGame({ launch, onExit }) {
           </Centered>
         )}
       </PhaseShell>
+      {/* Lobby owns its own chrome (close, utility bar, settings) to match the
+          board layout, so suppress the global host chrome during that phase. */}
+      {phase !== "lobby" && (
       <HostChrome
         phase={phase}
         pacing={settings.pacing || "normal"}
@@ -410,6 +419,7 @@ export default function HostGame({ launch, onExit }) {
           }
         }}
       />
+      )}
     </div>
   );
 }

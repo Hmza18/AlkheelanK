@@ -190,6 +190,15 @@ export default function HostGame({ launch, onExit }) {
       setPhase("ended");
     };
 
+    // Must be a named function so cleanup can remove only THIS handler.
+    // socket.off("disconnect") without a reference removes ALL disconnect
+    // listeners on the shared socket singleton, breaking reconnect in every
+    // other component that also listens to it.
+    const onDisconnect = () => {
+      wasHostDisconnectRef.current = true;
+      setHostConnected(false);
+    };
+
     socket.on("connect", onConnect);
     socket.on("host:created", onCreated);
     socket.on("host:state", onState);
@@ -206,10 +215,7 @@ export default function HostGame({ launch, onExit }) {
     socket.on("game:ended", onEnded);
     socket.on("game:revealStage", onRevealStage);
     socket.on("game:settings", onSettings);
-    socket.on("disconnect", () => {
-      wasHostDisconnectRef.current = true;
-      setHostConnected(false);
-    });
+    socket.on("disconnect", onDisconnect);
     return () => {
       socket.off("connect", onConnect);
       socket.off("host:created", onCreated);
@@ -227,7 +233,7 @@ export default function HostGame({ launch, onExit }) {
       socket.off("game:ended", onEnded);
       socket.off("game:revealStage", onRevealStage);
       socket.off("game:settings", onSettings);
-      socket.off("disconnect");
+      socket.off("disconnect", onDisconnect);
     };
   }, [user]);
 

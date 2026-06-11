@@ -106,12 +106,18 @@ export async function generateQuiz({ topic, count, audience, language }) {
   const cleanTopic = String(topic || "").trim().slice(0, 200);
   if (!cleanTopic) return { error: "Tell me a topic to write questions about." };
   const n = Math.min(MAX_COUNT, Math.max(1, Math.round(Number(count) || 5)));
+  // Strip newlines and control characters to prevent prompt-injection through
+  // the language field (it is user-supplied and interpolated into the prompt).
+  const cleanLanguage =
+    typeof language === "string"
+      ? language.trim().slice(0, 60).replace(/[\r\n\t\u0000-\u001F\u007F]/g, " ").trim()
+      : null;
 
   const response = await getClient().messages.create({
     model: MODEL,
     max_tokens: 16000,
     output_config: { format: { type: "json_schema", schema: QUIZ_SCHEMA } },
-    messages: [{ role: "user", content: buildPrompt({ topic: cleanTopic, count: n, audience, language }) }],
+    messages: [{ role: "user", content: buildPrompt({ topic: cleanTopic, count: n, audience, language: cleanLanguage }) }],
   });
 
   const text = response.content.find((b) => b.type === "text")?.text;

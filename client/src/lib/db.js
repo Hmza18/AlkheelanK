@@ -123,16 +123,11 @@ export function bankRowToQuestion(row) {
 
 function randomShareCode() {
   // 8 uppercase hex chars — easy to read, low collision risk for family use.
-  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-    return Array.from(crypto.getRandomValues(new Uint8Array(4)))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("")
-      .toUpperCase();
-  }
-  return Math.floor(Math.random() * 0xffffffff)
-    .toString(16)
-    .toUpperCase()
-    .padStart(8, "0");
+  // crypto.getRandomValues is universally available in all modern browsers.
+  return Array.from(crypto.getRandomValues(new Uint8Array(4)))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .toUpperCase();
 }
 
 export async function createQuizShare(ownerId, quiz) {

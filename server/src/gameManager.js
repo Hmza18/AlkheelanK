@@ -668,3 +668,16 @@ export function buildJoinMeta(game) {
   };
 }
 export const stats = () => ({ activeGames: games.size });
+
+/**
+ * Return the PINs of every game older than `maxAgeMs`.
+ * Callers are responsible for broadcasting game:ended and calling destroyGame().
+ */
+export function expiredGamePins(maxAgeMs) {
+  const now = Date.now();
+  const pins = [];
+  for (const [pin, game] of games) {
+    if (now - game.createdAt > maxAgeMs) pins.push(pin);
+  }
+  return pins;
+}

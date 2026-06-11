@@ -437,8 +437,15 @@ export function getStarterForCopy(id) {
 // string (a pasted URL or a base64 data URL) — stored inline with the question.
 
 const MAX_QUESTIONS = 30;
-const MAX_IMAGE_LEN = 900_000; // per-question inline image cap (~900KB base64)
-const MAX_QUIZ_IMAGE_BYTES = 4_000_000; // total inline image bytes per quiz
+const MAX_QUESTION_TEXT_LEN = 500;
+const MAX_ANSWER_TEXT_LEN = 120;
+const MAX_IMAGE_LEN = 900_000; // per-question inline image cap (~900 KB base64)
+// Total image bytes across the whole quiz. Must be comfortably below the
+// Socket.io maxHttpBufferSize (configured to 4 MB in index.js) so the
+// validation check fires with a clear message before the socket frame is
+// silently dropped. Allow ~2 MB for images, leaving room for the rest of the
+// JSON payload.
+const MAX_QUIZ_IMAGE_BYTES = 2_000_000;
 
 function sanitizeQuestionImage(image, questionIndex) {
   if (!image) return { image: null };
@@ -483,6 +490,9 @@ export function validateCustomQuiz(raw) {
     const q = raw.questions[i] || {};
     const text = String(q.question || "").trim();
     if (!text) return { error: `Question ${i + 1} needs some text.` };
+    if (text.length > MAX_QUESTION_TEXT_LEN) {
+      return { error: `Question ${i + 1} is too long (max ${MAX_QUESTION_TEXT_LEN} characters).` };
+    }
 
     const type = q.type === "tf" ? "tf" : "mc";
     const expected = type === "tf" ? 2 : 4;
@@ -497,6 +507,9 @@ export function validateCustomQuiz(raw) {
       answers = q.answers.map((a) => String(a ?? "").trim());
       if (answers.some((a) => !a)) {
         return { error: `Question ${i + 1} has an empty answer.` };
+      }
+      if (answers.some((a) => a.length > MAX_ANSWER_TEXT_LEN)) {
+        return { error: `Question ${i + 1} has an answer that is too long (max ${MAX_ANSWER_TEXT_LEN} characters).` };
       }
     }
 

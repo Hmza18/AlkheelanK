@@ -11,9 +11,14 @@ function loadImage(src) {
   });
 }
 
+const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20 MB — reject before the FileReader allocates
+
 export async function fileToDataURL(file, { maxDim = 1200, quality = 0.82 } = {}) {
   if (!file) throw new Error("No file selected.");
   if (!file.type?.startsWith("image/")) throw new Error("Please choose an image file.");
+  if (file.size > MAX_FILE_BYTES) {
+    throw new Error("That image is too large — pick a file under 20 MB.");
+  }
 
   const original = await new Promise((resolve, reject) => {
     const fr = new FileReader();

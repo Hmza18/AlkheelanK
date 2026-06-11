@@ -57,7 +57,11 @@ const limitImageSearch = createRateLimiter({ windowMs: 60_000, max: 20 });
 
 function httpClientKey(req) {
   const fwd = req.headers["x-forwarded-for"];
-  if (typeof fwd === "string" && fwd.length) return fwd.split(",")[0].trim();
+  if (typeof fwd === "string" && fwd.length) {
+    // Take the last (proxy-appended) entry to prevent client X-Forwarded-For spoofing.
+    const ips = fwd.split(",").map((s) => s.trim()).filter(Boolean);
+    return ips[ips.length - 1];
+  }
   return req.ip || "unknown";
 }
 
@@ -122,7 +126,9 @@ const io = new Server(server, {
   allowUpgrades: true,
   pingTimeout: 60_000,
   pingInterval: 25_000,
-  maxHttpBufferSize: 2e6,
+  // 4 MB: allows up to ~2 MB of base64 images (validated in validateCustomQuiz)
+  // plus JSON overhead for 30 questions, titles, and metadata.
+  maxHttpBufferSize: 4e6,
 });
 
 const gameRoom = (pin) => `game:${pin}`;
@@ -511,6 +517,21 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+// Purge games that have been alive for more than 6 hours.  Games are ephemeral
+// in-memory state so we can safely evict anything that old — normal sessions
+// last minutes, not hours.  This prevents a slow memory leak from abandoned or
+// never-ended games (host creates game, closes the tab, never calls host:end).
+const GAME_MAX_AGE_MS = 6 * 60 * 60 * 1000; // 6 hours
+const GAME_CLEANUP_INTERVAL_MS = 15 * 60 * 1000; // check every 15 minutes
+setInterval(() => {
+  const pins = GM.expiredGamePins(GAME_MAX_AGE_MS);
+  for (const pin of pins) {
+    io.to(gameRoom(pin)).emit("game:ended", { reason: "Game expired." });
+    GM.destroyGame(pin);
+  }
+  if (pins.length) console.log(`[cleanup] removed ${pins.length} expired game(s)`);
+}, GAME_CLEANUP_INTERVAL_MS).unref();
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Alkheeloot server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);

@@ -118,9 +118,34 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClo
         ))}
       </div>
 
-      <button type="button" className="lobby-close" onClick={onClose} aria-label="Close lobby">
-        <CloseIcon />
-      </button>
+      <div className="lobby-top-bar">
+        <div className="lobby-actions">
+          <button
+            type="button"
+            className="lobby-lock"
+            onClick={() => {
+              sfx.lock();
+              setLocked((v) => !v);
+            }}
+            aria-pressed={locked}
+            aria-label={locked ? "Unlock game" : "Lock game"}
+            title={locked ? "Locked" : "Unlocked"}
+          >
+            {locked ? <LockClosedIcon /> : <LockOpenIcon />}
+          </button>
+          <button
+            type="button"
+            className="lobby-start"
+            onClick={handleStart}
+            disabled={!hasPlayers}
+          >
+            {copy.lobby.start}
+          </button>
+        </div>
+        <button type="button" className="lobby-close" onClick={onClose} aria-label="Close lobby">
+          <CloseIcon />
+        </button>
+      </div>
 
       <div className="lobby-header-card">
         <div className="lobby-header-card__main">
@@ -137,43 +162,18 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClo
           </div>
         </div>
         <div className="lobby-header-card__qr" aria-label="Scan to join">
-          <QRCodeSVG value={joinUrl} size={112} bgColor="#faf6f0" fgColor="#1a1814" level="M" />
+          <QRCodeSVG value={joinUrl} size={148} bgColor="#2e2922" fgColor="#faf6f0" level="M" />
         </div>
       </div>
 
       <div className="lobby-center">
-        <Logo size="lg" />
+        <Logo size="sm" className="lobby-logo" />
 
-        <div className="lobby-control-row">
-          <span className="lobby-status-pill">
-            {hasPlayers
-              ? `${players.length} ${players.length === 1 ? "player" : "players"} in the lobby`
-              : copy.lobby.waiting}
-          </span>
-          <div className="lobby-actions">
-            <button
-              type="button"
-              className="lobby-lock"
-              onClick={() => {
-                sfx.lock();
-                setLocked((v) => !v);
-              }}
-              aria-pressed={locked}
-              aria-label={locked ? "Unlock game" : "Lock game"}
-              title={locked ? "Locked" : "Unlocked"}
-            >
-              {locked ? <LockClosedIcon /> : <LockOpenIcon />}
-            </button>
-            <button
-              type="button"
-              className="lobby-start"
-              onClick={handleStart}
-              disabled={!hasPlayers}
-            >
-              {copy.lobby.start}
-            </button>
-          </div>
-        </div>
+        <span className="lobby-status-pill">
+          {hasPlayers
+            ? `${players.length} ${players.length === 1 ? "player" : "players"} in the lobby`
+            : copy.lobby.waiting}
+        </span>
 
         {quizMeta && (
           <p className="lobby-quiz">

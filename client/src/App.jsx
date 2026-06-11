@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth.jsx";
 import Background from "./components/Background.jsx";
+import FamilyWelcomePopup from "./components/FamilyWelcomePopup.jsx";
 import Landing from "./pages/Landing.jsx";
 import Auth from "./pages/Auth.jsx";
 import Host from "./pages/Host.jsx";
@@ -13,6 +14,7 @@ export default function App() {
     <AuthProvider>
       <div className="relative min-h-full overflow-x-hidden font-body">
         <Background />
+        <FamilyWelcomePopup />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Auth />} />

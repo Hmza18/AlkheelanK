@@ -131,16 +131,14 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClo
           <span className="lobby-header-card__slash" aria-hidden="true" />
           <div className="lobby-header-card__cell">
             <span className="lobby-header-card__label">{copy.lobby.pinLabel}</span>
-            <span className="lobby-header-card__pin pin-display alkheelank-gradient-text">
+            <span className="lobby-header-card__pin pin-display">
               {formatLobbyPin(pinStr)}
             </span>
           </div>
         </div>
-        {pin && (
-          <div className="lobby-header-card__qr">
-            <QRCodeSVG value={joinUrl} size={96} bgColor="#faf6f0" fgColor="#1a1814" level="M" />
-          </div>
-        )}
+        <div className="lobby-header-card__qr" aria-label="Scan to join">
+          <QRCodeSVG value={joinUrl} size={112} bgColor="#faf6f0" fgColor="#1a1814" level="M" />
+        </div>
       </div>
 
       <div className="lobby-center">

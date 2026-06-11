@@ -2185,21 +2185,35 @@ button:focus-visible {
   line-height: 1;
   letter-spacing: 0.06em;
   white-space: nowrap;
+  /* Explicit brand gradient — do not rely on @layer utility (can lose cascade). */
+  background: linear-gradient(
+    90deg,
+    var(--alkheelank-brand-start),
+    var(--alkheelank-brand-mid),
+    var(--alkheelank-brand-end)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .lobby-header-card__qr {
   display: grid;
   place-items: center;
+  flex: 0 0 auto;
   align-self: center;
-  padding: 0.25rem;
-  border-radius: 0.6rem;
+  padding: 0.35rem;
+  border-radius: 0.65rem;
   background: var(--alkheelank-paper);
+  border: 2px solid rgba(26, 24, 20, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 .lobby-header-card__qr svg {
   display: block;
-  width: clamp(2.75rem, 6vw, 4.5rem);
-  height: clamp(2.75rem, 6vw, 4.5rem);
+  width: clamp(3.25rem, 7vw, 5.5rem);
+  height: clamp(3.25rem, 7vw, 5.5rem);
 }
 
 /* Centered logo + status + players */
@@ -2441,6 +2455,13 @@ button:focus-visible {
   }
 }
 
+/* Tablet+ — keep join, PIN, and QR on one row (QR must never disappear). */
+@media (min-width: 480px) {
+  .lobby-header-card {
+    flex-wrap: nowrap;
+  }
+}
+
 /* Narrow phones — let the header card wrap (QR drops to its own centered row)
    and ease the join URL size so the join code + PIN stay legible. */
 @media (max-width: 560px) {
@@ -2474,8 +2495,9 @@ button:focus-visible {
     gap: 0.6rem;
   }
 
-  .lobby-header-card__qr {
-    display: none;
+  .lobby-header-card__qr svg {
+    width: 3rem;
+    height: 3rem;
   }
 
   .lobby-status-pill {

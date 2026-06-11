@@ -269,7 +269,223 @@ button:focus-visible {
 }
 
 .question-screen--host .question-screen__prompt {
-  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  /* Fluid type that scales with the viewport so long prompts shrink instead of
+     forcing the layout to grow. */
+  font-size: clamp(1.35rem, 1rem + 2.4dvh, 2.5rem);
+  /* High-contrast frosted card keeps the question legible over any stage photo
+     or ambient background glow. */
+  background: linear-gradient(180deg, rgba(36, 32, 25, 0.86) 0%, rgba(26, 24, 20, 0.78) 100%);
+  border-color: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  /* Clamp to a fixed number of lines so the prompt zone height is bounded. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+
+/* ── Host live question — strict mobile-first "no-scroll" partition ───────────
+   The host viewport is locked to the visible viewport (100dvh) and split into
+   fixed zones: meta · prompt · stage · answers. Content scales to fit (fluid
+   type, flexible stage, clamped dock) instead of overflowing, so the screen
+   never scrolls regardless of aspect ratio. */
+.host-phase-fill--fit {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.question-screen--host {
+  overflow: hidden;
+}
+
+/* Flex column gives a predictable hierarchy: meta/prompt/notice keep their
+   natural (bounded) height and the stage absorbs all remaining space. This
+   avoids the grid row mis-assignment that let the prompt grab the flexible
+   row and pushed the photo + answers off-screen. */
+.question-screen--host .question-screen__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.question-screen--host .question-screen__header,
+.question-screen--host .question-screen__badge,
+.question-screen--host .question-screen__prompt,
+.question-screen--host .question-screen__notice,
+.question-screen--host .host-answer-progress {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.question-screen--host .question-screen__stage {
+  flex: 1 1 auto;
+  min-height: clamp(7rem, 28dvh, 18rem);
+  width: 100%;
+}
+
+.question-screen--host .question-screen__dock {
+  flex: 0 0 auto;
+}
+
+/* Answers are a self-contained zone with a clamped height so they can never
+   force the screen to grow; the two rows flex to share the available space. */
+.question-screen--host .question-screen__answers {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  max-height: clamp(7.5rem, 30dvh, 13rem);
+}
+
+.question-screen--host.question-screen--tf .question-screen__answers {
+  grid-template-rows: minmax(0, 1fr);
+  max-height: clamp(4.5rem, 18dvh, 8rem);
+}
+
+/* Anti-jank: hold a rock-steady layout as questions swap. Content fades/slides
+   via Framer Motion (opacity/transform only); never animate the box metrics
+   that would shift sibling zones and cause jitter. */
+.question-screen--host,
+.question-screen--host .question-screen__body,
+.question-screen--host .question-screen__media,
+.question-screen--host .question-screen__dock,
+.question-screen--host .question-screen__answers {
+  transition: none;
+}
+
+/* Host status bar — question position + live "answered" counter as pills. */
+.host-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.host-meta__index {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  border-radius: 9999px;
+  padding: 0.3rem 0.8rem;
+  background: rgba(46, 41, 34, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: "Fredoka", system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.host-meta__index-now {
+  color: var(--alkheelank-paper);
+  font-size: clamp(1rem, 2.4dvh, 1.2rem);
+}
+
+.host-meta__index-sep,
+.host-meta__index-total {
+  color: var(--alkheelank-muted);
+  font-size: 0.85rem;
+}
+
+.host-meta__chip {
+  border-radius: 9999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--alkheelank-paper);
+  background: rgba(234, 88, 12, 0.2);
+  border: 1px solid rgba(234, 88, 12, 0.4);
+}
+
+.host-meta__answered {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 9999px;
+  padding: 0.3rem 0.8rem;
+  background: rgba(46, 41, 34, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--alkheelank-muted);
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.host-meta__answered-count {
+  color: var(--alkheelank-paper);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.host-meta__answered-total {
+  font-variant-numeric: tabular-nums;
+}
+
+.host-meta__pulse {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--alkheelank-success);
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  animation: host-answered-pulse 1.8s ease-out infinite;
+}
+
+@keyframes host-answered-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 0.5rem rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .host-meta__pulse {
+    animation: none;
+  }
+}
+
+/* Live answered-progress bar in the host status zone. */
+.host-answer-progress {
+  margin-top: 0.4rem;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(250, 246, 240, 0.1);
+  overflow: hidden;
+}
+
+.host-answer-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--alkheelank-brand-start), var(--alkheelank-brand-mid));
+  box-shadow: 0 0 10px rgba(234, 88, 12, 0.45);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Refined frosted prompt card — deeper lift + crisp top highlight for hierarchy
+   (kept on the element itself so the -webkit-line-clamp box stays intact). */
+.question-screen--host .question-screen__prompt {
+  margin-top: 0.5rem;
+  border-radius: 1.1rem;
+  border-top-color: rgba(234, 88, 12, 0.35);
+  box-shadow:
+    0 18px 40px -20px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Cohesive host answer tiles — softer radius and a top sheen that matches the
+   prompt card, keeping the chunky 3D base shadow. */
+.question-screen--host .answer-tile:not(.answer-tile--kahoot) {
+  border-radius: 1.1rem;
+  box-shadow:
+    0 8px 0 0 rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 /* Stage: timer (host desktop) · photo · info */

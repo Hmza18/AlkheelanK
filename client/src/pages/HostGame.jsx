@@ -443,13 +443,39 @@ function QuestionView({ question, image, answerCount, paused }) {
       questionKey={question.index}
       promptTag="h1"
       header={
-        <div className="question-screen__meta flex shrink-0 items-center justify-between text-muted">
-          <span className="font-semibold">
-            Question {question.index + 1} of {question.total}
-            {isTF && <span className="ml-2 rounded-full bg-ink-700 px-2 py-0.5 text-xs">True / False</span>}
+        <div className="host-meta">
+          <span className="host-meta__index">
+            <span className="host-meta__index-now">{question.index + 1}</span>
+            <span className="host-meta__index-sep">/</span>
+            <span className="host-meta__index-total">{question.total}</span>
           </span>
-          <span className="font-semibold">{answerCount.answered} answered</span>
+          {isTF && <span className="host-meta__chip">True / False</span>}
+          <span className="host-meta__answered">
+            <span className="host-meta__pulse" aria-hidden />
+            <span className="host-meta__answered-count">{answerCount.answered}</span>
+            {answerCount.total > 0 && (
+              <span className="host-meta__answered-total">/ {answerCount.total}</span>
+            )}
+            <span className="host-meta__answered-label">answered</span>
+          </span>
         </div>
+      }
+      progress={
+        answerCount.total > 0 ? (
+          <div
+            className="host-answer-progress"
+            role="progressbar"
+            aria-label="Players answered"
+            aria-valuemin={0}
+            aria-valuemax={answerCount.total}
+            aria-valuenow={answerCount.answered}
+          >
+            <div
+              className="host-answer-progress__fill"
+              style={{ width: `${Math.round((answerCount.answered / answerCount.total) * 100)}%` }}
+            />
+          </div>
+        ) : null
       }
       badge={
         question.doublePoints ? (

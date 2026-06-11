@@ -433,6 +433,8 @@ function QuestionView({ question, image, answerCount, paused }) {
   return (
     <QuestionScreen
       variant="host"
+      questionType={question.type}
+      questionKey={question.index}
       promptTag="h1"
       header={
         <div className="question-screen__meta flex shrink-0 items-center justify-between text-muted">
@@ -465,7 +467,7 @@ function QuestionView({ question, image, answerCount, paused }) {
       }
       timerStrip={<TimerStrip timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} />}
       answers={question.answers.map((a, i) => (
-        <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big compact />
+        <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big compact staggerIndex={i} />
       ))}
       notice={
         paused ? (

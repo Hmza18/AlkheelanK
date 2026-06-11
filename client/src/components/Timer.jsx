@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { sfx } from "../lib/sound.js";
 
 /**
- * Thin linear countdown for phone landscape — rendered into the
- * `question-screen__timer-strip` slot (hidden in portrait via CSS). Same local
- * countdown model as the circular Timer; the server stays authoritative.
+ * Thin linear countdown for phone — rendered into `question-screen__timer-strip`.
+ * Same local countdown model as the circular Timer; the server stays authoritative.
  */
 export function TimerStrip({ timeLimit, startedAt, paused = false }) {
   const [remaining, setRemaining] = useState(timeLimit);
@@ -26,10 +25,23 @@ export function TimerStrip({ timeLimit, startedAt, paused = false }) {
   const danger = remaining <= 5 && !paused;
   const urgent = remaining <= Math.max(8, timeLimit * 0.25) && !paused;
   const color = paused ? "#b8a99a" : danger ? "#f43f5e" : urgent ? "#fb923c" : "#ea580c";
+  const seconds = Math.ceil(remaining);
+
+  const stripClass = [
+    "question-screen__timer-strip",
+    danger ? "question-screen__timer-strip--danger" : "",
+    urgent && !danger ? "question-screen__timer-strip--urgent" : "",
+    paused ? "question-screen__timer-strip--paused" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className="question-screen__timer-strip" role="timer" aria-label={`${Math.ceil(remaining)} seconds left`}>
-      <div style={{ width: `${pct * 100}%`, backgroundColor: color }} />
+    <div className={stripClass} role="timer" aria-label={`${seconds} seconds left`}>
+      <div className="question-screen__timer-strip__bar" style={{ width: `${pct * 100}%`, backgroundColor: color }} />
+      <span className="question-screen__timer-strip__secs" aria-hidden>
+        {paused ? "⏸" : seconds}
+      </span>
     </div>
   );
 }

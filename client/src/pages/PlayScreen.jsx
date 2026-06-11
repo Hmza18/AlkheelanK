@@ -13,8 +13,9 @@ import { copy } from "../lib/copy.js";
 import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
-import Timer, { TimerStrip } from "../components/Timer.jsx";
+import { TimerStrip } from "../components/Timer.jsx";
 import QuestionScreen from "../components/QuestionScreen.jsx";
+import QuestionProgress from "../components/QuestionProgress.jsx";
 import ScrollHint from "../components/ScrollHint.jsx";
 import OrientationGate from "../components/OrientationGate.jsx";
 
@@ -441,17 +442,28 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
   return (
     <QuestionScreen
       variant="player"
+      questionType={q?.type}
+      questionKey={q?.index}
       header={
-        <div className="question-screen__meta flex shrink-0 items-center justify-between text-sm font-semibold text-muted">
-          <span>
-            Q{q?.index + 1} / {q?.total}
+        <div className="question-screen__meta flex shrink-0 items-center justify-between gap-2 text-sm font-semibold text-muted landscapePhone:text-[0.625rem] landscapePhone:leading-tight">
+          <span className="shrink-0 tabular-nums">
+            Q{q?.index + 1}/{q?.total}
           </span>
-          <span>{q?.type === "tf" ? "True or false?" : "Speed counts"}</span>
+          <span className="flex shrink-0 items-center gap-1.5 landscapePhone:gap-1">
+            {q?.doublePoints ? (
+              <span className="hidden shrink-0 rounded-full bg-brand-mid/25 px-2 py-0.5 text-[0.625rem] font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:inline">
+                ⚡2×
+              </span>
+            ) : null}
+            <span className="landscapePhone:hidden">{q?.type === "tf" ? "True or false?" : "Speed counts"}</span>
+            <span className="hidden landscapePhone:inline">{q?.type === "tf" ? "T / F" : "⚡"}</span>
+          </span>
         </div>
       }
+      progress={<QuestionProgress index={q?.index ?? 0} total={q?.total ?? 1} />}
       badge={
         q?.doublePoints ? (
-          <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse rounded-full bg-brand-mid/25 px-4 py-1 text-sm font-extrabold text-paper ring-1 ring-brand-mid">
+          <div className="mx-auto mt-1.5 inline-flex shrink-0 animate-pulse rounded-full bg-brand-mid/25 px-4 py-1 text-sm font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:hidden">
             ⚡ 2X POINTS
           </div>
         ) : null
@@ -459,7 +471,6 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
       prompt={q?.question}
       image={q?.image}
       animateImage
-      timer={<Timer timeLimit={q?.timeLimit} startedAt={q?.startedAt} paused={paused} size={48} />}
       timerStrip={<TimerStrip timeLimit={q?.timeLimit} startedAt={q?.startedAt} paused={paused} />}
       answers={q?.answers?.map((a, i) => (
         <AnswerTile
@@ -470,6 +481,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
           onClick={() => onAnswer(i)}
           selected={selected === i}
           disabled={selected !== null || paused}
+          staggerIndex={i}
           compact
         />
       ))}

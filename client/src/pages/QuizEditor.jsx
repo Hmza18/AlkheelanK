@@ -12,7 +12,7 @@ import {
 import Logo from "../components/Logo.jsx";
 import AnswerTile from "../components/AnswerTile.jsx";
 import QuestionScreen from "../components/QuestionScreen.jsx";
-import Timer from "../components/Timer.jsx";
+import { TimerStrip } from "../components/Timer.jsx";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
@@ -585,6 +585,7 @@ function QuizPreview({ title, questions, onClose }) {
       <div className="min-h-0 flex-1 overflow-y-auto px-2">
         <QuestionScreen
           variant="player"
+          questionType={type}
           header={
             <div className="question-screen__meta flex shrink-0 items-center justify-between text-sm font-semibold text-muted">
               <span>Q{index + 1} / {questions.length}</span>
@@ -594,14 +595,12 @@ function QuizPreview({ title, questions, onClose }) {
           prompt={q.question}
           image={q.image}
           animateImage
-          timer={
-            <Timer
+          timerStrip={
+            <TimerStrip
               key={`${index}-${startedAt}`}
               timeLimit={q.timeLimit}
               startedAt={startedAt}
               paused={revealed}
-              onExpire={() => setRevealed(true)}
-              size={64}
             />
           }
           answers={q.answers.map((a, i) => (

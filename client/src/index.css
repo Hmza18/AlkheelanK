@@ -805,8 +805,11 @@ button:focus-visible {
   }
 }
 
-/* Phone player landscape — exact Kahoot copycat (timer → question → image → 2×2 answers) */
-@media (max-width: 48rem) and (orientation: landscape) and (max-height: 36rem) {
+/* Phone player landscape — exact Kahoot copycat (timer → question → image → 2×2 answers).
+   Targets any short landscape viewport (every phone held sideways) — NOT gated by
+   width, since modern phones run 800–960px wide in landscape and must still get the
+   full-bleed layout instead of the cramped fallback. */
+@media (orientation: landscape) and (max-height: 36rem) {
   .question-screen--kahoot.question-screen--player {
     position: fixed;
     inset: 0;
@@ -974,7 +977,7 @@ button:focus-visible {
 }
 
 /* iPhone SE / very short phone landscape */
-@media (max-width: 48rem) and (orientation: landscape) and (max-height: 23.5rem) {
+@media (orientation: landscape) and (max-height: 23.5rem) {
   .question-screen--kahoot.question-screen--player {
     grid-template-rows: 4px auto minmax(0, 1fr) clamp(6rem, 32svh, 8.5rem);
   }

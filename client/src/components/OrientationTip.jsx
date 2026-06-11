@@ -4,9 +4,9 @@ import { AnimatePresence, motion } from "framer-motion";
 const SEEN_KEY = "alkheelank.landscapeTipSeen";
 
 /**
- * One-time, non-blocking toast the first time the user flips to phone
- * landscape outside of live play. Dismissed on tap; never shown again
- * (localStorage flag).
+ * One-time, non-blocking toast the first time the user is on a phone in
+ * portrait outside of live play — nudging them to rotate to landscape, which
+ * the game is built for. Dismissed on tap; never shown again (localStorage flag).
  */
 export default function OrientationTip() {
   const [show, setShow] = useState(false);
@@ -20,7 +20,7 @@ export default function OrientationTip() {
     }
     if (seen) return;
 
-    const mq = window.matchMedia("(orientation: landscape) and (max-height: 500px)");
+    const mq = window.matchMedia("(orientation: portrait) and (max-width: 500px)");
     const onChange = () => {
       if (!mq.matches) return;
       setShow(true);
@@ -52,9 +52,9 @@ export default function OrientationTip() {
           onClick={() => setShow(false)}
           className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-[70] -translate-x-1/2 rounded-2xl bg-ink-700/95 px-4 py-2.5 text-sm font-semibold text-paper shadow-2xl ring-1 ring-white/15 backdrop-blur"
         >
-          <span dir="rtl">تلميح: الشاشة الرأسية أفضل للعبة</span>
+          <span dir="rtl">تلميح: الوضع الأفقي أفضل للعب</span>
           <span className="mx-2 text-muted">·</span>
-          <span>Tip: Portrait mode works best</span>
+          <span>Tip: Landscape mode works best</span>
         </motion.button>
       )}
     </AnimatePresence>

@@ -6,6 +6,8 @@ import { Server } from "socket.io";
 import * as GM from "./gameManager.js";
 import { getQuiz, quizSummaries, validateCustomQuiz, getStarterForCopy } from "./quizzes.js";
 import { createRateLimiter, clientKey } from "./rateLimit.js";
+import { generateQuiz, isAiConfigured } from "./ai.js";
+import { searchImages } from "./imageSearch.js";
 
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
@@ -50,6 +52,14 @@ const HOST_GRACE_MS = 45_000;
 const limitHostCreate = createRateLimiter({ windowMs: 60_000, max: 8 });
 const limitPlayerPeek = createRateLimiter({ windowMs: 60_000, max: 40 });
 const limitPlayerJoin = createRateLimiter({ windowMs: 60_000, max: 30 });
+const limitGenerate = createRateLimiter({ windowMs: 60_000, max: 4 });
+const limitImageSearch = createRateLimiter({ windowMs: 60_000, max: 20 });
+
+function httpClientKey(req) {
+  const fwd = req.headers["x-forwarded-for"];
+  if (typeof fwd === "string" && fwd.length) return fwd.split(",")[0].trim();
+  return req.ip || "unknown";
+}
 
 const app = express();
 app.use(cors({ origin: corsOrigin }));
@@ -69,6 +79,40 @@ app.get("/quizzes/:id", (req, res) => {
   const quiz = getStarterForCopy(req.params.id);
   if (!quiz) return res.status(404).json({ error: "Quiz not found." });
   res.json(quiz);
+});
+
+// Editor feature flags — lets the client hide buttons for unconfigured features.
+app.get("/features", (_req, res) => {
+  res.json({ aiGeneration: isAiConfigured() });
+});
+
+// AI quiz generation. Returns { title, questions } in the editor shape.
+app.post("/generate-quiz", async (req, res) => {
+  if (!isAiConfigured()) {
+    return res.status(503).json({ error: "AI generation isn't set up on this server." });
+  }
+  if (!limitGenerate(httpClientKey(req))) {
+    return res.status(429).json({ error: "Too many generations — wait a minute and try again." });
+  }
+  try {
+    const { topic, count, audience, language } = req.body || {};
+    const result = await generateQuiz({ topic, count, audience, language });
+    if (result.error) return res.status(400).json({ error: result.error });
+    res.json(result.data);
+  } catch (err) {
+    console.error("generate-quiz failed:", err?.message || err);
+    res.status(502).json({ error: "Generation failed — try again in a moment." });
+  }
+});
+
+// Image search for the editor (proxied through Openverse).
+app.get("/image-search", async (req, res) => {
+  if (!limitImageSearch(httpClientKey(req))) {
+    return res.status(429).json({ error: "Too many searches — wait a moment." });
+  }
+  const result = await searchImages(req.query.q);
+  if (result.error) return res.status(400).json({ error: result.error });
+  res.json(result.data);
 });
 
 const server = http.createServer(app);
@@ -111,6 +155,7 @@ function closeQuestion(game) {
   const reveal = GM.buildReveal(game);
   game.lastReveal = reveal;
   GM.recordRanks(game); // snapshot ranking for the post-game comeback stat
+  GM.recordQuestionStats(game); // snapshot per-question results for the host breakdown
   io.to(gameRoom(game.pin)).emit("game:reveal", reveal);
 
   for (const socketId of game.sockets.keys()) {

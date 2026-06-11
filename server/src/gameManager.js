@@ -197,6 +197,7 @@ export function createGame(hostSocketId, quiz, settings) {
     // whole-game accumulators for the post-game recap:
     answerHistory: [], // { pid, index, correct, timeMs, points }
     rankHistory: [], // [ Map(pid -> rank) ] snapshotted at each question close
+    questionStats: [], // per-question results snapshot for the host breakdown
     lastReveal: null,
     revealStage: 0,
     lastStandings: null,
@@ -558,6 +559,26 @@ export function recordRanks(game) {
   game.rankHistory.push(snapshotRanks(game));
 }
 
+// Snapshot how the room answered this question. Called once at question close;
+// feeds the host's post-game per-question breakdown.
+export function recordQuestionStats(game) {
+  const q = currentQuestion(game);
+  if (!q) return;
+  let correctCount = 0;
+  for (const a of game.answers.values()) if (a.correct) correctCount += 1;
+  game.questionStats.push({
+    index: game.currentIndex,
+    type: q.type || "mc",
+    question: q.question,
+    answers: [...q.answers],
+    correctIndex: q.correct,
+    counts: answerCounts(game),
+    correctCount,
+    totalAnswers: game.answers.size,
+    totalPlayers: connectedCount(game),
+  });
+}
+
 // Post-game recap: the shareable fun stats, derived from the whole-game
 // accumulators. Any stat can be null if the game didn't produce it.
 export function buildRecap(game) {
@@ -616,6 +637,7 @@ export function buildFinal(game) {
     teams: game.teams,
     title: game.quizTitle,
     recap: buildRecap(game),
+    questionBreakdown: game.questionStats,
   };
 }
 export function buildHostState(game) {

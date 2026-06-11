@@ -20,6 +20,7 @@ import LobbyView from "../components/host/LobbyView.jsx";
 import { HostRecoveredBanner, HostStatusBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
 import { saveHostSession, loadHostSession, clearHostSession } from "../lib/hostSession.js";
+import { tileStyle } from "../lib/answers.js";
 
 const DEFAULT_SETTINGS = {
   mode: "solo",
@@ -509,7 +510,17 @@ function StandingsView({ standings, onNext }) {
 
 function FinalView({ final, onHome }) {
   const [showList, setShowList] = useState(false);
-  const [view, setView] = useState("podium"); // podium | recap
+  const [view, setView] = useState("podium"); // podium | recap | breakdown
+
+  if (view === "breakdown") {
+    return (
+      <QuestionBreakdownView
+        breakdown={final.questionBreakdown || []}
+        onBack={() => setView("podium")}
+        onHome={onHome}
+      />
+    );
+  }
 
   if (view === "recap") {
     return (
@@ -543,7 +554,76 @@ function FinalView({ final, onHome }) {
       </AnimatePresence>
       <div className="mt-12 flex shrink-0 flex-wrap justify-center gap-3 landscapePhone:mt-4 landscapePhone:gap-2">
         <button onClick={() => setView("recap")} className="alkheelank-btn-primary px-10 text-lg landscapePhone:px-6 landscapePhone:py-2 landscapePhone:text-base">🎉 {copy.final.recapCta}</button>
+        {final.questionBreakdown?.length > 0 && (
+          <button onClick={() => setView("breakdown")} className="alkheelank-btn-ghost px-8 landscapePhone:px-5 landscapePhone:py-2 landscapePhone:text-sm">📊 Question breakdown</button>
+        )}
         <button onClick={onHome} className="alkheelank-btn-ghost px-8 landscapePhone:px-5 landscapePhone:py-2 landscapePhone:text-sm">Back to dashboard</button>
+      </div>
+    </div>
+  );
+}
+
+// Post-game per-question results: how the room answered each question, which
+// options they picked, and which questions were hardest.
+function QuestionBreakdownView({ breakdown, onBack, onHome }) {
+  return (
+    <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-3xl flex-col py-10 landscapePhone:py-4">
+      <div className="shrink-0 text-center">
+        <h1 className="alkheelank-heading text-4xl alkheelank-gradient-text landscapePhone:text-2xl">Question breakdown</h1>
+        <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">How the room did, question by question</p>
+      </div>
+
+      <div className="mt-8 min-h-0 flex-1 space-y-4 overflow-y-auto landscapePhone:mt-3">
+        {breakdown.map((q) => {
+          const pct = q.totalAnswers > 0 ? Math.round((q.correctCount / q.totalAnswers) * 100) : 0;
+          const pctColor = pct >= 70 ? "text-tile-square" : pct >= 40 ? "text-tile-circle" : "text-tile-triangle";
+          const maxCount = Math.max(1, ...q.counts);
+          return (
+            <div key={q.index} className="rounded-2xl bg-ink-700/60 p-5 ring-1 ring-white/10 landscapePhone:p-3">
+              <div className="flex items-start justify-between gap-4">
+                <p className="font-semibold text-paper">
+                  <span className="mr-2 text-muted">Q{q.index + 1}.</span>
+                  {q.question}
+                </p>
+                <span className={`shrink-0 font-display text-2xl font-bold tabular-nums ${pctColor}`}>{pct}%</span>
+              </div>
+              <p className="mt-1 text-xs text-muted">
+                {q.correctCount} of {q.totalAnswers} answered correctly
+                {q.totalAnswers < q.totalPlayers && ` · ${q.totalPlayers - q.totalAnswers} didn't answer`}
+              </p>
+              <div className="mt-3 space-y-1.5">
+                {q.answers.map((a, i) => {
+                  const s = tileStyle(q.type, i);
+                  const isCorrect = i === q.correctIndex;
+                  return (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <span className="w-5 text-center" style={{ color: s.color }}>{s.glyph}</span>
+                      <span className={`w-32 truncate sm:w-48 ${isCorrect ? "font-bold text-paper" : "text-muted"}`}>
+                        {a}{isCorrect && " ✓"}
+                      </span>
+                      <div className="h-3 flex-1 overflow-hidden rounded-full bg-ink-800">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${(q.counts[i] / maxCount) * 100}%`,
+                            backgroundColor: s.color,
+                            opacity: isCorrect ? 1 : 0.45,
+                          }}
+                        />
+                      </div>
+                      <span className="w-6 text-right tabular-nums text-muted">{q.counts[i]}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 flex shrink-0 flex-wrap justify-center gap-3 landscapePhone:mt-3">
+        <button onClick={onBack} className="alkheelank-btn-ghost px-8">← Podium</button>
+        <button onClick={onHome} className="alkheelank-btn-primary px-8">Back to dashboard</button>
       </div>
     </div>
   );

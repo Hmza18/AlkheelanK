@@ -2,8 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { answerStyle, tfStyle } from "../lib/answers.js";
 import { fileToDataURL } from "../lib/image.js";
-import { isSetupError, addBankQuestion, listBankQuestions, bankRowToQuestion } from "../lib/db.js";
+import {
+  isSetupError,
+  addBankQuestion,
+  listBankQuestions,
+  bankRowToQuestion,
+  deleteBankQuestion,
+} from "../lib/db.js";
 import Logo from "../components/Logo.jsx";
+import AnswerTile from "../components/AnswerTile.jsx";
+import QuestionScreen from "../components/QuestionScreen.jsx";
+import Timer from "../components/Timer.jsx";
+
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
 const SETUP_HELP =
   "Your database isn't set up yet. Run supabase/schema.sql in the Supabase SQL editor (see README), then try again.";
@@ -29,6 +40,23 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
   const [bankOpen, setBankOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiAvailable, setAiAvailable] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Feature-detect AI generation so the button only shows when the server has a key.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${SERVER_URL}/features`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((f) => {
+        if (!cancelled && f?.aiGeneration) setAiAvailable(true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!saved) return;
@@ -45,6 +73,16 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
       )
     );
   const addQuestion = () => setQuestions((qs) => [...qs, blankQuestion()]);
+  // Generated questions replace a lone untouched blank question instead of
+  // appending after it, so a fresh quiz doesn't start with an empty card.
+  const addGenerated = (gen) => {
+    setQuestions((qs) => {
+      const isBlank = (q) => !q.question.trim() && q.answers.every((a) => !a.trim());
+      const keep = qs.length === 1 && isBlank(qs[0]) ? [] : qs;
+      return [...keep, ...gen.questions.map((q) => ({ ...q }))];
+    });
+    if (!title.trim() && gen.title) setTitle(gen.title);
+  };
   const removeQuestion = (i) =>
     setQuestions((qs) => (qs.length > 1 ? qs.filter((_, idx) => idx !== i) : qs));
   const addFromBank = (q) => setQuestions((qs) => [...qs, { ...q }]);
@@ -121,9 +159,20 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         ))}
       </div>
 
-      <button onClick={addQuestion} className="alkheelank-btn-ghost mt-6 w-full">
-        + Add question
-      </button>
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <button onClick={addQuestion} className="alkheelank-btn-ghost flex-1">
+          + Add question
+        </button>
+        {aiAvailable && (
+          <button
+            onClick={() => setAiOpen(true)}
+            className="alkheelank-btn-ghost flex-1 !text-brand-end"
+            title="Generate questions with AI"
+          >
+            ✨ Generate with AI
+          </button>
+        )}
+      </div>
 
       {error && (
         <p className="mt-6 rounded-xl bg-tile-triangle/20 px-4 py-3 text-center font-semibold text-tile-triangle">
@@ -147,7 +196,26 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         <BankPicker
           userId={userId}
           onAdd={(q) => { addFromBank(q); setBankOpen(false); }}
+          onAddAll={(list) => {
+            setQuestions((qs) => [...qs, ...list.map((q) => ({ ...q }))]);
+            setBankOpen(false);
+          }}
           onClose={() => setBankOpen(false)}
+        />
+      )}
+
+      {aiOpen && (
+        <AiGeneratePanel
+          onGenerated={(gen) => { addGenerated(gen); setAiOpen(false); }}
+          onClose={() => setAiOpen(false)}
+        />
+      )}
+
+      {previewOpen && (
+        <QuizPreview
+          title={title.trim() || "Untitled quiz"}
+          questions={questions}
+          onClose={() => setPreviewOpen(false)}
         />
       )}
 
@@ -166,6 +234,17 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
                 📚 From bank
               </button>
             )}
+            <button
+              onClick={() => {
+                if (!ready) { setError("Add a title and fill in every question + answer."); return; }
+                setError(null);
+                setPreviewOpen(true);
+              }}
+              className="min-h-touch rounded-xl bg-ink-700 px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-white/10 hover:text-paper"
+              title="Play through the quiz exactly as players will see it"
+            >
+              ▶ Preview
+            </button>
             {canSave ? (
               <button onClick={handleSave} disabled={saving} className="alkheelank-btn-ghost px-6">
                 {saving ? "Saving…" : initial?.id ? "Save" : "Save to account"}
@@ -355,9 +434,221 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
 }
 
 // ---------------------------------------------------------------------------
+// AI question generation panel
+// ---------------------------------------------------------------------------
+const AI_COUNTS = [3, 5, 8, 10];
+const AI_AUDIENCES = [
+  { id: "family", label: "👨‍👩‍👧 Family" },
+  { id: "kids", label: "🧸 Kids" },
+  { id: "general", label: "🎯 Adults" },
+  { id: "hard", label: "🔥 Hard" },
+];
+
+function AiGeneratePanel({ onGenerated, onClose }) {
+  const [topic, setTopic] = useState("");
+  const [count, setCount] = useState(5);
+  const [audience, setAudience] = useState("family");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const generate = async () => {
+    if (!topic.trim() || busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`${SERVER_URL}/generate-quiz`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: topic.trim(), count, audience }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setErr(body?.error || "Generation failed — try again in a moment.");
+        return;
+      }
+      onGenerated(body);
+    } catch {
+      setErr("Couldn't reach the server — check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        onClick={busy ? undefined : onClose}
+        className="absolute inset-0 bg-ink-900/70 backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 340, damping: 32 }}
+        className="relative z-10 w-full max-w-lg rounded-t-3xl bg-ink-800 p-6 shadow-2xl ring-1 ring-white/10 sm:rounded-3xl"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-xl font-bold">✨ Generate with AI</h2>
+          <button type="button" onClick={onClose} disabled={busy} className="alkheelank-touch-target text-muted hover:text-paper">✕</button>
+        </div>
+
+        <input
+          className="alkheelank-input mt-4 !text-left !text-lg"
+          placeholder="Topic — e.g. 90s music, dinosaurs, world capitals…"
+          maxLength={200}
+          value={topic}
+          autoFocus
+          onChange={(e) => setTopic(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && generate()}
+          disabled={busy}
+        />
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-muted">Questions:</span>
+          {AI_COUNTS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              disabled={busy}
+              onClick={() => setCount(n)}
+              className={`min-h-touch rounded-xl px-4 py-2 text-sm font-bold transition ${
+                count === n ? "bg-brand-mid text-paper" : "bg-ink-700 text-muted hover:text-paper"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-muted">Crowd:</span>
+          {AI_AUDIENCES.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              disabled={busy}
+              onClick={() => setAudience(a.id)}
+              className={`min-h-touch rounded-xl px-3 py-2 text-sm font-bold transition ${
+                audience === a.id ? "bg-brand-mid text-paper" : "bg-ink-700 text-muted hover:text-paper"
+              }`}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+
+        {err && <p className="mt-4 rounded-xl bg-tile-triangle/20 px-4 py-3 text-sm font-semibold text-tile-triangle">{err}</p>}
+
+        <button
+          onClick={generate}
+          disabled={!topic.trim() || busy}
+          className="alkheelank-btn-primary mt-5 w-full disabled:opacity-50"
+        >
+          {busy ? "Writing questions… ✍️" : `Generate ${count} questions`}
+        </button>
+        {busy && <p className="mt-2 text-center text-xs text-muted">This usually takes 10–20 seconds.</p>}
+      </motion.div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Quiz preview — step through questions exactly as players will see them
+// ---------------------------------------------------------------------------
+function QuizPreview({ title, questions, onClose }) {
+  const [index, setIndex] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [startedAt, setStartedAt] = useState(() => Date.now());
+
+  const q = questions[index];
+  const type = q.type || "mc";
+  const hasNext = index + 1 < questions.length;
+
+  const goTo = (i) => {
+    setIndex(i);
+    setRevealed(false);
+    setStartedAt(Date.now());
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-ink-900">
+      <div className="flex shrink-0 items-center justify-between px-5 pt-[max(1rem,env(safe-area-inset-top))]">
+        <span className="rounded-full bg-brand-mid/20 px-3 py-1 text-xs font-bold uppercase tracking-widest text-brand-end">
+          Preview · {title}
+        </span>
+        <button type="button" onClick={onClose} className="alkheelank-touch-target font-bold text-muted hover:text-paper">
+          ✕ Close
+        </button>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-2">
+        <QuestionScreen
+          variant="player"
+          header={
+            <div className="question-screen__meta flex shrink-0 items-center justify-between text-sm font-semibold text-muted">
+              <span>Q{index + 1} / {questions.length}</span>
+              <span>{q.doublePoints ? "⚡ 2× points" : type === "tf" ? "True / False" : "Multiple choice"}</span>
+            </div>
+          }
+          prompt={q.question}
+          image={q.image}
+          animateImage
+          timer={
+            <Timer
+              key={`${index}-${startedAt}`}
+              timeLimit={q.timeLimit}
+              startedAt={startedAt}
+              paused={revealed}
+              onExpire={() => setRevealed(true)}
+              size={64}
+            />
+          }
+          answers={q.answers.map((a, i) => (
+            <AnswerTile
+              key={i}
+              index={i}
+              type={type}
+              text={a}
+              revealed={revealed}
+              correct={i === q.correct}
+              onClick={() => setRevealed(true)}
+            />
+          ))}
+        />
+      </div>
+
+      <div className="alkheelank-safe-bottom flex shrink-0 items-center justify-center gap-3 border-t border-white/10 bg-ink-900/90 px-5 py-3">
+        <button
+          onClick={() => goTo(index - 1)}
+          disabled={index === 0}
+          className="alkheelank-btn-ghost !py-2 disabled:opacity-40"
+        >
+          ← Back
+        </button>
+        {!revealed && (
+          <button onClick={() => setRevealed(true)} className="alkheelank-btn-ghost !py-2">
+            Show answer
+          </button>
+        )}
+        {hasNext ? (
+          <button onClick={() => goTo(index + 1)} className="alkheelank-btn-primary !py-2 px-8">
+            Next →
+          </button>
+        ) : (
+          <button onClick={onClose} className="alkheelank-btn-primary !py-2 px-8">
+            Done ✓
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Bank picker drawer
 // ---------------------------------------------------------------------------
-function BankPicker({ userId, onAdd, onClose }) {
+function BankPicker({ userId, onAdd, onAddAll, onClose }) {
   const [questions, setQuestions] = useState(null); // null = loading
   const [filter, setFilter] = useState("");
   const [err, setErr] = useState(null);
@@ -368,6 +659,11 @@ function BankPicker({ userId, onAdd, onClose }) {
       setQuestions(data || []);
     });
   }, [userId]);
+
+  const handleDelete = async (id) => {
+    setQuestions((qs) => (qs || []).filter((q) => q.id !== id));
+    await deleteBankQuestion(userId, id);
+  };
 
   const visible = (questions || []).filter(
     (q) => !filter || q.question.toLowerCase().includes(filter.toLowerCase())
@@ -396,13 +692,24 @@ function BankPicker({ userId, onAdd, onClose }) {
         </div>
 
         <div className="px-6 pb-3">
-          <input
-            className="alkheelank-input !py-2.5 !text-base !text-left"
-            placeholder="Search questions…"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            autoFocus
-          />
+          <div className="flex gap-2">
+            <input
+              className="alkheelank-input flex-1 !py-2.5 !text-base !text-left"
+              placeholder="Search questions…"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              autoFocus
+            />
+            {visible.length > 1 && (
+              <button
+                onClick={() => onAddAll(visible.map(bankRowToQuestion))}
+                className="min-h-touch shrink-0 rounded-xl bg-brand-mid/20 px-4 text-sm font-bold text-brand-end hover:bg-brand-mid/40"
+                title={filter ? "Add all matching questions" : "Add every question in your bank"}
+              >
+                + Add all ({visible.length})
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="overflow-y-auto px-6 pb-8 flex-1">
@@ -434,12 +741,21 @@ function BankPicker({ userId, onAdd, onClose }) {
                       </div>
                       <p className="mt-1 line-clamp-2 font-semibold text-paper">{q.question}</p>
                     </div>
-                    <button
-                      onClick={() => onAdd(q)}
-                      className="min-h-touch shrink-0 rounded-xl bg-brand-mid/20 px-4 py-2.5 text-sm font-bold text-brand-end hover:bg-brand-mid/40"
-                    >
-                      + Add
-                    </button>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <button
+                        onClick={() => onAdd(q)}
+                        className="min-h-touch rounded-xl bg-brand-mid/20 px-4 py-2.5 text-sm font-bold text-brand-end hover:bg-brand-mid/40"
+                      >
+                        + Add
+                      </button>
+                      <button
+                        onClick={() => handleDelete(row.id)}
+                        className="rounded-lg px-2 py-1 text-xs font-semibold text-muted hover:bg-tile-triangle/10 hover:text-tile-triangle"
+                        title="Delete from your bank"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -460,6 +776,32 @@ function ImagePicker({ image, onChange }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
   const fileRef = useRef(null);
+  // image search:
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState(null); // null = no search yet
+  const [searching, setSearching] = useState(false);
+
+  const search = async () => {
+    const q = query.trim();
+    if (!q || searching) return;
+    setSearching(true);
+    setErr(null);
+    try {
+      const res = await fetch(`${SERVER_URL}/image-search?q=${encodeURIComponent(q)}`);
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setErr(body?.error || "Search failed — try again.");
+        setResults([]);
+        return;
+      }
+      setResults(body || []);
+    } catch {
+      setErr("Couldn't reach the server for image search.");
+      setResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
 
   const onFile = async (e) => {
     const file = e.target.files?.[0];
@@ -534,7 +876,43 @@ function ImagePicker({ image, onChange }) {
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               className="flex-1 rounded-xl bg-ink-700 px-3 py-2 font-medium text-paper placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
-              placeholder="Paste image URL…"
+              placeholder="Search free images… (e.g. mars planet)"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && search()}
+            />
+            <button onClick={search} disabled={searching || !query.trim()} className="alkheelank-btn-ghost !py-2 !text-sm disabled:opacity-50">
+              {searching ? "Searching…" : "🔍 Search"}
+            </button>
+          </div>
+
+          {results !== null && (
+            <div className="mt-3">
+              {results.length === 0 && !searching ? (
+                <p className="text-sm text-muted">No images found — try different words.</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {results.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      title={r.title}
+                      onClick={() => { onChange(r.url); setOpen(false); }}
+                      className="group relative aspect-square overflow-hidden rounded-xl ring-1 ring-white/10 transition hover:ring-2 hover:ring-brand-mid"
+                    >
+                      <img src={r.thumbnail} alt={r.title} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="mt-2 text-[10px] text-muted/70">Openly licensed images via Openverse.</p>
+            </div>
+          )}
+
+          <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-3 sm:flex-row">
+            <input
+              className="flex-1 rounded-xl bg-ink-700 px-3 py-2 font-medium text-paper placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
+              placeholder="…or paste an image URL"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && applyUrl()}

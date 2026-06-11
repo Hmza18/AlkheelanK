@@ -144,11 +144,36 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClo
       <div className="lobby-center">
         <Logo size="lg" />
 
-        <span className="lobby-status-pill">
-          {hasPlayers
-            ? `${players.length} ${players.length === 1 ? "player" : "players"} in the lobby`
-            : copy.lobby.waiting}
-        </span>
+        <div className="lobby-control-row">
+          <span className="lobby-status-pill">
+            {hasPlayers
+              ? `${players.length} ${players.length === 1 ? "player" : "players"} in the lobby`
+              : copy.lobby.waiting}
+          </span>
+          <div className="lobby-actions">
+            <button
+              type="button"
+              className="lobby-lock"
+              onClick={() => {
+                sfx.lock();
+                setLocked((v) => !v);
+              }}
+              aria-pressed={locked}
+              aria-label={locked ? "Unlock game" : "Lock game"}
+              title={locked ? "Locked" : "Unlocked"}
+            >
+              {locked ? <LockClosedIcon /> : <LockOpenIcon />}
+            </button>
+            <button
+              type="button"
+              className="lobby-start"
+              onClick={handleStart}
+              disabled={!hasPlayers}
+            >
+              {copy.lobby.start}
+            </button>
+          </div>
+        </div>
 
         {quizMeta && (
           <p className="lobby-quiz">
@@ -190,30 +215,6 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClo
 
         {error && <p className="lobby-error">{error}</p>}
         {!hasPlayers && !error && <p className="lobby-helper">{copy.lobby.emptyCta}</p>}
-      </div>
-
-      <div className="lobby-actions">
-        <button
-          type="button"
-          className="lobby-lock"
-          onClick={() => {
-            sfx.lock();
-            setLocked((v) => !v);
-          }}
-          aria-pressed={locked}
-          aria-label={locked ? "Unlock game" : "Lock game"}
-          title={locked ? "Locked" : "Unlocked"}
-        >
-          {locked ? <LockClosedIcon /> : <LockOpenIcon />}
-        </button>
-        <button
-          type="button"
-          className="lobby-start"
-          onClick={handleStart}
-          disabled={!hasPlayers}
-        >
-          {copy.lobby.start}
-        </button>
       </div>
 
       <div className="lobby-utilbar">

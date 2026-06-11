@@ -166,6 +166,54 @@ export default function QuestionScreen({
     }
   }, [variant, questionKey, prompt, image]);
 
+  const handleImageLoad = (event) => {
+    const imgEl = event.currentTarget;
+    if (variant !== "host" || !rootRef.current || !imgEl) return;
+    const root = rootRef.current;
+    const rect = (el) => {
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top) };
+    };
+    const answerRects = [...root.querySelectorAll(".answer-tile")].map((el) => rect(el));
+    const imgStyle = getComputedStyle(imgEl);
+
+    // #region agent log
+    fetch("http://127.0.0.1:7615/ingest/ee6cc38e-44c8-40f4-955a-c71820b327e7", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "57ad63" },
+      body: JSON.stringify({
+        sessionId: "57ad63",
+        runId: "small-image-repro",
+        hypothesisId: "F-G",
+        location: "QuestionScreen.jsx:handleImageLoad",
+        message: "host landscape image and answer tile sizes after image load",
+        data: {
+          innerW: window.innerWidth,
+          innerH: window.innerHeight,
+          landscapePhone: window.matchMedia("(orientation: landscape) and (max-height: 36rem)").matches,
+          stage: rect(root.querySelector(".question-screen__stage")),
+          img: {
+            rect: rect(imgEl),
+            natural: { nw: imgEl.naturalWidth, nh: imgEl.naturalHeight },
+            computed: {
+              width: imgStyle.width,
+              height: imgStyle.height,
+              maxWidth: imgStyle.maxWidth,
+              maxHeight: imgStyle.maxHeight,
+              objectFit: imgStyle.objectFit,
+            },
+          },
+          dock: rect(root.querySelector(".question-screen__dock")),
+          answers: rect(root.querySelector(".question-screen__answers")),
+          answerRects,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+  };
+
   return (
     <div ref={rootRef} className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
       {timerStrip}
@@ -183,7 +231,13 @@ export default function QuestionScreen({
           {image ? (
             <div className="question-screen__media">
               <div className="question-screen__media-frame">
-                <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
+                <ImageEl
+                  {...imageProps}
+                  src={image}
+                  alt=""
+                  className="question-screen__img"
+                  onLoad={handleImageLoad}
+                />
               </div>
             </div>
           ) : (

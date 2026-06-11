@@ -1,6 +1,5 @@
 import { useState } from "react";
 import SettingsPanel from "./SettingsPanel.jsx";
-import HostControlDeck from "./HostControlDeck.jsx";
 
 const IN_GAME_PHASES = ["lobby", "question", "reveal", "standings"];
 const settingsBtnClass =
@@ -29,10 +28,22 @@ export default function HostChrome({
   const setOpen = onSettingsOpenChange ?? setSettingsOpenInternal;
   const showEnd = IN_GAME_PHASES.includes(phase);
   const showDeck = ["question", "reveal", "standings"].includes(phase);
+  const hostControls = showDeck
+    ? {
+        phase,
+        pacing,
+        paused,
+        onPacing,
+        onPause,
+        onResume,
+        onSkipQuestion,
+        onSkipReveal,
+      }
+    : null;
 
   return (
     <>
-      <SettingsPanel open={open} onOpenChange={setOpen} hideTrigger />
+      <SettingsPanel open={open} onOpenChange={setOpen} hideTrigger hostControls={hostControls} />
 
       <button
         type="button"
@@ -43,19 +54,6 @@ export default function HostChrome({
       >
         ⚙️
       </button>
-      {showDeck && (
-        <HostControlDeck
-          phase={phase}
-          pacing={pacing}
-          paused={paused}
-          onPacing={onPacing}
-          onPause={onPause}
-          onResume={onResume}
-          onSkipQuestion={onSkipQuestion}
-          onSkipReveal={onSkipReveal}
-          wrapperClassName="landscapePhone:hidden"
-        />
-      )}
       {showEnd && (
         <button
           type="button"
@@ -80,20 +78,6 @@ export default function HostChrome({
         >
           ⚙️
         </button>
-        {showDeck && (
-          <HostControlDeck
-            phase={phase}
-            pacing={pacing}
-            paused={paused}
-            onPacing={onPacing}
-            onPause={onPause}
-            onResume={onResume}
-            onSkipQuestion={onSkipQuestion}
-            onSkipReveal={onSkipReveal}
-            wrapperClassName="pointer-events-auto relative"
-            panelAnchor="below"
-          />
-        )}
         {showEnd && (
           <button
             type="button"

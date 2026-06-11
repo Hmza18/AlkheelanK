@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { copy } from "../lib/copy.js";
 import { getAudioSettings, setAudioSettings, sfx } from "../lib/sound.js";
+
+const PACING_OPTIONS = [
+  { id: "quick", label: copy.host.pacing.quick, hint: copy.host.pacing.quickHint },
+  { id: "normal", label: copy.host.pacing.normal, hint: copy.host.pacing.normalHint },
+  { id: "cinematic", label: copy.host.pacing.cinematic, hint: copy.host.pacing.cinematicHint },
+];
 
 // A floating gear button + slide-in drawer for audio settings. Self-contained:
 // reads/writes the persisted audio store, and changes drive playback live.
@@ -11,6 +18,7 @@ export default function SettingsPanel({
   open: openControlled,
   onOpenChange,
   hideTrigger = false,
+  hostControls = null,
 }) {
   const [openInternal, setOpenInternal] = useState(false);
   const open = openControlled ?? openInternal;
@@ -41,6 +49,8 @@ export default function SettingsPanel({
   const positionClass = corner === "inline" ? "relative" : `fixed ${pos}`;
 
   const masterPct = Math.round(s.master * 100);
+  const showQuestionControls = hostControls?.phase === "question";
+  const showRevealControls = hostControls?.phase === "reveal";
 
   return (
     <>
@@ -70,7 +80,7 @@ export default function SettingsPanel({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col bg-ink-800 p-6 shadow-2xl ring-1 ring-white/10"
+              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col overflow-y-auto bg-ink-800 p-6 shadow-2xl ring-1 ring-white/10"
             >
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-2xl font-bold">Settings</h2>
@@ -124,6 +134,72 @@ export default function SettingsPanel({
                   </div>
                 </div>
               </section>
+
+              {hostControls && (
+                <section className="mt-8 border-t border-white/10 pt-6">
+                  <h3 className="alkheelank-label">{copy.host.pacing.label}</h3>
+                  <div className="mt-3 flex gap-1.5">
+                    {PACING_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        title={opt.hint}
+                        onClick={() => {
+                          sfx.tap();
+                          hostControls.onPacing?.(opt.id);
+                        }}
+                        className={`min-h-touch flex-1 rounded-xl px-2 py-2.5 text-sm font-bold ring-1 transition ${
+                          hostControls.pacing === opt.id
+                            ? "bg-brand-mid/25 ring-brand-mid text-paper"
+                            : "bg-ink-700 ring-white/10 text-muted hover:text-paper"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {showQuestionControls && (
+                    <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sfx.tap();
+                          hostControls.paused ? hostControls.onResume?.() : hostControls.onPause?.();
+                        }}
+                        className="alkheelank-btn-ghost w-full py-3 text-base"
+                      >
+                        {hostControls.paused ? copy.host.resume : copy.host.pause}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sfx.confirm?.();
+                          hostControls.onSkipQuestion?.();
+                        }}
+                        className="alkheelank-btn-ghost w-full py-3 text-base"
+                      >
+                        {copy.host.skipResults}
+                      </button>
+                    </div>
+                  )}
+
+                  {showRevealControls && (
+                    <div className="mt-4 border-t border-white/10 pt-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sfx.tap();
+                          hostControls.onSkipReveal?.();
+                        }}
+                        className="alkheelank-btn-ghost w-full py-3 text-base"
+                      >
+                        {copy.host.skipReveal}
+                      </button>
+                    </div>
+                  )}
+                </section>
+              )}
 
               <p className="mt-auto pt-6 text-xs text-muted/70">
                 Saved on this device — your ears will thank you next time.

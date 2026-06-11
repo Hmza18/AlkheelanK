@@ -940,7 +940,7 @@ button:focus-visible {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
-    gap: 0.2rem;
+    gap: 0.1rem;
   }
 
   .question-screen--host .host-meta {
@@ -966,10 +966,10 @@ button:focus-visible {
   }
 
   .question-screen--host .question-screen__prompt {
-    font-size: clamp(1.45rem, 6dvh, 1.9rem);
+    font-size: clamp(1.65rem, 6.8dvh, 2.1rem);
     line-height: 1.22;
-    padding: 0.46rem 0.85rem;
-    margin-top: 0.05rem;
+    padding: 0.42rem 0.85rem;
+    margin-top: 0;
     -webkit-line-clamp: 2;
   }
 
@@ -980,7 +980,7 @@ button:focus-visible {
   .question-screen--host .question-screen__stage {
     flex: 1 1 auto;
     min-height: 0;
-    max-height: min(100%, calc(100dvh - var(--qs-dock-h) - 4.9rem));
+    max-height: min(100%, calc(100dvh - var(--qs-dock-h) - 4.6rem));
     margin-top: 0;
     overflow: hidden;
   }
@@ -992,14 +992,16 @@ button:focus-visible {
     height: 100%;
     flex: 1 1 auto;
     overflow: hidden;
+    justify-content: center;
   }
 
   .question-screen--host .question-screen__img {
-    height: clamp(9.5rem, 46dvh, 12.75rem);
+    width: min(52vw, 30rem);
+    height: auto;
     max-height: 100%;
     max-width: 100%;
-    width: auto;
     object-fit: contain;
+    margin-inline: auto;
   }
 
   .question-screen--host .question-screen__dock {
@@ -2565,13 +2567,13 @@ button:focus-visible {
 /* Narrow phones — header wraps; keep PIN/QR large; more breathing room */
 @media (max-width: 560px) {
   .lobby-stage {
-    gap: clamp(1.65rem, 5.5dvh, 2.75rem);
-    padding-bottom: max(6rem, calc(env(safe-area-inset-bottom, 0px) + 5rem));
+    gap: clamp(1rem, 3.6dvh, 1.75rem);
+    padding-bottom: max(4.75rem, calc(env(safe-area-inset-bottom, 0px) + 4rem));
   }
 
   .lobby-center {
-    gap: clamp(1.65rem, 5.5dvh, 2.5rem);
-    padding-top: clamp(6.5rem, 18dvh, 9.5rem);
+    gap: clamp(1rem, 3.6dvh, 1.75rem);
+    padding-top: clamp(5.2rem, 15dvh, 7.5rem);
   }
 
   .lobby-logo {
@@ -2601,13 +2603,13 @@ button:focus-visible {
 
   .lobby-header-card {
     max-width: calc(100vw - 1.25rem);
-    top: max(3.75rem, calc(env(safe-area-inset-top, 0px) + 3.35rem));
-    padding: 0.9rem 1.15rem;
-    gap: 0.85rem 1.1rem;
+    top: max(3.35rem, calc(env(safe-area-inset-top, 0px) + 3rem));
+    padding: 0.65rem 0.9rem;
+    gap: 0.55rem 0.85rem;
   }
 
   .lobby-header-card__main {
-    gap: 1rem;
+    gap: 0.7rem;
   }
 
   .lobby-header-card__url {
@@ -2615,17 +2617,17 @@ button:focus-visible {
   }
 
   .lobby-header-card__pin {
-    font-size: clamp(2.15rem, 10vw, 3rem);
+    font-size: clamp(1.85rem, 8.8vw, 2.55rem);
     letter-spacing: 0.05em;
   }
 
   .lobby-header-card__qr {
-    padding: 0.5rem;
+    padding: 0.4rem;
   }
 
   .lobby-header-card__qr svg {
-    width: clamp(5rem, 26vw, 7rem);
-    height: clamp(5rem, 26vw, 7rem);
+    width: clamp(4.2rem, 21vw, 5.6rem);
+    height: clamp(4.2rem, 21vw, 5.6rem);
   }
 
   .lobby-status-pill {

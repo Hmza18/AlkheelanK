@@ -17,7 +17,6 @@ import { TimerStrip } from "../components/Timer.jsx";
 import QuestionScreen from "../components/QuestionScreen.jsx";
 import QuestionProgress from "../components/QuestionProgress.jsx";
 import ScrollHint from "../components/ScrollHint.jsx";
-import OrientationGate from "../components/OrientationGate.jsx";
 
 export default function PlayScreen() {
   const navigate = useNavigate();
@@ -265,7 +264,6 @@ export default function PlayScreen() {
   };
 
   const settingsFab = <SettingsPanel corner="bottom-left" triggerClassName="settings-fab--player" />;
-  const landscapePlay = ["question", "answered", "result", "standings", "final"].includes(phase);
 
   if (phase === "join" && step === "pin") {
     return (
@@ -320,14 +318,12 @@ export default function PlayScreen() {
       <>
         {settingsFab}
         <HostStatusBanner connected={hostConnected} forPlayer />
-        <OrientationGate active={landscapePlay}>
-          <QuestionCard
-            q={question}
-            selected={selected}
-            onAnswer={answer}
-            paused={paused}
-          />
-        </OrientationGate>
+        <QuestionCard
+          q={question}
+          selected={selected}
+          onAnswer={answer}
+          paused={paused}
+        />
       </>
     );
   }
@@ -336,39 +332,36 @@ export default function PlayScreen() {
       <>
         {settingsFab}
         <HostStatusBanner connected={hostConnected} forPlayer />
-        <OrientationGate active={landscapePlay}>
-          <PostAnswerWaiting
-            me={me}
-            question={question}
-            selected={selected}
-            waitContext={waitContext}
-            paused={paused}
-          />
-        </OrientationGate>
+        <PostAnswerWaiting
+          me={me}
+          question={question}
+          selected={selected}
+          waitContext={waitContext}
+          paused={paused}
+        />
       </>
     );
   }
   if (phase === "result") {
     return (
-      <OrientationGate active={landscapePlay}>
+      <>
         {settingsFab}
         <ResultCard result={result} q={question} />
-      </OrientationGate>
+      </>
     );
   }
   if (phase === "standings") {
     return (
-      <OrientationGate active={landscapePlay}>
+      <>
         {settingsFab}
         <StandingsCard standings={standings} meId={me?.id ?? me?.pid ?? joinInfoRef.current?.pid} />
-      </OrientationGate>
+      </>
     );
   }
   if (phase === "final") {
     const onPodium = isPodiumRank(finalRank?.rank);
     return (
-      <OrientationGate active={landscapePlay}>
-        <CenterCard>
+      <CenterCard>
         <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{onPodium ? copy.player.onPodium : copy.player.final}</h2>
         {!onPodium && (
           <p className="mt-2 text-2xl font-bold alkheelank-gradient-text landscapePhone:mt-1 landscapePhone:text-xl">#{finalRank?.rank ?? "-"}</p>
@@ -379,7 +372,6 @@ export default function PlayScreen() {
           {copy.player.playAgain}
         </button>
       </CenterCard>
-      </OrientationGate>
     );
   }
   return (

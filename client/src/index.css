@@ -180,6 +180,19 @@ button:focus-visible {
   overflow: hidden;
 }
 
+/* Player phone (portrait-first): a clean vertical stack where meta, progress and
+   the question prompt keep their natural height, and the photo stage grows to
+   fill the remaining space and stays centered. Without this the prompt grabs the
+   flexible row and balloons, pushing the photo off-center. */
+.question-screen--player .question-screen__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.question-screen--player .question-screen__stage {
+  flex: 1 1 auto;
+}
+
 .question-screen--player {
   --qs-pad-bottom: max(3.25rem, calc(env(safe-area-inset-bottom, 0px) + 2.75rem));
 }

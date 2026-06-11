@@ -83,6 +83,15 @@ export default function FamilyWelcomePopup() {
               </a>
             </div>
 
+            <div className="mt-4 rounded-xl bg-ink-700/60 px-4 py-3 ring-1 ring-white/10">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted">Tips & support</p>
+              <p className="mt-1 text-sm text-paper">
+                Feel free to send a tip via{" "}
+                <span className="font-bold alkheelank-gradient-text">Benefit Pay</span>{" "}
+                — same number above 💛
+              </p>
+            </div>
+
             <button
               onClick={dismiss}
               className="alkheelank-btn-primary mt-5 w-full text-base"

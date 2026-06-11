@@ -1,4 +1,3 @@
-import { useLayoutEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { fadeUp, spring } from "../lib/motion.js";
 
@@ -56,166 +55,8 @@ export default function QuestionScreen({
         }
       : {};
 
-  const rootRef = useRef(null);
-
-  useLayoutEffect(() => {
-    if (variant !== "host") return;
-    const root = rootRef.current;
-    if (!root) return;
-
-    const rect = (el) => {
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      return { w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top) };
-    };
-
-    const pick = (el, keys) => {
-      if (!el) return null;
-      const s = getComputedStyle(el);
-      return Object.fromEntries(keys.map((k) => [k, s[k]]));
-    };
-
-    const promptEl = root.querySelector(".question-screen__prompt");
-    const stageEl = root.querySelector(".question-screen__stage");
-    const mediaEl = root.querySelector(".question-screen__media");
-    const imgEl = root.querySelector(".question-screen__img");
-    const dockEl = root.querySelector(".question-screen__dock");
-    const answersEl = root.querySelector(".question-screen__answers");
-    const bodyEl = root.querySelector(".question-screen__body");
-    const stageSideEls = root.querySelectorAll(".question-screen__stage-side");
-
-    const landscapePhone = window.matchMedia("(orientation: landscape) and (max-height: 36rem)").matches;
-    const portraitNarrow = window.matchMedia("(max-width: 560px) and (orientation: portrait)").matches;
-    const imgRect = rect(imgEl);
-    const imgNatural =
-      imgEl && imgEl.naturalWidth
-        ? { nw: imgEl.naturalWidth, nh: imgEl.naturalHeight }
-        : null;
-
-    // #region agent log
-    fetch("http://127.0.0.1:7615/ingest/ee6cc38e-44c8-40f4-955a-c71820b327e7", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "57ad63" },
-      body: JSON.stringify({
-        sessionId: "57ad63",
-        runId: "post-fix",
-        hypothesisId: "A-B-D",
-        location: "QuestionScreen.jsx:useLayoutEffect",
-        message: "host question layout zones",
-        data: {
-          innerW: window.innerWidth,
-          innerH: window.innerHeight,
-          vvH: window.visualViewport?.height ?? null,
-          vvW: window.visualViewport?.width ?? null,
-          landscapePhone,
-          portraitNarrow,
-          prompt: {
-            rect: rect(promptEl),
-            fontSize: pick(promptEl, ["fontSize", "lineHeight", "paddingTop", "paddingBottom"]),
-          },
-          stage: { rect: rect(stageEl), minHeight: pick(stageEl, ["minHeight"])?.minHeight },
-          media: { rect: rect(mediaEl), overflow: pick(mediaEl, ["overflow"])?.overflow },
-          img: {
-            rect: imgRect,
-            natural: imgNatural,
-            maxHeight: pick(imgEl, ["maxHeight", "objectFit"]),
-          },
-          dock: {
-            rect: rect(dockEl),
-            height: pick(dockEl, ["height", "maxHeight"]),
-            qsDockH: getComputedStyle(root).getPropertyValue("--qs-dock-h").trim(),
-          },
-          answers: {
-            rect: rect(answersEl),
-            maxHeight: pick(answersEl, ["maxHeight", "height"]),
-          },
-          body: { rect: rect(bodyEl) },
-          root: { rect: rect(root) },
-          stageSideCount: stageSideEls.length,
-          stageSideRects: [...stageSideEls].map((el) => rect(el)),
-          toolbar: rect(document.querySelector(".host-chrome-toolbar")),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-
-    if (imgRect && imgNatural?.nw && imgNatural?.nh) {
-      const displayedAspect = imgRect.w / imgRect.h;
-      const naturalAspect = imgNatural.nw / imgNatural.nh;
-      // #region agent log
-      fetch("http://127.0.0.1:7615/ingest/ee6cc38e-44c8-40f4-955a-c71820b327e7", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "57ad63" },
-        body: JSON.stringify({
-          sessionId: "57ad63",
-          runId: "post-fix",
-          hypothesisId: "C",
-          location: "QuestionScreen.jsx:useLayoutEffect",
-          message: "image aspect distortion",
-          data: {
-            displayedAspect: Number(displayedAspect.toFixed(3)),
-            naturalAspect: Number(naturalAspect.toFixed(3)),
-            aspectDelta: Number(Math.abs(displayedAspect - naturalAspect).toFixed(3)),
-            squashed: Math.abs(displayedAspect - naturalAspect) > 0.12,
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
-    }
-  }, [variant, questionKey, prompt, image]);
-
-  const handleImageLoad = (event) => {
-    const imgEl = event.currentTarget;
-    if (variant !== "host" || !rootRef.current || !imgEl) return;
-    const root = rootRef.current;
-    const rect = (el) => {
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      return { w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top) };
-    };
-    const answerRects = [...root.querySelectorAll(".answer-tile")].map((el) => rect(el));
-    const imgStyle = getComputedStyle(imgEl);
-
-    // #region agent log
-    fetch("http://127.0.0.1:7615/ingest/ee6cc38e-44c8-40f4-955a-c71820b327e7", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "57ad63" },
-      body: JSON.stringify({
-        sessionId: "57ad63",
-        runId: "small-image-repro",
-        hypothesisId: "F-G",
-        location: "QuestionScreen.jsx:handleImageLoad",
-        message: "host landscape image and answer tile sizes after image load",
-        data: {
-          innerW: window.innerWidth,
-          innerH: window.innerHeight,
-          landscapePhone: window.matchMedia("(orientation: landscape) and (max-height: 36rem)").matches,
-          stage: rect(root.querySelector(".question-screen__stage")),
-          img: {
-            rect: rect(imgEl),
-            natural: { nw: imgEl.naturalWidth, nh: imgEl.naturalHeight },
-            computed: {
-              width: imgStyle.width,
-              height: imgStyle.height,
-              maxWidth: imgStyle.maxWidth,
-              maxHeight: imgStyle.maxHeight,
-              objectFit: imgStyle.objectFit,
-            },
-          },
-          dock: rect(root.querySelector(".question-screen__dock")),
-          answers: rect(root.querySelector(".question-screen__answers")),
-          answerRects,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-  };
-
   return (
-    <div ref={rootRef} className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
+    <div className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
       {timerStrip}
       <div className="question-screen__body">
         {header ? <div className="question-screen__header">{header}</div> : null}
@@ -231,13 +72,7 @@ export default function QuestionScreen({
           {image ? (
             <div className="question-screen__media">
               <div className="question-screen__media-frame">
-                <ImageEl
-                  {...imageProps}
-                  src={image}
-                  alt=""
-                  className="question-screen__img"
-                  onLoad={handleImageLoad}
-                />
+                <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
               </div>
             </div>
           ) : (

@@ -16,6 +16,7 @@ export default function QuestionScreen({
   animateImage = false,
   notice = null,
   timer = null,
+  timerStrip = null,
   answers,
   overlay = null,
   className = "",
@@ -35,6 +36,7 @@ export default function QuestionScreen({
 
   return (
     <div className={`${rootClass} ${className}`.trim()}>
+      {timerStrip}
       <div className="question-screen__body">
         {header}
         {badge}

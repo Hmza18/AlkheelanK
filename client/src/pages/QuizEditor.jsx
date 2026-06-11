@@ -684,7 +684,7 @@ function BankPicker({ userId, onAdd, onAddAll, onClose }) {
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 340, damping: 36 }}
         className="relative z-10 flex w-full max-w-2xl flex-col rounded-t-3xl bg-ink-800 shadow-2xl ring-1 ring-white/10"
-        style={{ maxHeight: "80vh" }}
+        style={{ maxHeight: "80dvh" }}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
           <h2 className="font-display text-xl font-bold">Your Question Bank</h2>

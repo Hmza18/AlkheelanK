@@ -4,7 +4,7 @@ import HostControlDeck from "./HostControlDeck.jsx";
 
 const IN_GAME_PHASES = ["lobby", "question", "reveal", "standings"];
 const settingsBtnClass =
-  "z-40 alkheelank-touch-target h-12 w-12 shrink-0 rounded-xl bg-ink-800/80 text-xl ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700";
+  "z-40 alkheelank-touch-target h-12 w-12 shrink-0 rounded-xl bg-ink-800/80 text-xl ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700 landscapePhone:h-9 landscapePhone:w-9 landscapePhone:min-h-9 landscapePhone:min-w-9 landscapePhone:rounded-lg landscapePhone:text-base";
 
 /**
  * Host-only floating chrome. Portrait: settings icon bottom-left, end bottom-right,
@@ -98,7 +98,7 @@ export default function HostChrome({
           <button
             type="button"
             onClick={onEndGame}
-            className="pointer-events-auto shrink-0 rounded-xl bg-ink-800/90 px-3 py-2 text-xs font-semibold text-muted ring-1 ring-white/10 backdrop-blur hover:text-paper"
+            className="pointer-events-auto h-9 shrink-0 rounded-lg bg-ink-800/90 px-3 text-xs font-semibold text-muted ring-1 ring-white/10 backdrop-blur hover:text-paper"
           >
             {endLabel}
           </button>

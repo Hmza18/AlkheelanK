@@ -5,6 +5,18 @@
 html,
 body {
   overflow-x: hidden;
+  /* Never block vertical scrolling at the root — screens that are designed to
+     fit (the question screen) manage their own height; everything else must be
+     reachable by scrolling, especially in short landscape viewports. */
+  overflow-y: auto;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  html,
+  body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 :root {
@@ -25,11 +37,11 @@ body {
   --alkheelank-radius-card: 1.75rem;
   --alkheelank-shadow-card: 0 10px 34px -14px rgba(18, 14, 9, 0.72);
   /* Host pre-game fluid scale */
-  --pregame-gap: clamp(1rem, 3vh, 2rem);
-  --pregame-cta-pad-top: clamp(2.5rem, 6vh, 4rem);
+  --pregame-gap: clamp(1rem, 3dvh, 2rem);
+  --pregame-cta-pad-top: clamp(2.5rem, 6dvh, 4rem);
   --pregame-pin-size: clamp(2.75rem, 5vw + 1rem, 5.75rem);
   --pregame-btn-size: clamp(1.125rem, 2.5vw, 1.5rem);
-  --pregame-players-min: clamp(8rem, 20vh, 14rem);
+  --pregame-players-min: clamp(8rem, 20dvh, 14rem);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -94,7 +106,7 @@ button:focus-visible {
     min-height: 100dvh;
   }
   .player-phase-fill {
-    @apply min-h-0 h-dvh max-h-dvh overflow-x-hidden;
+    @apply min-h-0 h-dvh max-h-dvh overflow-x-hidden overflow-y-auto;
   }
   .alkheelank-safe-top {
     padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
@@ -137,9 +149,22 @@ button:focus-visible {
   width: 100%;
   min-height: 0;
   flex-direction: column;
-  overflow: hidden;
+  /* The layout is designed to fit 100dvh exactly; overflow-y:auto is a safety
+     net so content can never become unreachable on extreme viewports. */
+  overflow-x: hidden;
+  overflow-y: auto;
   height: 100dvh;
   max-height: 100dvh;
+}
+
+/* Smooth reflow when the device rotates. (Disabled by the global
+   prefers-reduced-motion override above.) */
+.question-screen,
+.question-screen__body,
+.question-screen__media,
+.question-screen__dock,
+.question-screen__answers {
+  transition: padding 0.2s ease, gap 0.2s ease, margin 0.2s ease;
 }
 
 .question-screen__body {
@@ -247,6 +272,26 @@ button:focus-visible {
   display: block;
 }
 
+/* Thin countdown strip pinned to the top edge — only shown in phone landscape,
+   where the circular timer would eat precious height. */
+.question-screen__timer-strip {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  z-index: 20;
+  background: rgba(250, 246, 240, 0.12);
+  pointer-events: none;
+}
+
+.question-screen__timer-strip > div {
+  height: 100%;
+  border-radius: 0 9999px 9999px 0;
+  transition: width 0.1s linear, background-color 0.3s ease;
+}
+
 /* Host on PC — centered symmetric Kahoot layout */
 @media (min-width: 640px) and (min-height: 32rem) {
   .question-screen--host {
@@ -268,11 +313,11 @@ button:focus-visible {
     width: 100%;
     flex: 1 1 auto;
     min-height: 16rem;
-    max-height: min(52vh, 34rem);
+    max-height: min(52dvh, 34rem);
   }
 
   .question-screen--host .question-screen__img {
-    max-height: min(52vh, 34rem);
+    max-height: min(52dvh, 34rem);
     max-width: min(100%, 42rem);
     margin-inline: auto;
   }
@@ -376,12 +421,15 @@ button:focus-visible {
     flex-shrink: 0;
   }
 
+  /* Landscape: the countdown lives in the thin top strip instead of a circle,
+     so the answers get the full width of the dock. */
+  .question-screen__timer-strip {
+    display: block;
+  }
+
   .question-screen--player .question-screen__timer,
   .question-screen--host .question-screen__timer {
-    display: flex;
-    align-items: flex-end;
-    width: clamp(2.75rem, 14vw, 3.5rem);
-    flex-shrink: 0;
+    display: none;
   }
 
   .question-screen__answers {
@@ -430,6 +478,16 @@ button:focus-visible {
   .question-screen__answers .answer-tile .answer-tile__label--tf {
     font-size: clamp(0.75rem, 2.2dvh, 0.875rem) !important;
     -webkit-line-clamp: 1;
+  }
+
+  /* Frosted answer tiles — slightly translucent with a blur so the scene shows
+     through, giving the small landscape canvas more breathing room. */
+  @supports (background-color: color-mix(in srgb, red 50%, transparent)) {
+    .question-screen__answers .answer-tile {
+      background-color: color-mix(in srgb, var(--tile-color, #ea580c) 78%, transparent) !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
   }
 
   .settings-fab--player {
@@ -498,7 +556,9 @@ button:focus-visible {
   min-height: 100dvh;
   max-width: 72rem;
   margin-inline: auto;
-  overflow: clip;
+  /* Clip horizontally only — vertical overflow must stay scrollable on short
+     landscape viewports. */
+  overflow-x: clip;
 }
 
 .pregame-shell--lobby {
@@ -603,7 +663,7 @@ button:focus-visible {
 .pregame-start-btn {
   width: 100%;
   font-size: var(--pregame-btn-size);
-  padding: clamp(0.85rem, 2vh, 1rem) clamp(2.5rem, 8vw, 4rem);
+  padding: clamp(0.85rem, 2dvh, 1rem) clamp(2.5rem, 8vw, 4rem);
 }
 
 .pregame-cancel-btn {
@@ -644,7 +704,7 @@ button:focus-visible {
 
 .pregame-setup__toggles {
   display: grid;
-  gap: clamp(0.65rem, 1.5vh, 0.85rem);
+  gap: clamp(0.65rem, 1.5dvh, 0.85rem);
 }
 
 @media (min-width: 768px) {
@@ -663,7 +723,7 @@ button:focus-visible {
   flex: 1 1 auto;
   min-width: 0;
   border-radius: 0.75rem;
-  padding: clamp(0.65rem, 1.5vh, 0.85rem) clamp(0.75rem, 2vw, 1rem);
+  padding: clamp(0.65rem, 1.5dvh, 0.85rem) clamp(0.75rem, 2vw, 1rem);
   font-weight: 700;
   font-size: clamp(0.875rem, 1.5vw, 1rem);
   background: rgba(36, 32, 25, 0.9);
@@ -687,7 +747,7 @@ button:focus-visible {
   width: 100%;
   text-align: left;
   border-radius: 1rem;
-  padding: clamp(0.85rem, 2vh, 1.15rem);
+  padding: clamp(0.85rem, 2dvh, 1.15rem);
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(46, 41, 34, 0.6);
   cursor: pointer;
@@ -749,13 +809,13 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: min(60vh, 100%);
+  min-height: min(60dvh, 100%);
   padding: var(--pregame-gap) 0;
 }
 
 .pregame-connecting__card {
   width: min(100%, 28rem);
-  padding: clamp(1.5rem, 3vh, 2rem);
+  padding: clamp(1.5rem, 3dvh, 2rem);
   text-align: center;
 }
 
@@ -839,9 +899,9 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(0.75rem, 2vh, 1.25rem);
+  gap: clamp(0.75rem, 2dvh, 1.25rem);
   margin-top: var(--pregame-gap);
-  margin-bottom: clamp(1.25rem, 3vh, 2rem);
+  margin-bottom: clamp(1.25rem, 3dvh, 2rem);
 }
 
 .pregame-quiz-badge {
@@ -852,7 +912,7 @@ button:focus-visible {
   font-size: clamp(0.65rem, 1.2vw, 0.75rem);
   font-weight: 800;
   letter-spacing: 0.2em;
-  padding: clamp(0.35rem, 1vh, 0.5rem) clamp(0.75rem, 2vw, 1rem);
+  padding: clamp(0.35rem, 1dvh, 0.5rem) clamp(0.75rem, 2vw, 1rem);
   text-transform: uppercase;
 }
 
@@ -920,12 +980,12 @@ button:focus-visible {
   font-size: clamp(0.875rem, 1.6vw, 1.1rem);
   font-weight: 800;
   letter-spacing: 0.02em;
-  padding: clamp(0.45rem, 1vh, 0.6rem) clamp(0.75rem, 2vw, 1rem);
+  padding: clamp(0.45rem, 1dvh, 0.6rem) clamp(0.75rem, 2vw, 1rem);
 }
 
 .pregame-join-panel__separator {
   width: 1px;
-  min-height: clamp(5rem, 12vh, 8rem);
+  min-height: clamp(5rem, 12dvh, 8rem);
   background: linear-gradient(transparent, rgba(255, 255, 255, 0.14), transparent);
 }
 
@@ -953,7 +1013,7 @@ button:focus-visible {
   border-radius: 1rem;
   background: var(--alkheelank-paper);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: clamp(0.4rem, 1vh, 0.75rem);
+  padding: clamp(0.4rem, 1dvh, 0.75rem);
 }
 
 .pregame-join-panel__qr-code {
@@ -971,7 +1031,7 @@ button:focus-visible {
   font-size: clamp(0.65rem, 1.2vw, 0.75rem);
   font-weight: 800;
   letter-spacing: 0.18em;
-  padding: clamp(0.3rem, 0.8vh, 0.45rem) clamp(0.65rem, 1.5vw, 0.85rem);
+  padding: clamp(0.3rem, 0.8dvh, 0.45rem) clamp(0.65rem, 1.5vw, 0.85rem);
   text-transform: uppercase;
 }
 
@@ -992,8 +1052,8 @@ button:focus-visible {
   justify-content: flex-end;
   align-items: center;
   min-height: var(--pregame-players-min);
-  padding-top: clamp(1.5rem, 4vh, 3rem);
-  padding-bottom: clamp(0.5rem, 1.5vh, 1rem);
+  padding-top: clamp(1.5rem, 4dvh, 3rem);
+  padding-bottom: clamp(0.5rem, 1.5dvh, 1rem);
   overflow-y: auto;
 }
 
@@ -1118,15 +1178,15 @@ button:focus-visible {
   }
 
   .pregame-join-zone {
-    margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
+    margin-bottom: clamp(1.5rem, 4dvh, 2.5rem);
   }
 
   .pregame-players-zone {
-    padding-top: clamp(2rem, 5vh, 3.5rem);
+    padding-top: clamp(2rem, 5dvh, 3.5rem);
   }
 
   .pregame-cta-zone {
-    padding-top: clamp(3rem, 7vh, 4.5rem);
+    padding-top: clamp(3rem, 7dvh, 4.5rem);
   }
 }
 
@@ -1145,31 +1205,48 @@ button:focus-visible {
     padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
   }
 
-  .player-phase-fill {
-    overflow-y: hidden;
+  .player-phase-fill,
+  .host-phase-fill,
+  .host-phase-fill--fit {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .host-phase-fill--fit {
-    overflow-y: hidden;
+  /* Inside HostGame's padded phase shell (top toolbar strip), fills size to the
+     shell's content box instead of the full viewport — otherwise the bottom of
+     every host screen extends past the shell and gets cut off. */
+  .host-phase-fill,
+  .question-screen--host {
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
   }
 
   .host-chrome-toolbar {
-    top: max(0.5rem, env(safe-area-inset-top, 0px));
+    /* Toolbar buttons are 36px tall in landscape — pin them flush to the top
+       so the whole header strip stays within 36px. */
+    top: max(0px, env(safe-area-inset-top, 0px));
     right: max(0.5rem, env(safe-area-inset-right, 0px));
   }
 
+  /* Pre-game shells live inside the padded phase shell in landscape — size to
+     its content box, not the viewport, so nothing is clipped. */
+  .pregame-shell {
+    min-height: 100%;
+  }
+
   .pregame-shell--lobby {
-    grid-template-rows: auto auto minmax(clamp(5rem, 16vh, 8rem), 1fr) auto;
+    grid-template-rows: auto auto minmax(clamp(5rem, 16dvh, 8rem), 1fr) auto;
   }
 
   .pregame-join-zone {
     margin-top: 0.5rem;
-    margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
+    margin-bottom: clamp(0.75rem, 2dvh, 1.25rem);
     gap: 0.5rem;
   }
 
   .pregame-join-stage {
-    padding: clamp(0.5rem, 1.5vh, 0.75rem);
+    padding: clamp(0.5rem, 1.5dvh, 0.75rem);
   }
 
   .pregame-join-panel-grid {
@@ -1180,18 +1257,18 @@ button:focus-visible {
 
   .pregame-join-panel__separator {
     width: 1px;
-    min-height: clamp(3rem, 10vh, 4rem);
+    min-height: clamp(3rem, 10dvh, 4rem);
     height: auto;
     background: linear-gradient(transparent, rgba(255, 255, 255, 0.14), transparent);
   }
 
   .pregame-players-zone {
-    min-height: clamp(4rem, 14vh, 7rem);
-    padding-top: clamp(1rem, 3vh, 1.75rem);
+    min-height: clamp(4rem, 14dvh, 7rem);
+    padding-top: clamp(1rem, 3dvh, 1.75rem);
   }
 
   .pregame-cta-zone {
-    padding-top: clamp(1.5rem, 4vh, 2.5rem);
+    padding-top: clamp(1.5rem, 4dvh, 2.5rem);
     padding-inline: max(1rem, 3vw);
   }
 }
@@ -1199,6 +1276,41 @@ button:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .pregame-connecting__pulse {
     animation: none;
+  }
+}
+
+/* Subtle "more below" indicator for scrollable landscape screens. */
+@keyframes alkheelank-scroll-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateY(5px);
+    opacity: 0.5;
+  }
+}
+
+.alkheelank-scroll-hint {
+  position: fixed;
+  bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 45;
+  pointer-events: none;
+  display: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--alkheelank-paper);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  animation: alkheelank-scroll-hint 1.2s ease-in-out infinite;
+  transition: opacity 0.5s ease;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .alkheelank-scroll-hint {
+    display: block;
   }
 }
 

@@ -110,7 +110,7 @@ function CorrectAvatars({ players, show, reduced }) {
 
 
 
-  if (!show) return <div className="mt-3 h-[72px]" aria-hidden />;
+  if (!show) return <div className="mt-3 h-[72px] landscapePhone:mt-1 landscapePhone:h-10" aria-hidden />;
 
 
 
@@ -124,7 +124,7 @@ function CorrectAvatars({ players, show, reduced }) {
 
         animate={{ opacity: 1 }}
 
-        className="mt-3 min-h-[72px] text-sm font-semibold text-muted"
+        className="mt-3 min-h-[72px] text-sm font-semibold text-muted landscapePhone:mt-1 landscapePhone:min-h-10 landscapePhone:text-xs"
 
       >
 
@@ -140,7 +140,7 @@ function CorrectAvatars({ players, show, reduced }) {
 
   return (
 
-    <div className="mt-3 flex min-h-[72px] flex-wrap items-center justify-center gap-2">
+    <div className="mt-3 flex min-h-[72px] flex-wrap items-center justify-center gap-2 landscapePhone:mt-1 landscapePhone:min-h-10 landscapePhone:gap-1">
 
       {visible.map((p, i) => (
 
@@ -360,7 +360,7 @@ function RevealColumn({
 
       ) : (
 
-        <div className="mt-3 h-[72px]" aria-hidden />
+        <div className="mt-3 h-[72px] landscapePhone:mt-1 landscapePhone:h-10" aria-hidden />
 
       )}
 

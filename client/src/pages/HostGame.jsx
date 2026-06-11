@@ -6,7 +6,8 @@ import Recap from "../components/Recap.jsx";
 import { logGame } from "../lib/db.js";
 import { useAuth } from "../lib/auth.jsx";
 import AnswerTile from "../components/AnswerTile.jsx";
-import Timer from "../components/Timer.jsx";
+import Timer, { TimerStrip } from "../components/Timer.jsx";
+import ScrollHint from "../components/ScrollHint.jsx";
 import QuestionScreen from "../components/QuestionScreen.jsx";
 import Leaderboard from "../components/Leaderboard.jsx";
 import Standings from "../components/Standings.jsx";
@@ -315,7 +316,7 @@ export default function HostGame({ launch, onExit }) {
     <div className="min-h-screen">
       <HostRecoveredBanner show={hostRecovered} />
       <HostStatusBanner connected={hostConnected} />
-      <PhaseShell phaseKey={phase} className="min-h-screen landscapePhone:h-dvh landscapePhone:max-h-dvh landscapePhone:min-h-0 landscapePhone:overflow-hidden landscapePhone:pt-12">
+      <PhaseShell phaseKey={phase} className="min-h-screen landscapePhone:h-dvh landscapePhone:max-h-dvh landscapePhone:min-h-0 landscapePhone:overflow-y-auto landscapePhone:pt-9">
         {phase === "setup" && (
           <SetupView
             settings={settings}
@@ -409,7 +410,7 @@ export default function HostGame({ launch, onExit }) {
 
 function Centered({ children }) {
   return (
-    <div className="host-phase-fill flex min-h-[80vh] flex-col items-center justify-center text-center landscapePhone:min-h-0">
+    <div className="host-phase-fill flex min-h-[80dvh] flex-col items-center justify-center text-center landscapePhone:min-h-0">
       {children}
     </div>
   );
@@ -462,6 +463,7 @@ function QuestionView({ question, image, answerCount, paused }) {
           </div>
         </>
       }
+      timerStrip={<TimerStrip timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} />}
       answers={question.answers.map((a, i) => (
         <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big compact />
       ))}
@@ -498,7 +500,7 @@ function StandingsView({ standings, onNext }) {
           </div>
         </div>
       )}
-      <div className="mt-8 min-h-0 flex-1 overflow-y-auto overflow-x-hidden landscapePhone:mt-2"><Standings standings={standings.standings} max={8} compactLandscape /></div>
+      <div className="mt-8 min-h-0 flex-1 overflow-y-auto overflow-x-hidden landscapePhone:mt-2"><Standings standings={standings.standings} max={8} compactLandscape /><ScrollHint /></div>
       <div className="sticky bottom-6 mt-10 flex shrink-0 justify-center landscapePhone:bottom-2 landscapePhone:mt-3">
         <button onClick={onNext} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-8 landscapePhone:py-3 landscapePhone:text-lg">
           {standings.hasNext ? `${copy.host.nextQuestion} →` : `${copy.host.finalResults} 🏆`}
@@ -552,6 +554,7 @@ function FinalView({ final, onHome }) {
           </motion.div>
         )}
       </AnimatePresence>
+      <ScrollHint />
       <div className="mt-12 flex shrink-0 flex-wrap justify-center gap-3 landscapePhone:mt-4 landscapePhone:gap-2">
         <button onClick={() => setView("recap")} className="alkheelank-btn-primary px-10 text-lg landscapePhone:px-6 landscapePhone:py-2 landscapePhone:text-base">🎉 {copy.final.recapCta}</button>
         {final.questionBreakdown?.length > 0 && (
@@ -619,6 +622,7 @@ function QuestionBreakdownView({ breakdown, onBack, onHome }) {
             </div>
           );
         })}
+        <ScrollHint />
       </div>
 
       <div className="mt-6 flex shrink-0 flex-wrap justify-center gap-3 landscapePhone:mt-3">

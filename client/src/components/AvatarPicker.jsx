@@ -128,17 +128,20 @@ export default function AvatarPicker({
   return (
     <form
       onSubmit={onDone}
-      className="alkheelank-screen-player alkheelank-screen-fill flex flex-col items-center lg:justify-center"
+      className="alkheelank-screen-player alkheelank-screen-fill flex flex-col items-center lg:justify-center landscapePhone:py-2"
     >
       <div className="flex w-full max-w-md flex-col items-center">
-        <div className="mt-6 flex shrink-0 justify-center lg:mt-0">
+        <div className="mt-6 flex shrink-0 justify-center lg:mt-0 landscapePhone:mt-1">
           <Logo size="md" />
         </div>
 
-        <div className="alkheelank-card mt-8 flex w-full flex-col items-center gap-5 p-6 lg:mt-10">
-          <div className="flex w-full flex-col items-center bg-gradient-to-br from-brand-start/20 via-brand-mid/15 to-brand-end/10 rounded-2xl px-6 py-5 ring-1 ring-brand-mid/25">
-            <p className="alkheelank-label mb-3 text-center">Your look</p>
-            <Avatar config={avatar} size={120} variant="picker" />
+        <div className="alkheelank-card mt-8 flex w-full flex-col items-center gap-5 p-6 lg:mt-10 landscapePhone:mt-3 landscapePhone:gap-3 landscapePhone:p-4">
+          <div className="flex w-full flex-col items-center bg-gradient-to-br from-brand-start/20 via-brand-mid/15 to-brand-end/10 rounded-2xl px-6 py-5 ring-1 ring-brand-mid/25 landscapePhone:px-4 landscapePhone:py-2.5">
+            <p className="alkheelank-label mb-3 text-center landscapePhone:mb-1.5">Your look</p>
+            <Avatar config={avatar} size={120} variant="picker" className="landscapePhone:hidden" />
+            <span className="hidden landscapePhone:inline-flex">
+              <Avatar config={avatar} size={72} variant="picker" />
+            </span>
           </div>
 
           <input
@@ -156,7 +159,7 @@ export default function AvatarPicker({
 
           <SegmentedTabs tab={tab} onTab={setTab} />
 
-          <div className="w-full max-h-[min(46vh,26rem)] overflow-y-auto overscroll-contain px-0.5">
+          <div className="w-full max-h-[min(46dvh,26rem)] overflow-y-auto overscroll-contain px-0.5">
             <AvatarGrid tab={tab} avatar={avatar} setBase={setBase} setAccessory={setAccessory} />
           </div>
 

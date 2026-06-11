@@ -1,6 +1,39 @@
 import { useEffect, useRef, useState } from "react";
 import { sfx } from "../lib/sound.js";
 
+/**
+ * Thin linear countdown for phone landscape — rendered into the
+ * `question-screen__timer-strip` slot (hidden in portrait via CSS). Same local
+ * countdown model as the circular Timer; the server stays authoritative.
+ */
+export function TimerStrip({ timeLimit, startedAt, paused = false }) {
+  const [remaining, setRemaining] = useState(timeLimit);
+
+  useEffect(() => {
+    if (paused) return;
+    let raf;
+    const start = startedAt || Date.now();
+    const loop = () => {
+      const rem = Math.max(0, timeLimit - (Date.now() - start) / 1000);
+      setRemaining(rem);
+      if (rem > 0) raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [timeLimit, startedAt, paused]);
+
+  const pct = Math.max(0, Math.min(1, remaining / timeLimit));
+  const danger = remaining <= 5 && !paused;
+  const urgent = remaining <= Math.max(8, timeLimit * 0.25) && !paused;
+  const color = paused ? "#b8a99a" : danger ? "#f43f5e" : urgent ? "#fb923c" : "#ea580c";
+
+  return (
+    <div className="question-screen__timer-strip" role="timer" aria-label={`${Math.ceil(remaining)} seconds left`}>
+      <div style={{ width: `${pct * 100}%`, backgroundColor: color }} />
+    </div>
+  );
+}
+
 // Circular countdown. Counts down locally from `timeLimit` seconds starting at
 // `startedAt` (server timestamp), so host + players stay roughly in sync. The
 // server remains authoritative for actually closing the question.

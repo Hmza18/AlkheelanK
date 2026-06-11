@@ -13,8 +13,9 @@ import { copy } from "../lib/copy.js";
 import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
-import Timer from "../components/Timer.jsx";
+import Timer, { TimerStrip } from "../components/Timer.jsx";
 import QuestionScreen from "../components/QuestionScreen.jsx";
+import ScrollHint from "../components/ScrollHint.jsx";
 import OrientationGate from "../components/OrientationGate.jsx";
 
 export default function PlayScreen() {
@@ -393,7 +394,10 @@ export default function PlayScreen() {
 function CenterCard({ children }) {
   return (
     <div className="alkheelank-screen-player player-phase-fill flex items-center overflow-y-auto text-center landscapePhone:py-2">
-      <div className="alkheelank-card w-full p-8 landscapePhone:p-4">{children}</div>
+      <div className="alkheelank-card my-auto w-full p-8 landscapePhone:p-4">
+        {children}
+        <ScrollHint />
+      </div>
     </div>
   );
 }
@@ -456,6 +460,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
       image={q?.image}
       animateImage
       timer={<Timer timeLimit={q?.timeLimit} startedAt={q?.startedAt} paused={paused} size={48} />}
+      timerStrip={<TimerStrip timeLimit={q?.timeLimit} startedAt={q?.startedAt} paused={paused} />}
       answers={q?.answers?.map((a, i) => (
         <AnswerTile
           key={i}

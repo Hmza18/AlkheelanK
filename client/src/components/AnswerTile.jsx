@@ -44,7 +44,7 @@ export default function AnswerTile({
         ${isTF && !compact ? "min-h-[4.5rem] justify-center py-8 sm:min-h-[5.5rem] sm:py-12" : ""}
         ${isTF && compact ? "min-h-[3rem] justify-center py-4 landscapePhone:min-h-[2.75rem] landscapePhone:py-3" : ""}
         ${dim} ${ring} ${disabled ? "cursor-default" : "active:translate-y-1 hover:brightness-105"}`}
-      style={{ backgroundColor: s.color }}
+      style={{ "--tile-color": s.color, backgroundColor: "var(--tile-color)" }}
       aria-pressed={selected}
     >
       {isTF ? (

@@ -123,14 +123,18 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClo
       </button>
 
       <div className="lobby-header-card">
-        <div className="lobby-header-card__cell">
-          <span className="lobby-header-card__label">{copy.lobby.joinAt}</span>
-          <span className="lobby-header-card__url">{joinDisplayPath()}</span>
-        </div>
-        <span className="lobby-header-card__slash" aria-hidden="true" />
-        <div className="lobby-header-card__cell">
-          <span className="lobby-header-card__label">{copy.lobby.pinLabel}</span>
-          <span className="lobby-header-card__pin pin-display">{formatLobbyPin(pinStr)}</span>
+        <div className="lobby-header-card__main">
+          <div className="lobby-header-card__cell">
+            <span className="lobby-header-card__label">{copy.lobby.joinAt}</span>
+            <span className="lobby-header-card__url">{joinDisplayPath()}</span>
+          </div>
+          <span className="lobby-header-card__slash" aria-hidden="true" />
+          <div className="lobby-header-card__cell">
+            <span className="lobby-header-card__label">{copy.lobby.pinLabel}</span>
+            <span className="lobby-header-card__pin pin-display alkheelank-gradient-text">
+              {formatLobbyPin(pinStr)}
+            </span>
+          </div>
         </div>
         {pin && (
           <div className="lobby-header-card__qr">

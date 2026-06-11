@@ -2074,12 +2074,12 @@ button:focus-visible {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(1rem, 3dvh, 1.75rem);
+  gap: clamp(1.25rem, 4dvh, 2.25rem);
   padding:
-    max(5.5rem, calc(env(safe-area-inset-top, 0px) + 5rem))
-    max(1rem, env(safe-area-inset-right, 0px))
-    max(5rem, calc(env(safe-area-inset-bottom, 0px) + 4rem))
-    max(1rem, env(safe-area-inset-left, 0px));
+    max(7rem, calc(env(safe-area-inset-top, 0px) + 6.5rem))
+    max(1.25rem, env(safe-area-inset-right, 0px))
+    max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 4.5rem))
+    max(1.25rem, env(safe-area-inset-left, 0px));
   overflow-x: hidden;
   overflow-y: auto;
   text-align: center;
@@ -2127,14 +2127,23 @@ button:focus-visible {
   transform: translateX(-50%);
   z-index: 10;
   display: flex;
-  align-items: stretch;
-  gap: clamp(0.75rem, 2vw, 1.5rem);
-  max-width: calc(100vw - 2rem);
-  padding: clamp(0.5rem, 1.4vw, 0.85rem) clamp(0.9rem, 2vw, 1.5rem);
-  border-radius: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.6rem, 1.6vw, 1.25rem) clamp(0.85rem, 2.2vw, 1.75rem);
+  max-width: calc(100vw - 2.5rem);
+  padding: clamp(0.6rem, 1.6vw, 1rem) clamp(1rem, 2.2vw, 1.75rem);
+  border-radius: 1.1rem;
   background: var(--alkheelank-paper);
   color: var(--alkheelank-ink-900);
   box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.65);
+}
+
+.lobby-header-card__main {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  min-width: 0;
 }
 
 .lobby-header-card__cell {
@@ -2200,7 +2209,7 @@ button:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(0.75rem, 2.5dvh, 1.5rem);
+  gap: clamp(1rem, 3.5dvh, 2rem);
   width: 100%;
   max-width: 60rem;
 }
@@ -2210,10 +2219,10 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  padding: clamp(0.6rem, 1.4dvh, 0.95rem) clamp(1.5rem, 4vw, 2.75rem);
+  padding: clamp(0.7rem, 1.8dvh, 1.1rem) clamp(1.75rem, 4.5vw, 3rem);
   font-family: "Fredoka", system-ui, sans-serif;
   font-weight: 800;
-  font-size: clamp(1.05rem, 2.2vw, 1.6rem);
+  font-size: clamp(1.1rem, 2.4vw, 1.7rem);
   color: var(--alkheelank-paper);
   background: linear-gradient(
     135deg,
@@ -2257,58 +2266,79 @@ button:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.5rem, 1.5vw, 0.85rem);
+  gap: clamp(0.65rem, 1.8vw, 1.1rem);
 }
 
 .lobby-lock,
 .lobby-start {
   border: none;
   cursor: pointer;
-  border-radius: 0.85rem;
-  background: var(--alkheelank-paper);
-  color: var(--alkheelank-ink-900);
+  border-radius: 1rem;
   font-family: "Fredoka", system-ui, sans-serif;
   font-weight: 800;
-  box-shadow:
-    0 9px 0 0 rgba(0, 0, 0, 0.18),
-    0 16px 28px -16px rgba(0, 0, 0, 0.55);
   transition: transform 0.1s ease, filter 0.1s ease, box-shadow 0.1s ease;
 }
 
 .lobby-lock:active:not(:disabled),
 .lobby-start:active:not(:disabled) {
   transform: translateY(5px);
-  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.18);
 }
 
 .lobby-start:hover:not(:disabled),
 .lobby-lock:hover:not(:disabled) {
-  filter: brightness(1.03);
+  filter: brightness(1.06);
 }
 
+/* Lock — themed dark control; brand fill when locked. */
 .lobby-lock {
   display: grid;
   place-items: center;
-  width: clamp(3rem, 6vw, 3.75rem);
-  height: clamp(3rem, 6vw, 3.75rem);
+  width: clamp(3.25rem, 6.5vw, 4rem);
+  height: clamp(3.25rem, 6.5vw, 4rem);
   padding: 0;
-  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--alkheelank-paper);
+  background: rgba(36, 32, 25, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 9px 0 0 rgba(0, 0, 0, 0.3),
+    0 16px 28px -16px rgba(0, 0, 0, 0.6);
+}
+
+.lobby-lock:active:not(:disabled) {
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.3);
 }
 
 .lobby-lock[aria-pressed="true"] {
   background: linear-gradient(135deg, var(--alkheelank-brand-start), var(--alkheelank-brand-mid));
-  color: var(--alkheelank-paper);
+  border-color: transparent;
 }
 
+/* Start — primary brand CTA. */
 .lobby-start {
-  height: clamp(3rem, 6vw, 3.75rem);
-  padding: 0 clamp(1.5rem, 4vw, 2.5rem);
-  font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+  height: clamp(3.25rem, 6.5vw, 4rem);
+  padding: 0 clamp(1.75rem, 4.5vw, 2.75rem);
+  font-size: clamp(1.15rem, 2.5vw, 1.7rem);
+  color: var(--alkheelank-paper);
+  background: linear-gradient(
+    135deg,
+    var(--alkheelank-brand-start),
+    var(--alkheelank-brand-mid),
+    var(--alkheelank-brand-end)
+  );
+  box-shadow:
+    0 9px 0 0 rgba(124, 45, 18, 0.55),
+    0 18px 32px -14px rgba(225, 29, 72, 0.55);
+}
+
+.lobby-start:active:not(:disabled) {
+  box-shadow: 0 4px 0 0 rgba(124, 45, 18, 0.55);
 }
 
 .lobby-start:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
+  filter: saturate(0.7);
 }
 
 /* Top-right close */
@@ -2411,15 +2441,20 @@ button:focus-visible {
   }
 }
 
-/* Narrow phones — drop the QR from the header card so the join URL + PIN keep
-   their legibility (the QR stays available on wider boards). */
+/* Narrow phones — let the header card wrap (QR drops to its own centered row)
+   and ease the join URL size so the join code + PIN stay legible. */
 @media (max-width: 560px) {
-  .lobby-header-card__qr {
-    display: none;
+  .lobby-header-card {
+    max-width: calc(100vw - 1.5rem);
   }
 
   .lobby-header-card__url {
     font-size: clamp(0.85rem, 3.6vw, 1.05rem);
+  }
+
+  .lobby-header-card__qr svg {
+    width: 4rem;
+    height: 4rem;
   }
 }
 

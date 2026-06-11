@@ -33,6 +33,7 @@ export default function PlayScreen() {
   const [joining, setJoining] = useState(false);
   const [me, setMe] = useState(null);
   const [question, setQuestion] = useState(null);
+  const [doubleWarning, setDoubleWarning] = useState(null);
   const [selected, setSelected] = useState(null);
   const [waitContext, setWaitContext] = useState(null);
   const [result, setResult] = useState(null);
@@ -139,6 +140,7 @@ export default function PlayScreen() {
       setHostConnected(connected !== false);
     };
     const onQuestion = (q) => {
+      setDoubleWarning(null);
       setQuestion(q);
       setSelected(null);
       setWaitContext(null);
@@ -146,6 +148,16 @@ export default function PlayScreen() {
       setStandings(null);
       setPaused(!!q.paused);
       setPhase("question");
+    };
+    const onDoublePointsWarning = (warning) => {
+      setDoubleWarning(warning);
+      setSelected(null);
+      setWaitContext(null);
+      setResult(null);
+      setStandings(null);
+      setPaused(false);
+      setPhase("double-warning");
+      sfx.confirm?.();
     };
     const onLocked = (payload) => {
       setSelected(payload.answerIndex);
@@ -188,6 +200,7 @@ export default function PlayScreen() {
     socket.on("player:joined", onJoined);
     socket.on("player:error", onPlayerError);
     socket.on("game:question", onQuestion);
+    socket.on("game:doublePointsWarning", onDoublePointsWarning);
     socket.on("player:answerLocked", onLocked);
     socket.on("player:result", onResult);
     socket.on("game:standings", onStandings);
@@ -203,6 +216,7 @@ export default function PlayScreen() {
       socket.off("player:joined", onJoined);
       socket.off("player:error", onPlayerError);
       socket.off("game:question", onQuestion);
+      socket.off("game:doublePointsWarning", onDoublePointsWarning);
       socket.off("player:answerLocked", onLocked);
       socket.off("player:result", onResult);
       socket.off("game:standings", onStandings);
@@ -313,6 +327,15 @@ export default function PlayScreen() {
       </>
     );
   }
+  if (phase === "double-warning") {
+    return (
+      <>
+        {settingsFab}
+        <HostStatusBanner connected={hostConnected} forPlayer />
+        <DoublePointsWarning warning={doubleWarning} />
+      </>
+    );
+  }
   if (phase === "question" && question) {
     return (
       <>
@@ -381,6 +404,40 @@ export default function PlayScreen() {
         {copy.player.playAgain}
       </button>
     </CenterCard>
+  );
+}
+
+function DoublePointsWarning({ warning }) {
+  return (
+    <div className="alkheelank-screen-player player-phase-fill flex items-center overflow-hidden text-center landscapePhone:py-2">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92, y: 18 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 320, damping: 24 }}
+        className="alkheelank-card relative mx-auto w-full overflow-hidden p-8 landscapePhone:p-5"
+      >
+        <motion.div
+          initial={{ scale: 0.7, rotate: -8 }}
+          animate={{ scale: [0.9, 1.08, 1], rotate: [0, 2, 0] }}
+          transition={{ duration: 0.65, ease: "easeOut" }}
+          className="mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-brand-mid/25 text-6xl ring-2 ring-brand-mid landscapePhone:h-16 landscapePhone:w-16 landscapePhone:text-4xl"
+        >
+          ⚡
+        </motion.div>
+        <p className="mt-6 alkheelank-label text-brand-mid landscapePhone:mt-3">Get ready</p>
+        <h2 className="mt-2 alkheelank-heading text-4xl alkheelank-gradient-text landscapePhone:text-2xl">
+          Double points question!
+        </h2>
+        <p className="mt-3 text-lg font-semibold text-muted landscapePhone:mt-2 landscapePhone:text-sm">
+          Round {(warning?.index ?? 0) + 1}
+          {warning?.total ? ` of ${warning.total}` : ""} is worth 2×.
+        </p>
+        <p className="mt-5 animate-pulse text-sm font-bold uppercase tracking-widest text-paper/80 landscapePhone:mt-3 landscapePhone:text-xs">
+          Eyes up — question loading next
+        </p>
+        <ScrollHint />
+      </motion.div>
+    </div>
   );
 }
 

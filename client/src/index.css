@@ -1249,7 +1249,11 @@ button:focus-visible {
   .question-screen--kahoot .question-screen__media-frame {
     min-height: 0;
     max-height: 100%;
+    height: 100%;
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .question-screen--kahoot .question-screen__media-frame::before {
@@ -1257,10 +1261,10 @@ button:focus-visible {
   }
 
   .question-screen--kahoot .question-screen__img {
+    height: 100%;
     max-height: 100%;
     max-width: 100%;
     width: auto;
-    height: auto;
     margin-inline: auto;
     border-radius: 0.25rem;
     box-shadow: none;

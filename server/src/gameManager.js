@@ -641,6 +641,7 @@ export function buildFinal(game) {
   };
 }
 export function buildHostState(game) {
+  const hasActiveQuestion = ["question", "reveal", "standings"].includes(game.status);
   return {
     pin: game.pin,
     hostToken: game.hostToken,
@@ -652,7 +653,7 @@ export function buildHostState(game) {
     teams: game.teams,
     mode: game.settings.mode,
     answerCount: { answered: game.answers.size, total: connectedCount(game) },
-    question: game.currentIndex >= 0 && game.status !== "ended" ? buildPublicQuestion(game, { includeImage: true }) : null,
+    question: game.currentIndex >= 0 && hasActiveQuestion ? buildPublicQuestion(game, { includeImage: true }) : null,
     reveal: game.lastReveal,
     standings: game.lastStandings,
     final: game.lastFinal,

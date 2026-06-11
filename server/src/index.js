@@ -43,6 +43,7 @@ const corsOrigin =
 // Flip to false to keep images on the host screen only (delivered via the
 // host-only `host:questionImage` event instead).
 const SEND_IMAGE_TO_PLAYERS = true;
+const DOUBLE_POINTS_WARNING_MS = 2200;
 
 // How long the game survives a host disconnect before we tear it down. Long
 // enough to cover a phone/laptop hiccup or a tab reload, short enough that a
@@ -178,10 +179,27 @@ function showStandings(game) {
   io.to(gameRoom(game.pin)).emit("game:standings", standings);
 }
 
-function advance(game) {
+function buildDoublePointsWarning(game, nextIndex) {
+  return {
+    index: nextIndex,
+    total: game.quiz.questions.length,
+    durationMs: DOUBLE_POINTS_WARNING_MS,
+  };
+}
+
+function advance(game, { skipDoubleWarning = false } = {}) {
   if (game.timer) {
     clearTimeout(game.timer);
     game.timer = null;
+  }
+  const nextIndex = game.currentIndex + 1;
+  const nextQuestion = game.quiz.questions[nextIndex];
+  if (!skipDoubleWarning && nextQuestion?.doublePoints) {
+    game.status = "double-warning";
+    const warning = buildDoublePointsWarning(game, nextIndex);
+    io.to(gameRoom(game.pin)).emit("game:doublePointsWarning", warning);
+    game.timer = setTimeout(() => advance(game, { skipDoubleWarning: true }), DOUBLE_POINTS_WARNING_MS);
+    return;
   }
   const q = GM.startNextQuestion(game);
   if (!q) {
@@ -235,6 +253,10 @@ function syncPlayer(game, socket) {
       if (game.lastReveal) socket.emit("game:reveal", game.lastReveal);
       socket.emit("player:result", GM.buildPlayerResult(game, socket.id));
       if (game.lastStandings) socket.emit("game:standings", game.lastStandings);
+      break;
+    }
+    case "double-warning": {
+      socket.emit("game:doublePointsWarning", buildDoublePointsWarning(game, game.currentIndex + 1));
       break;
     }
     case "ended": {

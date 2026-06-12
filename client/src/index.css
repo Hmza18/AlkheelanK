@@ -1500,6 +1500,10 @@ button:focus-visible {
     flex-shrink: 0;
   }
 
+  .question-screen--kahoot .question-screen__dock {
+    margin-top: 0;
+  }
+
   .question-screen__answers,
   .question-screen--host .question-screen__answers,
   .question-screen--kahoot .question-screen__answers {

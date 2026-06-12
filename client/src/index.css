@@ -2308,7 +2308,9 @@ button:focus-visible {
     flex: 1 1 auto;
   }
 
-  .question-screen__media-frame {
+  .question-screen__media-frame,
+  .question-screen--host .question-screen__media-frame,
+  .question-screen--kahoot .question-screen__media-frame {
     flex: 0 1 auto;
     width: fit-content;
     max-width: 100%;

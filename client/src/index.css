@@ -2273,9 +2273,8 @@ button:focus-visible {
   .question-screen--host .question-screen__media-frame,
   .question-screen--kahoot .question-screen__media,
   .question-screen--kahoot .question-screen__media-frame {
-    flex: 0 1 auto;
     align-self: center;
-    width: auto;
+    width: 100%;
     max-width: 100%;
     height: auto;
     max-height: none;
@@ -2283,6 +2282,18 @@ button:focus-visible {
     padding: 0;
     background: transparent;
     overflow: visible;
+  }
+
+  .question-screen__media,
+  .question-screen--host .question-screen__media,
+  .question-screen--kahoot .question-screen__media {
+    flex: 1 1 auto;
+  }
+
+  .question-screen__media-frame,
+  .question-screen--host .question-screen__media-frame,
+  .question-screen--kahoot .question-screen__media-frame {
+    flex: 0 1 auto;
   }
 
   .question-screen__media-frame::before,
@@ -2307,6 +2318,7 @@ button:focus-visible {
   .question-screen__dock,
   .question-screen--host .question-screen__dock,
   .question-screen--kahoot .question-screen__dock {
+    box-sizing: border-box;
     margin-top: 0.125rem;
     height: var(--qs-dock-h);
     max-height: var(--qs-dock-h);

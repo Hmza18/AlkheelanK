@@ -65,7 +65,7 @@ export default function QuestionScreen({
         <PromptEl className="question-screen__prompt" {...promptProps}>
           {prompt}
         </PromptEl>
-        <div className="question-screen__stage">
+        <div className="question-screen__stage" data-media-state={image ? "image" : "empty"}>
           {timer ? (
             <div className="question-screen__stage-side question-screen__timer">{timer}</div>
           ) : null}

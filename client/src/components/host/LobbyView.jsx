@@ -82,11 +82,21 @@ const CloseIcon = () => (
   </Icon>
 );
 
-export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClose, error }) {
+export default function LobbyView({
+  pin,
+  quizMeta,
+  players,
+  mode,
+  lobbyLocked,
+  onToggleLock,
+  onKickPlayer,
+  onStart,
+  onClose,
+  error,
+}) {
   const pinStr = String(pin || "").padStart(6, "•");
   const joinUrl = joinQrUrl(pin);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [locked, setLocked] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundOn());
   const hasPlayers = players.length > 0;
 
@@ -123,15 +133,12 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClo
           <button
             type="button"
             className="lobby-lock"
-            onClick={() => {
-              sfx.lock();
-              setLocked((v) => !v);
-            }}
-            aria-pressed={locked}
-            aria-label={locked ? "Unlock game" : "Lock game"}
-            title={locked ? "Locked" : "Unlocked"}
+            onClick={onToggleLock}
+            aria-pressed={lobbyLocked}
+            aria-label={lobbyLocked ? "Unlock lobby — allow new players to join" : "Lock lobby — block new players from joining"}
+            title={lobbyLocked ? copy.lobby.lockedTitle : copy.lobby.unlockedTitle}
           >
-            {locked ? <LockClosedIcon /> : <LockOpenIcon />}
+            {lobbyLocked ? <LockClosedIcon /> : <LockOpenIcon />}
           </button>
           <button
             type="button"
@@ -170,9 +177,11 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClo
         <Logo size="sm" className="lobby-logo" />
 
         <span className="lobby-status-pill">
-          {hasPlayers
-            ? `${players.length} ${players.length === 1 ? "player" : "players"} in the lobby`
-            : copy.lobby.waiting}
+          {lobbyLocked
+            ? copy.lobby.lockedStatus
+            : hasPlayers
+              ? `${players.length} ${players.length === 1 ? "player" : "players"} in the lobby`
+              : copy.lobby.waiting}
         </span>
 
         {quizMeta && (
@@ -206,6 +215,15 @@ export default function LobbyView({ pin, quizMeta, players, mode, onStart, onClo
                         {p.team.name}
                       </span>
                     )}
+                    <button
+                      type="button"
+                      className="pregame-player-chip__kick"
+                      onClick={() => onKickPlayer?.(p.pid ?? p.id)}
+                      aria-label={`Remove ${p.nick} from lobby`}
+                      title={`Remove ${p.nick}`}
+                    >
+                      ✕
+                    </button>
                   </motion.span>
                 ))}
               </AnimatePresence>

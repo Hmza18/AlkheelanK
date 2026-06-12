@@ -19,9 +19,23 @@ import SetupView from "../components/host/SetupView.jsx";
 import ConnectingView from "../components/host/ConnectingView.jsx";
 import LobbyView from "../components/host/LobbyView.jsx";
 import { HostRecoveredBanner, HostStatusBanner } from "../components/ConnectionBanner.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
+import DoublePointsWarning from "../components/DoublePointsWarning.jsx";
 import { copy } from "../lib/copy.js";
 import { saveHostSession, loadHostSession, clearHostSession } from "../lib/hostSession.js";
 import { tileStyle } from "../lib/answers.js";
+
+function statusToPhase(status, state) {
+  const map = {
+    lobby: "lobby",
+    question: "question",
+    "double-warning": "double-warning",
+    reveal: "reveal",
+    standings: "standings",
+    ended: state?.final ? "final" : "ended",
+  };
+  return map[status] || "lobby";
+}
 
 const DEFAULT_SETTINGS = {
   mode: "solo",
@@ -56,6 +70,9 @@ export default function HostGame({ launch, onExit }) {
   const [connectHint, setConnectHint] = useState(copy.connecting.server);
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [doubleWarning, setDoubleWarning] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [lobbyLocked, setLobbyLocked] = useState(false);
   const loggedRef = useRef(false);
   const hostTokenRef = useRef(null);
   const pinRef = useRef(null);
@@ -87,13 +104,20 @@ export default function HostGame({ launch, onExit }) {
 
   useEffect(() => {
     ensureConnected();
-    const onConnect = () => {
-      if (hostTokenRef.current && pinRef.current) {
-        socket.emit("host:reconnect", { pin: pinRef.current, hostToken: hostTokenRef.current });
+    const onConnect = async () => {
+      if (!hostTokenRef.current || !pinRef.current) return;
+      try {
+        await emitWithAck(
+          "host:reconnect",
+          { pin: pinRef.current, hostToken: hostTokenRef.current },
+          15_000,
+        );
         if (wasHostDisconnectRef.current) {
           setHostRecovered(true);
           setTimeout(() => setHostRecovered(false), 4000);
         }
+      } catch (err) {
+        setHostError(formatConnectError(err) || "Could not restore session. Start a new game?");
       }
     };
     const onCreated = ({ pin, hostToken, quiz, settings: s }) => {
@@ -104,6 +128,7 @@ export default function HostGame({ launch, onExit }) {
       setQuizMeta(quiz);
       if (s) setSettings(s);
       setHostError(null);
+      setLobbyLocked(false);
       setPhase("lobby");
     };
     const onState = (state) => {
@@ -123,23 +148,26 @@ export default function HostGame({ launch, onExit }) {
       }
       if (state.standings) setStandings(state.standings);
       if (state.final) setFinal(state.final);
+      if (state.doubleWarning) setDoubleWarning(state.doubleWarning);
+      else if (state.status !== "double-warning") setDoubleWarning(null);
+      setLobbyLocked(!!state.lobbyLocked);
       setHostConnected(true);
       wasHostDisconnectRef.current = false;
-      const map = {
-        lobby: "lobby",
-        question: "question",
-        reveal: "reveal",
-        standings: "standings",
-        ended: state.final ? "final" : "ended",
-      };
-      setPhase(map[state.status] || "lobby");
+      setPhase(statusToPhase(state.status, state));
     };
     const onPlayers = (list) => setPlayers((prev) => {
       if (list.length > prev.length) sfx.join();
       return list;
     });
+    const onDoublePointsWarning = (warning) => {
+      setDoubleWarning(warning);
+      setReveal(null);
+      setStandings(null);
+      setPhase("double-warning");
+    };
     const onQuestion = (q) => {
       setQuestion(q);
+      setDoubleWarning(null);
       setReveal(null);
       setStandings(null);
       setPaused(!!q.paused);
@@ -182,6 +210,7 @@ export default function HostGame({ launch, onExit }) {
         });
       }
     };
+    const onLobbyLock = ({ locked }) => setLobbyLocked(!!locked);
     const onError = ({ message }) => setHostError(message);
     const onEnded = ({ reason }) => {
       hostTokenRef.current = null;
@@ -203,6 +232,7 @@ export default function HostGame({ launch, onExit }) {
     socket.on("host:created", onCreated);
     socket.on("host:state", onState);
     socket.on("game:players", onPlayers);
+    socket.on("game:doublePointsWarning", onDoublePointsWarning);
     socket.on("game:question", onQuestion);
     socket.on("host:questionImage", onQuestionImage);
     socket.on("host:answerCount", onAnswerCount);
@@ -211,6 +241,7 @@ export default function HostGame({ launch, onExit }) {
     socket.on("game:paused", onPaused);
     socket.on("game:resumed", onResumed);
     socket.on("game:final", onFinal);
+    socket.on("game:lobbyLock", onLobbyLock);
     socket.on("host:error", onError);
     socket.on("game:ended", onEnded);
     socket.on("game:revealStage", onRevealStage);
@@ -221,6 +252,7 @@ export default function HostGame({ launch, onExit }) {
       socket.off("host:created", onCreated);
       socket.off("host:state", onState);
       socket.off("game:players", onPlayers);
+      socket.off("game:doublePointsWarning", onDoublePointsWarning);
       socket.off("game:question", onQuestion);
       socket.off("host:questionImage", onQuestionImage);
       socket.off("host:answerCount", onAnswerCount);
@@ -229,6 +261,7 @@ export default function HostGame({ launch, onExit }) {
       socket.off("game:paused", onPaused);
       socket.off("game:resumed", onResumed);
       socket.off("game:final", onFinal);
+      socket.off("game:lobbyLock", onLobbyLock);
       socket.off("host:error", onError);
       socket.off("game:ended", onEnded);
       socket.off("game:revealStage", onRevealStage);
@@ -276,14 +309,9 @@ export default function HostGame({ launch, onExit }) {
           }
           if (state.standings) setStandings(state.standings);
           if (state.final) setFinal(state.final);
-          const map = {
-            lobby: "lobby",
-            question: "question",
-            reveal: "reveal",
-            standings: "standings",
-            ended: state.final ? "final" : "ended",
-          };
-          setPhase(map[state.status] || "lobby");
+          if (state.doubleWarning) setDoubleWarning(state.doubleWarning);
+          setLobbyLocked(!!state.lobbyLocked);
+          setPhase(statusToPhase(state.status, state));
           setCreatingRoom(false);
           return;
         } catch {
@@ -293,6 +321,7 @@ export default function HostGame({ launch, onExit }) {
             setCreatingRoom(false);
             return;
           }
+          setHostError("Couldn't restore your previous session. Starting a new game.");
         }
       } else if (resumeOnly) {
         setHostError("Couldn't restore your game — it may have ended.");
@@ -349,18 +378,22 @@ export default function HostGame({ launch, onExit }) {
             quizMeta={quizMeta}
             players={players}
             mode={settings.mode}
+            lobbyLocked={lobbyLocked}
+            onToggleLock={() => {
+              sfx.lock();
+              socket.emit("host:lockLobby", { locked: !lobbyLocked });
+            }}
+            onKickPlayer={(pid) => socket.emit("host:kickPlayer", { pid })}
             onStart={() => {
               sfx.confirm();
               socket.emit("host:start");
             }}
-            onClose={() => {
-              if (window.confirm("Close this lobby for everyone?")) {
-                socket.emit("host:end");
-                onExit();
-              }
-            }}
+            onClose={() => setConfirmAction("closeLobby")}
             error={hostError}
           />
+        )}
+        {phase === "double-warning" && (
+          <DoublePointsWarning warning={doubleWarning} variant="host" />
         )}
         {phase === "question" && question && (
           <QuestionView
@@ -404,6 +437,8 @@ export default function HostGame({ launch, onExit }) {
         phase={phase}
         pacing={settings.pacing || "normal"}
         paused={paused}
+        hostError={hostError}
+        onDismissError={() => setHostError(null)}
         onPacing={(p) => socket.emit("host:setPacing", { pacing: p })}
         onPause={() => socket.emit("host:pause")}
         onResume={() => socket.emit("host:resume")}
@@ -412,13 +447,39 @@ export default function HostGame({ launch, onExit }) {
         endLabel={copy.host.endConfirm}
         settingsOpen={settingsOpen}
         onSettingsOpenChange={setSettingsOpen}
-        onEndGame={() => {
-          if (window.confirm("End this game for everyone?")) {
+        onEndGame={() => setConfirmAction("endGame")}
+      />
+      )}
+
+      {confirmAction === "closeLobby" && (
+        <ConfirmModal
+          title="Close lobby?"
+          message="Close this lobby for everyone? Players will be disconnected."
+          confirmLabel="Close lobby"
+          cancelLabel="Keep open"
+          destructive
+          onConfirm={() => {
+            setConfirmAction(null);
             socket.emit("host:end");
             onExit();
-          }
-        }}
-      />
+          }}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
+      {confirmAction === "endGame" && (
+        <ConfirmModal
+          title="End game?"
+          message="End this game for everyone? This cannot be undone."
+          confirmLabel="End game"
+          cancelLabel="Keep playing"
+          destructive
+          onConfirm={() => {
+            setConfirmAction(null);
+            socket.emit("host:end");
+            onExit();
+          }}
+          onCancel={() => setConfirmAction(null)}
+        />
       )}
     </div>
   );

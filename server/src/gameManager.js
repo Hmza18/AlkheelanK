@@ -184,6 +184,7 @@ export function createGame(hostSocketId, quiz, settings) {
     settings: safeSettings,
     teams: resolveTeams(safeSettings),
     status: "lobby",
+    lobbyLocked: false,
     currentIndex: -1,
     players: new Map(),
     sockets: new Map(),
@@ -282,6 +283,22 @@ export function removePlayer(game, pid) {
   game.players.delete(pid);
   game.answers.delete(pid);
   game.prevRanks.delete(pid);
+}
+
+export function setLobbyLocked(game, locked) {
+  if (game.status !== "lobby") return false;
+  game.lobbyLocked = !!locked;
+  return true;
+}
+
+/** Remove a player from the lobby; returns whether they were removed and their socket id if connected. */
+export function kickPlayer(game, pid) {
+  if (game.status !== "lobby") return { removed: false };
+  const p = game.players.get(pid);
+  if (!p) return { removed: false };
+  const socketId = p.socketId;
+  removePlayer(game, pid);
+  return { removed: true, socketId };
 }
 export function markDisconnected(game, socketId) {
   const pid = game.sockets.get(socketId);
@@ -649,11 +666,16 @@ export function buildHostState(game) {
     status: game.status,
     paused: game.paused,
     quiz: { title: game.quizTitle, questionCount: game.quiz.questions.length },
+    lobbyLocked: !!game.lobbyLocked,
     players: playerList(game),
     teams: game.teams,
     mode: game.settings.mode,
     answerCount: { answered: game.answers.size, total: connectedCount(game) },
     question: game.currentIndex >= 0 && hasActiveQuestion ? buildPublicQuestion(game, { includeImage: true }) : null,
+    doubleWarning:
+      game.status === "double-warning"
+        ? { index: game.currentIndex + 1, total: game.quiz.questions.length }
+        : null,
     reveal: game.lastReveal,
     standings: game.lastStandings,
     final: game.lastFinal,
@@ -666,6 +688,7 @@ export function buildJoinMeta(game) {
     teams: game.teams,
     quizTitle: game.quizTitle,
     status: game.status,
+    lobbyLocked: !!game.lobbyLocked,
   };
 }
 export const stats = () => ({ activeGames: games.size });

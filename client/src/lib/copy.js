@@ -23,6 +23,11 @@ export const copy = {
     scan: "Scan to hop in",
     modeSolo: "Every player for themselves",
     modeTeams: "Team battle",
+    lockedTitle: "Locked — no new players can join",
+    unlockedTitle: "Unlocked — players can join with the PIN",
+    lockedStatus: "Lobby locked — no new joins",
+    lockedJoin: "The host locked the room. Ask them to unlock it so you can join.",
+    kicked: "The host removed you from the lobby.",
   },
   host: {
     recovered: "You're back — room restored.",

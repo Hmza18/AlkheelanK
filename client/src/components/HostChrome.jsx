@@ -13,6 +13,8 @@ export default function HostChrome({
   phase,
   pacing,
   paused,
+  hostError,
+  onDismissError,
   onPacing,
   onPause,
   onResume,
@@ -43,6 +45,22 @@ export default function HostChrome({
 
   return (
     <>
+      {hostError && (
+        <div className="fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] z-50 w-[min(92vw,28rem)] -translate-x-1/2">
+          <div className="flex items-start gap-3 rounded-2xl bg-tile-triangle/20 px-4 py-3 text-sm font-semibold text-tile-triangle ring-1 ring-tile-triangle/40 backdrop-blur">
+            <p className="flex-1">{hostError}</p>
+            <button
+              type="button"
+              onClick={onDismissError}
+              className="shrink-0 rounded-lg px-2 py-1 text-xs font-bold text-paper hover:bg-white/10"
+              aria-label="Dismiss error"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       <SettingsPanel open={open} onOpenChange={setOpen} hideTrigger hostControls={hostControls} />
 
       <button

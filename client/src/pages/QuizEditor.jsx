@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { answerStyle, tfStyle } from "../lib/answers.js";
 import { fileToDataURL } from "../lib/image.js";
@@ -13,8 +13,12 @@ import Logo from "../components/Logo.jsx";
 import AnswerTile from "../components/AnswerTile.jsx";
 import QuestionScreen from "../components/QuestionScreen.jsx";
 import { TimerStrip } from "../components/Timer.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
+const MAX_QUESTIONS = 30;
+const MAX_QUESTION_CHARS = 500;
+const MAX_ANSWER_CHARS = 120;
 
 const SETUP_HELP =
   "Your database isn't set up yet. Run supabase/schema.sql in the Supabase SQL editor (see README), then try again.";
@@ -27,6 +31,21 @@ const blankQuestion = () => ({
   timeLimit: 20,
   image: null,
 });
+
+function serializeQuiz(title, questions) {
+  return JSON.stringify({
+    title: title.trim(),
+    questions: questions.map((q) => ({
+      type: q.type || "mc",
+      question: q.question,
+      answers: [...(q.answers || [])],
+      correct: q.correct ?? 0,
+      timeLimit: q.timeLimit ?? 20,
+      image: q.image ?? null,
+      doublePoints: !!q.doublePoints,
+    })),
+  });
+}
 
 // Create or edit a quiz. `initial` is null for a brand-new quiz, or a saved
 // quiz row { id, title, questions } when editing. `userId` is needed for bank
@@ -43,6 +62,10 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   const [aiOpen, setAiOpen] = useState(false);
   const [aiAvailable, setAiAvailable] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const savedSnapshotRef = useRef(
+    serializeQuiz(initial?.title || "", initial?.questions?.length ? initial.questions : [blankQuestion()])
+  );
 
   // Feature-detect AI generation so the button only shows when the server has a key.
   useEffect(() => {
@@ -72,7 +95,8 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         idx === i ? { ...q, answers: q.answers.map((a, x) => (x === ai ? value : a)) } : q
       )
     );
-  const addQuestion = () => setQuestions((qs) => [...qs, blankQuestion()]);
+  const addQuestion = () =>
+    setQuestions((qs) => (qs.length >= MAX_QUESTIONS ? qs : [...qs, blankQuestion()]));
   // Generated questions replace a lone untouched blank question instead of
   // appending after it, so a fresh quiz doesn't start with an empty card.
   const addGenerated = (gen) => {
@@ -97,6 +121,19 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
     );
 
   const payload = () => ({ title: title.trim() || "Untitled quiz", questions });
+  const isDirty = useMemo(
+    () => serializeQuiz(title, questions) !== savedSnapshotRef.current,
+    [title, questions]
+  );
+  const atQuestionCap = questions.length >= MAX_QUESTIONS;
+
+  const requestLeave = () => {
+    if (isDirty) {
+      setDiscardOpen(true);
+      return;
+    }
+    onCancel();
+  };
 
   const handleSave = async () => {
     setSaved(false);
@@ -110,6 +147,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
       setError(isSetupError(err) ? SETUP_HELP : err.message || "Couldn't save — please try again.");
       return;
     }
+    savedSnapshotRef.current = serializeQuiz(title, questions);
     setSaved(true);
   };
 
@@ -122,13 +160,14 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
     <div className="alkheelank-safe-x mx-auto max-w-3xl pb-36 pt-[max(0.5rem,env(safe-area-inset-top))]">
       <div className="flex items-center justify-between">
         <button
-          onClick={() => window.location.assign("/")}
+          type="button"
+          onClick={requestLeave}
           className="rounded-xl transition hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand-mid"
-          aria-label="Go to homepage"
+          aria-label="Back to dashboard"
         >
           <Logo size="sm" />
         </button>
-        <button type="button" onClick={onCancel} className="min-h-touch px-2 text-muted hover:text-paper">
+        <button type="button" onClick={requestLeave} className="min-h-touch px-2 text-muted hover:text-paper">
           ← Dashboard
         </button>
       </div>
@@ -160,7 +199,11 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <button onClick={addQuestion} className="alkheelank-btn-ghost flex-1">
+        <button
+          onClick={addQuestion}
+          disabled={atQuestionCap}
+          className="alkheelank-btn-ghost flex-1 disabled:cursor-not-allowed disabled:opacity-50"
+        >
           + Add question
         </button>
         {aiAvailable && (
@@ -219,10 +262,25 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         />
       )}
 
+      {discardOpen && (
+        <ConfirmModal
+          title="Discard unsaved changes?"
+          message="You have edits that haven't been saved. Leave without saving?"
+          confirmLabel="Discard"
+          cancelLabel="Keep editing"
+          destructive
+          onConfirm={() => {
+            setDiscardOpen(false);
+            onCancel();
+          }}
+          onCancel={() => setDiscardOpen(false)}
+        />
+      )}
+
       <div className="alkheelank-safe-bottom fixed inset-x-0 bottom-0 border-t border-white/10 bg-ink-900/90 px-6 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-3">
-          <span className="hidden text-muted sm:block">
-            {questions.length} question{questions.length === 1 ? "" : "s"}
+          <span className={`hidden text-sm sm:block ${atQuestionCap ? "font-bold text-tile-circle" : "text-muted"}`}>
+            {questions.length} / {MAX_QUESTIONS} questions
           </span>
           <div className="flex flex-1 items-center justify-end gap-3">
             {userId && (
@@ -267,24 +325,43 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
 // ---------------------------------------------------------------------------
 function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRemove }) {
   const [bankSaved, setBankSaved] = useState(false);
+  const [bankError, setBankError] = useState(null);
+  const [pendingType, setPendingType] = useState(null);
   const type = q.type || "mc";
 
-  const setType = (next) => {
-    if (next === type) return;
+  const applyType = (next) => {
     if (next === "tf") {
       onChange({ type: "tf", answers: ["True", "False"], correct: Math.min(q.correct ?? 0, 1) });
     } else {
       onChange({ type: "mc", answers: ["", "", "", ""], correct: 0 });
     }
+    setPendingType(null);
+  };
+
+  const setType = (next) => {
+    if (next === type) return;
+    const hasMcAnswers = (q.answers || []).some((a) => a.trim());
+    if (next === "tf" && type === "mc" && hasMcAnswers) {
+      setPendingType("tf");
+      return;
+    }
+    if (next === "mc" && type === "tf") {
+      setPendingType("mc");
+      return;
+    }
+    applyType(next);
   };
 
   const saveToBank = async () => {
     if (!userId || !q.question.trim()) return;
+    setBankError(null);
     const { error } = await addBankQuestion(userId, q);
-    if (!error) {
-      setBankSaved(true);
-      setTimeout(() => setBankSaved(false), 2000);
+    if (error) {
+      setBankError(error.message || "Couldn't save to bank.");
+      return;
     }
+    setBankSaved(true);
+    setTimeout(() => setBankSaved(false), 2000);
   };
 
   return (
@@ -332,14 +409,42 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
         ))}
       </div>
 
+      {pendingType === "tf" && (
+        <div className="mt-3 rounded-xl bg-tile-circle/10 px-4 py-3 ring-1 ring-tile-circle/30">
+          <p className="text-sm font-semibold text-paper">Switch to True / False? Your answer text will be replaced.</p>
+          <div className="mt-2 flex gap-2">
+            <button type="button" onClick={() => applyType("tf")} className="rounded-lg bg-brand-mid px-3 py-1.5 text-sm font-bold text-paper">
+              Switch
+            </button>
+            <button type="button" onClick={() => setPendingType(null)} className="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted hover:text-paper">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+      {pendingType === "mc" && (
+        <div className="mt-3 rounded-xl bg-tile-circle/10 px-4 py-3 ring-1 ring-tile-circle/30">
+          <p className="text-sm font-semibold text-paper">Switch to multiple choice? Answer text will be cleared.</p>
+          <div className="mt-2 flex gap-2">
+            <button type="button" onClick={() => applyType("mc")} className="rounded-lg bg-brand-mid px-3 py-1.5 text-sm font-bold text-paper">
+              Switch
+            </button>
+            <button type="button" onClick={() => setPendingType(null)} className="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted hover:text-paper">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <textarea
         className="mt-3 w-full resize-none rounded-2xl bg-ink-800 px-4 py-3 text-lg font-semibold text-paper ring-2 ring-white/10 focus:outline-none focus:ring-brand-mid"
         rows={2}
         placeholder={type === "tf" ? "Type a statement (true or false)…" : "Type your question…"}
-        maxLength={140}
+        maxLength={MAX_QUESTION_CHARS}
         value={q.question}
         onChange={(e) => onChange({ question: e.target.value })}
       />
+      <p className="mt-1 text-right text-xs text-muted">{q.question.length} / {MAX_QUESTION_CHARS}</p>
 
       <ImagePicker image={q.image} onChange={(image) => onChange({ image })} />
 
@@ -380,7 +485,7 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
                 <input
                   className="flex-1 bg-transparent py-2 font-semibold text-paper placeholder:text-muted/60 focus:outline-none"
                   placeholder={`Answer ${ai + 1}`}
-                  maxLength={60}
+                  maxLength={MAX_ANSWER_CHARS}
                   value={a}
                   onChange={(e) => onAnswer(ai, e.target.value)}
                 />
@@ -429,6 +534,11 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
           </b>
         </span>
       </div>
+      {bankError && (
+        <p className="mt-3 rounded-xl bg-tile-triangle/20 px-3 py-2 text-sm font-semibold text-tile-triangle">
+          {bankError}
+        </p>
+      )}
     </div>
   );
 }
@@ -660,8 +770,13 @@ function BankPicker({ userId, onAdd, onAddAll, onClose }) {
   }, [userId]);
 
   const handleDelete = async (id) => {
+    const previous = questions;
     setQuestions((qs) => (qs || []).filter((q) => q.id !== id));
-    await deleteBankQuestion(userId, id);
+    const { error } = await deleteBankQuestion(userId, id);
+    if (error) {
+      setQuestions(previous);
+      setErr(error.message || "Couldn't delete that question.");
+    }
   };
 
   const visible = (questions || []).filter(

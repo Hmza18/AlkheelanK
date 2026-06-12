@@ -322,6 +322,13 @@ io.on("connection", (socket) => {
     socket.join(gameRoom(game.pin));
     socket.join(hostRoom(game.pin));
     io.to(gameRoom(game.pin)).emit("game:hostStatus", { connected: true });
+    if (game.hostDisconnectPaused) {
+      const startedAt = GM.resumeGame(game, () => closeQuestion(game));
+      game.hostDisconnectPaused = false;
+      if (startedAt) {
+        io.to(gameRoom(game.pin)).emit("game:resumed", { startedAt });
+      }
+    }
     const state = GM.buildHostState(game);
     socket.emit("host:state", state);
     if (typeof ack === "function") ack(state);
@@ -399,6 +406,35 @@ io.on("connection", (socket) => {
     GM.destroyGame(game.pin);
   });
 
+  socket.on("host:lockLobby", ({ locked } = {}) => {
+    const game = GM.getGameByHost(socket.id);
+    if (!game) return;
+    if (!GM.setLobbyLocked(game, locked)) {
+      socket.emit("host:error", { message: "Lobby lock can only be changed before the game starts." });
+      return;
+    }
+    io.to(gameRoom(game.pin)).emit("game:lobbyLock", { locked: game.lobbyLocked });
+  });
+
+  socket.on("host:kickPlayer", ({ pid } = {}) => {
+    const game = GM.getGameByHost(socket.id);
+    if (!game || game.status !== "lobby") {
+      socket.emit("host:error", { message: "Players can only be removed from the lobby." });
+      return;
+    }
+    const { removed, socketId } = GM.kickPlayer(game, pid);
+    if (!removed) {
+      socket.emit("host:error", { message: "Couldn't remove that player." });
+      return;
+    }
+    if (socketId) {
+      io.to(socketId).emit("player:kicked", { reason: "The host removed you from the lobby." });
+      const kicked = io.sockets.sockets.get(socketId);
+      if (kicked) kicked.leave(gameRoom(game.pin));
+    }
+    emitPlayers(game);
+  });
+
   // --- PLAYER -------------------------------------------------------------
   socket.on("player:peek", ({ pin } = {}, ack) => {
     if (!limitPlayerPeek(clientKey(socket))) {
@@ -472,6 +508,12 @@ io.on("connection", (socket) => {
 
     // 2) Lobby: brand-new player.
     if (game.status === "lobby") {
+      if (game.lobbyLocked) {
+        const err = { message: "The host locked the room. Ask them to unlock it so you can join." };
+        socket.emit("player:error", err);
+        if (typeof ack === "function") ack({ error: err.message });
+        return;
+      }
       const { player, error } = GM.addPlayer(game, socket.id, nickname, character, teamId);
       if (error) {
         socket.emit("player:error", { message: error });
@@ -514,6 +556,10 @@ io.on("connection", (socket) => {
     if (hosted) {
       hosted.hostConnected = false;
       io.to(gameRoom(hosted.pin)).emit("game:hostStatus", { connected: false });
+      if (hosted.status === "question" && !hosted.paused && GM.pauseGame(hosted)) {
+        hosted.hostDisconnectPaused = true;
+        io.to(gameRoom(hosted.pin)).emit("game:paused");
+      }
       if (hosted.hostGraceTimer) clearTimeout(hosted.hostGraceTimer);
       hosted.hostGraceTimer = setTimeout(() => {
         io.to(gameRoom(hosted.pin)).emit("game:ended", { reason: "The host disconnected." });

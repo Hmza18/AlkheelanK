@@ -56,7 +56,12 @@ export default function QuestionScreen({
       : {};
 
   return (
-    <div className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
+    <div
+      className={`${rootClass} ${className}`.trim()}
+      data-question-key={questionKey}
+      data-question-variant={variant}
+      data-question-type={questionType}
+    >
       {timerStrip}
       <div className="question-screen__body">
         {header ? <div className="question-screen__header">{header}</div> : null}
@@ -70,9 +75,9 @@ export default function QuestionScreen({
             <div className="question-screen__stage-side question-screen__timer">{timer}</div>
           ) : null}
           {image ? (
-            <div className="question-screen__media">
-              <div className="question-screen__media-frame">
-                <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
+            <div className="question-screen__media" data-question-media>
+              <div className="question-screen__media-frame" data-question-media-frame>
+                <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" decoding="async" />
               </div>
             </div>
           ) : (

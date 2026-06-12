@@ -458,10 +458,6 @@ io.on("connection", (socket) => {
   socket.on("host:next", () => {
     const game = GM.getGameByHost(socket.id);
     if (!game) return;
-    if (game.status === "question") {
-      closeQuestion(game);
-      return;
-    }
     if (game.status === "reveal") {
       showStandings(game);
       return;

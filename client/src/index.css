@@ -2815,7 +2815,7 @@ button:focus-visible {
     --qs-pad-x: max(0.35rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
     --qs-pad-top: max(0.2rem, env(safe-area-inset-top, 0px));
     --qs-pad-bottom: max(0.2rem, env(safe-area-inset-bottom, 0px));
-    --qs-dock-h: clamp(4rem, 22vh, 5.35rem);
+    --qs-dock-h: clamp(3.85rem, 21vh, 5.1rem);
     height: 100svh;
     max-height: 100svh;
     min-height: 0;
@@ -2978,7 +2978,7 @@ button:focus-visible {
     object-fit: contain;
     margin-inline: auto;
     border-radius: 0.65rem;
-    box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.65);
+    box-shadow: none;
     outline: 1px solid rgba(255, 255, 255, 0.1);
   }
 
@@ -2988,7 +2988,7 @@ button:focus-visible {
     height: var(--qs-dock-h);
     max-height: var(--qs-dock-h);
     min-height: 0;
-    margin-top: 0.05rem;
+    margin-top: 0;
     padding: 0;
     flex: 0 0 var(--qs-dock-h);
   }
@@ -3027,7 +3027,7 @@ button:focus-visible {
     font-size: clamp(0.68rem, 2.35vh, 0.86rem) !important;
     line-height: 1.12 !important;
     overflow: hidden !important;
-    box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.24) !important;
+    box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.24) !important;
   }
 
   .question-screen--kahoot .answer-tile--kahoot {

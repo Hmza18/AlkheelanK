@@ -1500,7 +1500,7 @@ button:focus-visible {
   .question-screen__dock,
   .question-screen--host .question-screen__dock,
   .question-screen--kahoot .question-screen__dock {
-    margin-top: 0.125rem;
+    margin-top: 0;
     height: var(--qs-dock-h);
     max-height: var(--qs-dock-h);
     min-height: 0;

@@ -1914,17 +1914,19 @@ button:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   background: rgba(46, 41, 34, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.4rem 0.85rem 0.4rem 0.4rem;
+  /* left pad tight so avatar feels flush; right pad larger for text breathing room */
+  padding: 0.2rem 0.85rem 0.2rem 0.2rem;
   font-family: "Fredoka", system-ui, sans-serif;
   font-size: clamp(1rem, 2vw, 1.25rem);
   font-weight: 700;
 }
 
-/* Let ears/hats extend past the chip edge — no dark backing circle (that read as a black blob). */
+/* Avatar sits flush inside the chip — overflow visible so ears/hats aren't cut off */
 .pregame-player-chip__avatar {
+  flex-shrink: 0;
   overflow: visible;
 }
 

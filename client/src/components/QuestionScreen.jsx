@@ -28,6 +28,7 @@ export default function QuestionScreen({
   className = "",
 }) {
   const tfClass = questionType === "tf" ? "question-screen--tf" : "";
+  const imageClass = image ? "question-screen--with-image" : "question-screen--without-image";
   const isPlayer = variant === "player";
   const rootClass =
     variant === "host"
@@ -56,7 +57,7 @@ export default function QuestionScreen({
       : {};
 
   return (
-    <div className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
+    <div className={`${rootClass} ${imageClass} ${className}`.trim()} data-question-key={questionKey}>
       {timerStrip}
       <div className="question-screen__body">
         {header ? <div className="question-screen__header">{header}</div> : null}

@@ -56,7 +56,13 @@ export default function QuestionScreen({
       : {};
 
   return (
-    <div className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
+    <div
+      className={`${rootClass} ${className}`.trim()}
+      data-question-key={questionKey}
+      data-question-variant={variant}
+      data-question-type={questionType}
+      data-has-media={image ? "true" : "false"}
+    >
       {timerStrip}
       <div className="question-screen__body">
         {header ? <div className="question-screen__header">{header}</div> : null}

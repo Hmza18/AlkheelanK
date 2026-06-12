@@ -1521,7 +1521,9 @@ button:focus-visible {
   }
 
   .question-screen__answers .answer-tile,
+  .question-screen__answers .answer-tile:not(.answer-tile--kahoot),
   .question-screen--host .question-screen__answers .answer-tile,
+  .question-screen--host .question-screen__answers .answer-tile:not(.answer-tile--kahoot),
   .question-screen--kahoot .answer-tile--kahoot {
     min-height: 0 !important;
     height: 100% !important;
@@ -1539,7 +1541,9 @@ button:focus-visible {
   }
 
   .question-screen__answers .answer-tile__label,
+  .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__label,
   .question-screen--host .question-screen__answers .answer-tile__label,
+  .question-screen--host .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__label,
   .question-screen--kahoot .answer-tile--kahoot .answer-tile__label {
     padding: 0.1875rem 0.3125rem !important;
     font-size: clamp(0.625rem, 2svh, 0.8125rem) !important;
@@ -1548,12 +1552,16 @@ button:focus-visible {
   }
 
   .question-screen__answers .answer-tile__icon svg,
+  .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__icon svg,
+  .question-screen--host .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__icon svg,
   .question-screen--kahoot .answer-tile--kahoot .answer-tile__icon--shape svg {
     width: 1rem !important;
     height: 1rem !important;
   }
 
-  .question-screen__answers .answer-tile__icon--glyph {
+  .question-screen__answers .answer-tile__icon--glyph,
+  .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__icon--glyph,
+  .question-screen--host .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__icon--glyph {
     font-size: 1.125rem !important;
   }
 }

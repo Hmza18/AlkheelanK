@@ -2807,3 +2807,354 @@ button:focus-visible {
     max-height: clamp(4rem, 18dvh, 7rem);
   }
 }
+
+/* Mobile quiz landscape — height-driven, uncropped media layout.
+   This dedicated breakpoint replaces the stacked portrait proportions on
+   horizontal phones so the uploaded photo is never trapped in a fixed dark
+   frame, while the prompt and all four answers remain inside a 390px-tall
+   viewport. */
+@media (max-width: 932px) and (orientation: landscape) {
+  .question-screen {
+    --qs-pad-x: max(0.375rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    --qs-pad-top: max(0.25rem, env(safe-area-inset-top, 0px));
+    --qs-pad-bottom: max(0.25rem, env(safe-area-inset-bottom, 0px));
+    --qs-dock-h: clamp(5rem, 29vh, 7rem);
+    display: grid;
+    grid-template-rows: 4px minmax(0, 1fr) var(--qs-dock-h);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "timer"
+      "body"
+      "dock";
+    gap: 0.25rem;
+    width: 100%;
+    max-width: none;
+    height: 100svh;
+    max-height: 100svh;
+    min-height: 0;
+    margin: 0;
+    padding: var(--qs-pad-top) var(--qs-pad-x) var(--qs-pad-bottom);
+    overflow: hidden;
+  }
+
+  .question-screen--host,
+  .question-screen--host.host-phase-fill--fit {
+    height: 100%;
+    max-height: 100%;
+    padding: var(--qs-pad-top) var(--qs-pad-x) var(--qs-pad-bottom);
+  }
+
+  .question-screen--kahoot.question-screen--player {
+    position: fixed;
+    inset: 0;
+    grid-template-rows: 4px minmax(0, 1fr) var(--qs-dock-h);
+    grid-template-areas:
+      "timer"
+      "body"
+      "dock";
+    row-gap: 0.25rem;
+    height: 100svh;
+    max-height: 100svh;
+    padding: var(--qs-pad-top) var(--qs-pad-x) var(--qs-pad-bottom);
+    background: transparent;
+  }
+
+  .question-screen__timer-strip,
+  .question-screen--kahoot .question-screen__timer-strip {
+    grid-area: timer;
+    position: relative;
+    inset: auto;
+    display: block;
+    height: 4px;
+    min-height: 4px;
+    margin: 0;
+    padding: 0;
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .question-screen__body,
+  .question-screen--kahoot .question-screen__body,
+  .question-screen--host .question-screen__body {
+    grid-area: body;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 0;
+    width: 100%;
+    gap: 0.1875rem;
+    overflow: hidden;
+  }
+
+  .question-screen--kahoot .question-screen__header,
+  .question-screen--kahoot .question-progress,
+  .question-screen--kahoot .question-screen__badge {
+    display: none !important;
+  }
+
+  .question-screen--host .question-screen__header,
+  .question-screen--host .question-screen__badge,
+  .question-screen--host .host-answer-progress {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .question-screen--host .question-screen__badge {
+    display: none;
+  }
+
+  .question-screen__meta,
+  .host-meta {
+    min-height: 0;
+    font-size: clamp(0.625rem, 1.9vh, 0.75rem);
+    line-height: 1.1;
+  }
+
+  .host-meta {
+    gap: 0.25rem;
+  }
+
+  .host-meta__index,
+  .host-meta__answered,
+  .host-meta__chip {
+    padding: 0.125rem 0.45rem;
+  }
+
+  .host-meta__index-now,
+  .host-meta__answered-count {
+    font-size: clamp(0.75rem, 2.2vh, 0.875rem);
+  }
+
+  .host-meta__answered-label {
+    display: none;
+  }
+
+  .host-answer-progress {
+    margin-top: 0.0625rem;
+    height: 2px;
+  }
+
+  .question-screen__prompt,
+  .question-screen--kahoot .question-screen__prompt,
+  .question-screen--host .question-screen__prompt {
+    grid-area: auto;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 48rem;
+    max-height: 3.4rem;
+    margin: 0;
+    border-radius: 0.625rem;
+    padding: 0.25rem 0.55rem;
+    font-size: clamp(0.875rem, 3.4vh, 1.15rem);
+    line-height: 1.16;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(36, 32, 25, 0.82);
+    box-shadow: none;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .question-screen--host .question-screen__prompt {
+    max-width: 54rem;
+    font-size: clamp(1rem, 4.2vh, 1.35rem);
+    padding-block: 0.3rem;
+  }
+
+  .question-screen__stage,
+  .question-screen--host .question-screen__stage,
+  .question-screen--kahoot .question-screen__stage {
+    grid-area: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0.0625rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    overflow: visible;
+  }
+
+  .question-screen--host .question-screen__stage-side {
+    display: flex;
+    flex: 0 0 3.25rem;
+    width: 3.25rem;
+    min-width: 0;
+  }
+
+  .question-screen--host .question-screen__stage-info {
+    display: none;
+  }
+
+  .question-screen__timer-full {
+    display: none;
+  }
+
+  .question-screen__timer-compact {
+    display: block;
+  }
+
+  .question-screen__timer-compact svg {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .question-screen__timer-compact span {
+    font-size: 1.35rem;
+  }
+
+  .question-screen__media,
+  .question-screen__media-frame,
+  .question-screen--kahoot .question-screen__media,
+  .question-screen--kahoot .question-screen__media-frame,
+  .question-screen--host .question-screen__media,
+  .question-screen--host .question-screen__media-frame {
+    flex: 0 1 auto;
+    align-self: center;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 35vh;
+    padding: 0;
+    background: transparent !important;
+    border: 0;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+  }
+
+  .question-screen--host .question-screen__media {
+    max-width: calc(100% - 3.625rem);
+  }
+
+  .question-screen--host .question-screen__media-frame {
+    max-width: 100%;
+  }
+
+  .question-screen__media-frame::before,
+  .question-screen--kahoot .question-screen__media-frame::before {
+    display: none;
+  }
+
+  .question-screen__media img,
+  .question-screen__img,
+  .question-screen--kahoot .question-screen__img,
+  .question-screen--host .question-screen__img {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100%;
+    max-height: 35vh;
+    object-fit: contain;
+    margin: 0 auto;
+    border-radius: 0.625rem;
+    background: transparent !important;
+    box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.55);
+    outline: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .question-screen__empty-stage {
+    width: min(18vh, 5rem);
+    max-height: 35vh;
+  }
+
+  .question-screen__dock,
+  .question-screen--kahoot .question-screen__dock,
+  .question-screen--host .question-screen__dock {
+    grid-area: dock;
+    align-self: end;
+    width: 100%;
+    height: var(--qs-dock-h);
+    max-height: var(--qs-dock-h);
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    flex: 0 0 var(--qs-dock-h);
+    overflow: visible;
+  }
+
+  .question-screen__answers,
+  .question-screen--kahoot .question-screen__answers,
+  .question-screen--host .question-screen__answers {
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
+    align-content: stretch;
+  }
+
+  .question-screen--tf .question-screen__answers,
+  .question-screen--kahoot.question-screen--tf .question-screen__answers,
+  .question-screen--host.question-screen--tf .question-screen__answers {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .question-screen__answers .answer-tile {
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0.5rem !important;
+    padding: 0.35rem 0.5rem !important;
+    gap: 0.35rem !important;
+    font-size: clamp(0.75rem, 2.5vh, 0.9rem) !important;
+    line-height: 1.12 !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.22) !important;
+  }
+
+  .question-screen__answers .answer-tile--kahoot {
+    grid-template-columns: minmax(2rem, 18%) minmax(0, 1fr);
+    padding: 0 !important;
+  }
+
+  .question-screen__answers .answer-tile__rail {
+    min-height: 0;
+  }
+
+  .question-screen__answers .answer-tile__icon {
+    width: 1.1rem !important;
+    height: 1.1rem !important;
+    font-size: 1rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  .question-screen__answers .answer-tile__icon svg {
+    width: 1.1rem !important;
+    height: 1.1rem !important;
+  }
+
+  .question-screen__answers .answer-tile__label,
+  .question-screen__answers .answer-tile--kahoot .answer-tile__label {
+    min-width: 0;
+    padding: 0.2rem 0.35rem;
+    font-size: clamp(0.6875rem, 2.15vh, 0.8125rem) !important;
+    line-height: 1.12 !important;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .question-screen__answers .answer-tile__label--tf,
+  .question-screen__answers .answer-tile--kahoot.answer-tile--tf .answer-tile__label--tf {
+    font-size: clamp(0.75rem, 2.35vh, 0.9rem) !important;
+    -webkit-line-clamp: 1;
+  }
+
+  .question-screen__answers .answer-tile__count,
+  .question-screen__answers .answer-tile__mark {
+    font-size: 0.875rem;
+    margin-left: 0.25rem;
+  }
+}

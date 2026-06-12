@@ -923,34 +923,24 @@ button:focus-visible {
     border-radius: 0.625rem;
   }
 
-  /* Host landscape — two-column layout: left = meta/prompt/image, right = answer dock.
-     Mirrors the player two-column fix so the image fills the left-column height instead
-     of being squeezed above the answers. */
+  /* Host landscape — vertical stack (meta → prompt → image → answers).
+     Image gets flex:1 so it fills all space between prompt and the compact answer row. */
   .question-screen--host {
+    --qs-dock-h: clamp(5rem, 26dvh, 7rem);
     height: 100dvh;
     max-height: 100dvh;
     overflow: hidden;
-    /* Switch from inherited single-column grid to two columns */
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(10rem, 42%, 17rem);
-    grid-template-rows: 1fr;
-    gap: 0;
   }
 
   .question-screen--host.alkheelank-screen-host {
     padding:
       max(0.2rem, env(safe-area-inset-top, 0px))
-      max(0.4rem, env(safe-area-inset-right, 0px))
-      max(0.2rem, env(safe-area-inset-bottom, 0px))
-      max(0.4rem, env(safe-area-inset-left, 0px));
+      max(0.4rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))
+      max(0.2rem, env(safe-area-inset-bottom, 0px));
   }
 
-  /* Body is the left column — keep its flex-column hierarchy */
   .question-screen--host .question-screen__body {
-    grid-column: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
     gap: 0.1rem;
@@ -993,11 +983,9 @@ button:focus-visible {
   .question-screen--host .question-screen__stage {
     flex: 1 1 auto;
     min-height: 0;
-    /* No need to subtract dock height — dock is now the right column */
-    max-height: 100%;
+    max-height: min(100%, calc(100dvh - var(--qs-dock-h) - 4rem));
     margin-top: 0;
     overflow: hidden;
-    align-self: stretch;
   }
 
   .question-screen--host .question-screen__media,
@@ -1009,7 +997,6 @@ button:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    align-self: stretch;
     overflow: hidden;
   }
 
@@ -1022,33 +1009,16 @@ button:focus-visible {
     margin-inline: auto;
   }
 
-  /* Dock is now the right column — spans full height, answers fill it vertically */
   .question-screen--host .question-screen__dock {
-    grid-column: 2;
-    margin: 0;
-    height: 100%;
-    max-height: 100%;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: max(0.375rem, env(safe-area-inset-top, 0px))
-             max(0.5rem, env(safe-area-inset-right, 0px))
-             max(0.375rem, env(safe-area-inset-bottom, 0px))
-             0.375rem;
-    border-left: 1px solid rgba(255, 255, 255, 0.07);
+    margin-top: 0.1rem;
+    height: var(--qs-dock-h);
+    max-height: var(--qs-dock-h);
+    flex-shrink: 0;
   }
 
   .question-screen--host .question-screen__answers {
-    flex: 1;
-    height: 100%;
     max-height: 100%;
-    min-height: 0;
-    grid-template-rows: repeat(2, minmax(0, 1fr));
-  }
-
-  .question-screen--host.question-screen--tf .question-screen__answers {
-    grid-template-columns: 1fr;
+    height: 100%;
     grid-template-rows: repeat(2, minmax(0, 1fr));
   }
 
@@ -1185,10 +1155,9 @@ button:focus-visible {
   }
 }
 
-/* Phone player landscape — two-column Kahoot layout.
-   Left column: question prompt + image stage (prompt is auto-height, stage absorbs remaining space).
-   Right column: 2×2 answer dock spanning full height.
-   This gives the image the full left-column height instead of being squeezed below the dock. */
+/* Phone player landscape — vertical Kahoot stack (timer → question → image → answers).
+   The image gets minmax(0,1fr) and the answer dock is clamped small so the photo
+   is always the largest element on screen. */
 @media (orientation: landscape) and (max-height: 36rem),
        (max-width: 932px) and (orientation: landscape) {
   .question-screen--kahoot.question-screen--player {
@@ -1196,18 +1165,20 @@ button:focus-visible {
     inset: 0;
     z-index: 1;
     display: grid;
-    grid-template-rows: 4px auto minmax(0, 1fr);
-    grid-template-columns: minmax(0, 1fr) clamp(10rem, 42%, 17rem);
+    grid-template-rows: 4px auto minmax(0, 1fr) clamp(5rem, 28svh, 8rem);
+    grid-template-columns: 1fr;
     grid-template-areas:
-      "timer  timer"
-      "prompt dock"
-      "stage  dock";
+      "timer"
+      "prompt"
+      "stage"
+      "dock";
     width: 100%;
     height: 100svh;
     max-height: 100svh;
     max-width: none;
     margin: 0;
     padding: 0;
+    padding-bottom: max(0px, env(safe-area-inset-bottom, 0px));
     overflow: hidden;
     background: var(--alkheelank-ink-900);
   }
@@ -1256,9 +1227,8 @@ button:focus-visible {
     margin: 0;
     max-width: none;
     border-radius: 0;
-    /* Right side is now the dock column — no safe-area-inset-right needed here */
     padding: max(0.4375rem, calc(env(safe-area-inset-top, 0px) + 0.25rem))
-             0.625rem
+             max(0.625rem, env(safe-area-inset-right, 0px))
              0.4375rem
              max(0.625rem, env(safe-area-inset-left, 0px));
     font-size: clamp(0.8125rem, 2.9svh, 1rem);
@@ -1268,7 +1238,6 @@ button:focus-visible {
     background: rgba(26, 24, 20, 0.98);
     border: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    border-right: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow: none;
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -1282,8 +1251,7 @@ button:focus-visible {
     min-height: 0;
     align-self: stretch;
     overflow: hidden;
-    /* Right padding is small — the dock column provides its own padding */
-    padding: 0.125rem 0.375rem max(0.375rem, env(safe-area-inset-bottom, 0px))
+    padding: 0.25rem max(0.375rem, env(safe-area-inset-right, 0px)) 0.125rem
              max(0.375rem, env(safe-area-inset-left, 0px));
   }
 
@@ -1326,33 +1294,24 @@ button:focus-visible {
     grid-area: dock;
     margin: 0;
     min-height: 0;
-    height: 100%;
+    height: auto;
     max-height: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    /* Safe-area-inset-right applies to this column; left gets a small gap from stage */
-    padding: max(0.375rem, env(safe-area-inset-top, 0px))
-             max(0.5rem, env(safe-area-inset-right, 0px))
-             max(0.375rem, env(safe-area-inset-bottom, 0px))
-             0.375rem;
+    padding: 0.25rem max(0.375rem, env(safe-area-inset-right, 0px)) 0.25rem
+             max(0.375rem, env(safe-area-inset-left, 0px));
     z-index: 10;
     pointer-events: auto;
   }
 
   .question-screen--kahoot .question-screen__answers {
     height: 100%;
-    flex: 1;
     min-height: 0;
     gap: 0.3125rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: repeat(2, minmax(0, 1fr));
   }
 
-  /* TF in landscape dock: stack the 2 answers vertically in the right column */
   .question-screen--kahoot.question-screen--tf .question-screen__answers {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .question-screen--kahoot .answer-tile--kahoot {
@@ -1380,11 +1339,11 @@ button:focus-visible {
   }
 }
 
-/* iPhone SE / very short phone landscape — keep 2-col, tighten the dock column width */
+/* iPhone SE / very short phone landscape — tighter rows, smaller dock */
 @media (orientation: landscape) and (max-height: 23.5rem) {
   .question-screen--kahoot.question-screen--player {
-    grid-template-rows: 4px auto minmax(0, 1fr);
-    grid-template-columns: minmax(0, 1fr) clamp(9rem, 40%, 15rem);
+    grid-template-rows: 4px auto minmax(0, 1fr) clamp(4.5rem, 26svh, 7rem);
+    grid-template-columns: 1fr;
   }
 
   .question-screen--kahoot .question-screen__prompt {

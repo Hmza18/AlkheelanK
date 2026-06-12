@@ -1436,6 +1436,7 @@ button:focus-visible {
   .question-screen__stage,
   .question-screen--host .question-screen__stage,
   .question-screen--kahoot .question-screen__stage {
+    box-sizing: border-box;
     min-height: 0;
     max-height: none;
     margin-top: 0;
@@ -1488,6 +1489,7 @@ button:focus-visible {
   .question-screen__dock,
   .question-screen--host .question-screen__dock,
   .question-screen--kahoot .question-screen__dock {
+    box-sizing: border-box;
     margin-top: 0.125rem;
     height: var(--qs-dock-h);
     max-height: var(--qs-dock-h);

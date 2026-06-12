@@ -1365,6 +1365,16 @@ button:focus-visible {
     --qs-dock-h: clamp(4rem, 22vh, 5.25rem);
   }
 
+  .question-screen--host.alkheelank-screen-host {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: none;
+    margin: 0;
+  }
+
   .question-screen--kahoot.question-screen--player {
     grid-template-rows: 4px auto minmax(0, 1fr) var(--qs-dock-h);
     row-gap: 0.15rem;

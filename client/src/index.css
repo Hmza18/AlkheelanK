@@ -2822,6 +2822,10 @@ button:focus-visible {
     display: grid;
     grid-template-rows: 4px minmax(0, 1fr) var(--qs-dock-h);
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "timer"
+      "body"
+      "dock";
     gap: 0.25rem;
     width: 100%;
     max-width: none;
@@ -2844,6 +2848,10 @@ button:focus-visible {
     position: fixed;
     inset: 0;
     grid-template-rows: 4px minmax(0, 1fr) var(--qs-dock-h);
+    grid-template-areas:
+      "timer"
+      "body"
+      "dock";
     row-gap: 0.25rem;
     height: 100svh;
     max-height: 100svh;
@@ -2853,6 +2861,7 @@ button:focus-visible {
 
   .question-screen__timer-strip,
   .question-screen--kahoot .question-screen__timer-strip {
+    grid-area: timer;
     position: relative;
     inset: auto;
     display: block;
@@ -2867,6 +2876,7 @@ button:focus-visible {
   .question-screen__body,
   .question-screen--kahoot .question-screen__body,
   .question-screen--host .question-screen__body {
+    grid-area: body;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2927,6 +2937,7 @@ button:focus-visible {
   .question-screen__prompt,
   .question-screen--kahoot .question-screen__prompt,
   .question-screen--host .question-screen__prompt {
+    grid-area: auto;
     flex: 0 0 auto;
     width: 100%;
     max-width: 48rem;
@@ -2955,6 +2966,7 @@ button:focus-visible {
   .question-screen__stage,
   .question-screen--host .question-screen__stage,
   .question-screen--kahoot .question-screen__stage {
+    grid-area: auto;
     flex: 1 1 auto;
     min-height: 0;
     width: 100%;
@@ -3054,6 +3066,7 @@ button:focus-visible {
   .question-screen__dock,
   .question-screen--kahoot .question-screen__dock,
   .question-screen--host .question-screen__dock {
+    grid-area: dock;
     align-self: end;
     width: 100%;
     height: var(--qs-dock-h);

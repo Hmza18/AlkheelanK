@@ -70,9 +70,16 @@ export default function QuestionScreen({
             <div className="question-screen__stage-side question-screen__timer">{timer}</div>
           ) : null}
           {image ? (
-            <div className="question-screen__media">
+            <div className="question-screen__media" data-question-media="image">
               <div className="question-screen__media-frame">
-                <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
+                <ImageEl
+                  {...imageProps}
+                  src={image}
+                  alt=""
+                  className="question-screen__img"
+                  decoding="async"
+                  draggable={false}
+                />
               </div>
             </div>
           ) : (

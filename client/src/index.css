@@ -2815,7 +2815,7 @@ button:focus-visible {
     --qs-pad-x: max(0.35rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
     --qs-pad-top: max(0.2rem, env(safe-area-inset-top, 0px));
     --qs-pad-bottom: max(0.2rem, env(safe-area-inset-bottom, 0px));
-    --qs-dock-h: clamp(4.35rem, 24vh, 5.85rem);
+    --qs-dock-h: clamp(4rem, 22vh, 5.35rem);
     height: 100svh;
     max-height: 100svh;
     min-height: 0;
@@ -2988,7 +2988,7 @@ button:focus-visible {
     height: var(--qs-dock-h);
     max-height: var(--qs-dock-h);
     min-height: 0;
-    margin-top: 0.12rem;
+    margin-top: 0.05rem;
     padding: 0;
     flex: 0 0 var(--qs-dock-h);
   }

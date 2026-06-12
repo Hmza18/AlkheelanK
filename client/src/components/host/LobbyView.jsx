@@ -238,7 +238,7 @@ export default function LobbyView({
                     transition={{ type: "spring", stiffness: 500, damping: 18 }}
                     className="pregame-player-chip"
                   >
-                    <Avatar config={p.character} size={44} className="pregame-player-chip__avatar" />
+                    <Avatar config={p.character} size={40} ring className="pregame-player-chip__avatar" />
                     {p.nick}
                     {mode === "teams" && p.team?.name && (
                       <span

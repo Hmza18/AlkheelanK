@@ -20,7 +20,7 @@ const TOGGLE_OPTIONS = [
   ["randomizeAnswers", "Shuffle tiles", "Mix answer spots (True/False stays put)."],
 ];
 
-export default function SetupView({ settings, setSettings, onCreate, onCancel }) {
+export default function SetupView({ quiz, settings, setSettings, onCreate, onCancel }) {
   const toggle = (key) => setSettings((s) => ({ ...s, [key]: !s[key] }));
 
   return (
@@ -40,6 +40,16 @@ export default function SetupView({ settings, setSettings, onCreate, onCancel })
           <h1 className="pregame-setup__title alkheelank-heading">Tune your show</h1>
           <p className="pregame-setup__subtitle">Set the vibe, then open the lobby.</p>
         </div>
+
+        {quiz && (
+          <div className="alkheelank-card pregame-setup__card">
+            <p className="alkheelank-label">Quiz</p>
+            <p className="mt-2 font-display text-xl font-bold text-paper">{quiz.title}</p>
+            <p className="mt-1 text-sm font-semibold text-muted">
+              {quiz.questionCount} question{quiz.questionCount === 1 ? "" : "s"}
+            </p>
+          </div>
+        )}
 
         <div className="alkheelank-card pregame-setup__card">
           <p className="alkheelank-label">Mode</p>

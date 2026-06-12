@@ -28,6 +28,8 @@ export const copy = {
     lockedStatus: "Lobby locked — no new joins",
     lockedJoin: "The host locked the room. Ask them to unlock it so you can join.",
     kicked: "The host removed you from the lobby.",
+    copyPin: "Copy the game PIN",
+    copiedPin: "PIN copied!",
   },
   countdown: {
     label: "Get ready",
@@ -58,6 +60,8 @@ export const copy = {
   player: {
     joined: "You're in the crew!",
     lobbyWait: "Eyes on the big screen — showtime soon.",
+    lobbyCrowd: (n) => (n === 1 ? "You're the first one here" : `${n} players in the room`),
+    disconnected: "Connection lost — getting you back in…",
     pinStep: "Enter the 6-digit code from the host screen.",
     profileCta: "Join the party",
     joining: "Finding your seat…",
@@ -71,6 +75,7 @@ export const copy = {
       points: (n, mult) =>
         n > 0 ? `+${n.toLocaleString()} pts${mult === 2 ? " · 2× boost" : ""}` : "0 pts",
       rank: (r, total) => `#${r} of ${total}`,
+      correctWas: "Correct answer",
       watchScreen: "Watch the big screen for the drama.",
     },
     standings: "Where you stand",

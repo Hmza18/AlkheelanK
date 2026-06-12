@@ -1,5 +1,7 @@
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { spring } from "../lib/motion.js";
+import { copy } from "../lib/copy.js";
 
 export function HostRecoveredBanner({ show }) {
   return (
@@ -22,6 +24,25 @@ export function HostRecoveredBanner({ show }) {
 
 export function HostStatusBanner({ connected, forPlayer }) {
   const show = connected === false;
+  // "Host is back" should only flash briefly after an actual drop — not sit on
+  // screen for the whole game just because the host is connected.
+  const [showBack, setShowBack] = useState(false);
+  const wasDownRef = useRef(false);
+
+  useEffect(() => {
+    if (connected === false) {
+      wasDownRef.current = true;
+      setShowBack(false);
+      return;
+    }
+    if (connected === true && wasDownRef.current && forPlayer) {
+      wasDownRef.current = false;
+      setShowBack(true);
+      const t = setTimeout(() => setShowBack(false), 3500);
+      return () => clearTimeout(t);
+    }
+  }, [connected, forPlayer]);
+
   return (
     <AnimatePresence>
       {show && (
@@ -33,10 +54,10 @@ export function HostStatusBanner({ connected, forPlayer }) {
           className="fixed inset-x-4 top-[max(1rem,env(safe-area-inset-top))] z-50 mx-auto max-w-md rounded-2xl bg-warning/15 px-4 py-3 text-center text-sm font-bold text-paper ring-1 ring-warning/35 backdrop-blur-md"
           role="alert"
         >
-          {forPlayer ? "Host stepped away — hang tight." : "Connection hiccup — players still see the game."}
+          {forPlayer ? copy.host.hostAway : "Connection hiccup — players still see the game."}
         </motion.div>
       )}
-      {connected === true && forPlayer && (
+      {showBack && (
         <motion.div
           key="back"
           initial={{ opacity: 0, y: -10 }}
@@ -46,7 +67,27 @@ export function HostStatusBanner({ connected, forPlayer }) {
           className="fixed inset-x-4 top-[max(1rem,env(safe-area-inset-top))] z-50 mx-auto max-w-md rounded-2xl bg-tile-square/20 px-4 py-3 text-center text-sm font-bold text-paper ring-1 ring-tile-square/40 backdrop-blur-md"
           role="status"
         >
-          Host is back on deck.
+          {copy.host.playersBack}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/** Shown on the player's phone while their OWN socket is down mid-game. */
+export function PlayerConnectionBanner({ connected }) {
+  return (
+    <AnimatePresence>
+      {connected === false && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={spring.default}
+          className="fixed inset-x-4 top-[max(1rem,env(safe-area-inset-top))] z-50 mx-auto max-w-md rounded-2xl bg-warning/15 px-4 py-3 text-center text-sm font-bold text-paper ring-1 ring-warning/35 backdrop-blur-md"
+          role="alert"
+        >
+          {copy.player.disconnected}
         </motion.div>
       )}
     </AnimatePresence>

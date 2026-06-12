@@ -216,7 +216,7 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
             <StarterCard
               key={q.id}
               quiz={q}
-              onLaunch={() => onLaunchBuiltin(q.id)}
+              onLaunch={() => onLaunchBuiltin(q)}
               onCopy={() => handleCopyStarter(q)}
               copying={copyingId === q.id}
               canCopy={!!user}

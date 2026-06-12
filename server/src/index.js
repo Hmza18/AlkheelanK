@@ -246,6 +246,8 @@ function advance(game, { skipDoubleWarning = false } = {}) {
 
 // Re-sync a freshly (re)connected player socket to the current game phase.
 function syncPlayer(game, socket) {
+  // A rejoining player may have missed the host dropping (or coming back).
+  socket.emit("game:hostStatus", { connected: game.hostConnected });
   switch (game.status) {
     case "question": {
       socket.emit("game:question", GM.buildPublicQuestion(game, { includeImage: SEND_IMAGE_TO_PLAYERS }));
@@ -351,6 +353,17 @@ io.on("connection", (socket) => {
       if (startedAt) {
         io.to(gameRoom(game.pin)).emit("game:resumed", { startedAt });
       }
+    }
+    // Timed beats are held while the host is away (see disconnect handler) —
+    // restart them now so the game never advances into a hostless question.
+    if (game.status === "double-warning" && !game.timer) {
+      io.to(gameRoom(game.pin)).emit(
+        "game:doublePointsWarning",
+        buildDoublePointsWarning(game, game.currentIndex + 1),
+      );
+      game.timer = setTimeout(() => advance(game, { skipDoubleWarning: true }), DOUBLE_POINTS_WARNING_MS);
+    } else if (game.status === "countdown" && !game.timer) {
+      startCountdown(game); // re-runs the 3-2-1 fresh for everyone
     }
     const state = GM.buildHostState(game);
     socket.emit("host:state", state);
@@ -582,6 +595,13 @@ io.on("connection", (socket) => {
       if (hosted.status === "question" && !hosted.paused && GM.pauseGame(hosted)) {
         hosted.hostDisconnectPaused = true;
         io.to(gameRoom(hosted.pin)).emit("game:paused");
+      }
+      // Hold timed beats (3-2-1 countdown, double-points warning) so they don't
+      // advance into a question while the host screen is gone. host:reconnect
+      // restarts them.
+      if ((hosted.status === "countdown" || hosted.status === "double-warning") && hosted.timer) {
+        clearTimeout(hosted.timer);
+        hosted.timer = null;
       }
       if (hosted.hostGraceTimer) clearTimeout(hosted.hostGraceTimer);
       hosted.hostGraceTimer = setTimeout(() => {

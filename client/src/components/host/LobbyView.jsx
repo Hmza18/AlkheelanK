@@ -66,6 +66,11 @@ const GearIcon = () => (
     <path d="M19.14 12.94a7.49 7.49 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.3 7.3 0 00-1.62-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.58.24-1.12.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.7 8.84a.5.5 0 00.12.64l2.03 1.58a7.49 7.49 0 000 1.88l-2.03 1.58a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.61.22l2.39-.96c.5.38 1.04.7 1.62.94l.36 2.54a.5.5 0 00.5.42h3.84a.5.5 0 00.5-.42l.36-2.54c.58-.24 1.12-.56 1.62-.94l2.39.96a.5.5 0 00.61-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z" />
   </Icon>
 );
+const CopyIcon = () => (
+  <Icon fill="currentColor">
+    <path d="M16 1H4a2 2 0 00-2 2v14h2V3h12V1zm3 4H8a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h11v14z" />
+  </Icon>
+);
 const LockClosedIcon = () => (
   <Icon fill="currentColor">
     <path d="M12 1a5 5 0 00-5 5v3H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2v-9a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm3 8H9V6a3 3 0 116 0v3z" />
@@ -98,9 +103,28 @@ export default function LobbyView({
   const joinUrl = joinQrUrl(pin);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundOn());
+  const [pinCopied, setPinCopied] = useState(false);
   const hasPlayers = players.length > 0;
 
   useEffect(() => subscribeAudio((s) => setSoundOn(!s.muted)), []);
+
+  useEffect(() => {
+    if (!pinCopied) return;
+    const t = setTimeout(() => setPinCopied(false), 2000);
+    return () => clearTimeout(t);
+  }, [pinCopied]);
+
+  const copyPin = async () => {
+    if (!pin) return;
+    sfx.tap();
+    try {
+      await navigator.clipboard.writeText(String(pin));
+      setPinCopied(true);
+    } catch {
+      // Clipboard can be blocked (http, permissions) — the PIN is on screen anyway.
+      setPinCopied(false);
+    }
+  };
 
   const handleStart = () => {
     if (!hasPlayers) return;
@@ -162,7 +186,19 @@ export default function LobbyView({
           </div>
           <span className="lobby-header-card__slash" aria-hidden="true" />
           <div className="lobby-header-card__cell">
-            <span className="lobby-header-card__label">{copy.lobby.pinLabel}</span>
+            <span className="lobby-header-card__label">
+              {copy.lobby.pinLabel}
+              <button
+                type="button"
+                className="lobby-copy-pin"
+                onClick={copyPin}
+                aria-label={copy.lobby.copyPin}
+                title={copy.lobby.copyPin}
+              >
+                {pinCopied ? "✓" : <CopyIcon />}
+              </button>
+              {pinCopied && <span className="lobby-copy-pin__done">{copy.lobby.copiedPin}</span>}
+            </span>
             <span className="lobby-header-card__pin pin-display">
               {formatLobbyPin(pinStr)}
             </span>

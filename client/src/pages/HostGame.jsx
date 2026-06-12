@@ -345,7 +345,7 @@ export default function HostGame({ launch, onExit }) {
       }
 
       setConnectHint(copy.connecting.creating);
-      await emitWithAck("host:create", { ...launch, settings }, 15_000);
+      await emitWithAck("host:create", { quizId: launch?.quizId, quiz: launch?.quiz, settings }, 15_000);
       // host:created moves us to lobby; ack is a backstop if that event was missed.
       setPhase((p) => (p === "connecting" ? "lobby" : p));
     } catch (err) {
@@ -356,6 +356,13 @@ export default function HostGame({ launch, onExit }) {
   };
 
   const currentImage = question ? question.image ?? images[question.index] ?? null : null;
+
+  // What's about to be launched — shown on the setup screen before the room exists.
+  const launchQuizMeta =
+    launch?.quizMeta ??
+    (launch?.quiz
+      ? { title: launch.quiz.title, questionCount: launch.quiz.questions?.length ?? 0 }
+      : null);
 
   useEffect(() => {
     if (resumeOnly) createLobby();
@@ -369,6 +376,7 @@ export default function HostGame({ launch, onExit }) {
       <PhaseShell phaseKey={phase} className="min-h-screen landscapePhone:h-dvh landscapePhone:max-h-dvh landscapePhone:min-h-0 landscapePhone:overflow-y-auto landscapePhone:pt-9">
         {phase === "setup" && (
           <SetupView
+            quiz={launchQuizMeta}
             settings={settings}
             setSettings={setSettings}
             onCreate={createLobby}

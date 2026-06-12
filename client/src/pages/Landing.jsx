@@ -5,6 +5,7 @@ import Shape from "../components/Shape.jsx";
 import { ANSWERS } from "../lib/answers.js";
 import { useAuth } from "../lib/auth.jsx";
 import BuiltByHamza from "../components/BuiltByHamza.jsx";
+import { formatPinInput } from "../lib/pin.js";
 
 const container = {
   hidden: {},
@@ -74,8 +75,8 @@ export default function Landing() {
               inputMode="numeric"
               pattern="[0-9]*"
               placeholder="Game PIN"
-              maxLength={6}
-              value={pin}
+              maxLength={7}
+              value={formatPinInput(pin)}
               onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
               autoFocus
             />

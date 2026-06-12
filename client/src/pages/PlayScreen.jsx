@@ -8,8 +8,10 @@ import AnswerTile from "../components/AnswerTile.jsx";
 import Avatar, { DEFAULT_AVATAR } from "../components/characters.jsx";
 import AvatarPicker from "../components/AvatarPicker.jsx";
 import PostAnswerWaiting from "../components/PostAnswerWaiting.jsx";
-import { HostStatusBanner, PlayerReconnectBanner } from "../components/ConnectionBanner.jsx";
+import { HostStatusBanner, PlayerReconnectBanner, PlayerConnectionBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
+import { tileStyle } from "../lib/answers.js";
+import { formatPinInput } from "../lib/pin.js";
 import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
@@ -41,10 +43,13 @@ export default function PlayScreen() {
   const [selected, setSelected] = useState(null);
   const [waitContext, setWaitContext] = useState(null);
   const [result, setResult] = useState(null);
+  const [reveal, setReveal] = useState(null);
   const [standings, setStandings] = useState(null);
   const [finalRank, setFinalRank] = useState(null);
   const [paused, setPaused] = useState(false);
+  const [players, setPlayers] = useState([]);
   const [hostConnected, setHostConnected] = useState(true);
+  const [selfConnected, setSelfConnected] = useState(true);
   const [showReconnectBanner, setShowReconnectBanner] = useState(false);
   const joinInfoRef = useRef(null);
   const pinRef = useRef(pin);
@@ -98,6 +103,7 @@ export default function PlayScreen() {
     ensureConnected();
 
     const onConnect = () => {
+      setSelfConnected(true);
       const info = joinInfoRef.current;
       if (!info) return;
       socket.emit("player:join", {
@@ -149,6 +155,7 @@ export default function PlayScreen() {
       setSelected(null);
       setWaitContext(null);
       setResult(null);
+      setReveal(null);
       setStandings(null);
       setPaused(!!q.paused);
       setPhase("question");
@@ -178,6 +185,8 @@ export default function PlayScreen() {
       setPhase((p) => (p === "question" ? "answered" : p));
       sfx.lock();
     };
+    const onReveal = (r) => setReveal(r);
+    const onPlayers = (list) => setPlayers(list || []);
     const onResult = (r) => {
       setResult(r);
       setPhase("result");
@@ -216,8 +225,14 @@ export default function PlayScreen() {
       setPhase("join");
       setError(reason || copy.lobby.kicked);
     };
+    // Named so cleanup removes only THIS handler — socket.off("disconnect")
+    // without a reference would break every other listener on the shared socket.
+    const onDisconnect = () => setSelfConnected(false);
 
     socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("game:players", onPlayers);
+    socket.on("game:reveal", onReveal);
     socket.on("player:meta", onMeta);
     socket.on("player:joined", onJoined);
     socket.on("player:error", onPlayerError);
@@ -236,6 +251,9 @@ export default function PlayScreen() {
 
     return () => {
       socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("game:players", onPlayers);
+      socket.off("game:reveal", onReveal);
       socket.off("player:meta", onMeta);
       socket.off("player:joined", onJoined);
       socket.off("player:error", onPlayerError);
@@ -309,6 +327,8 @@ export default function PlayScreen() {
   };
 
   const settingsFab = <SettingsPanel corner="bottom-left" triggerClassName="settings-fab--player" />;
+  // Shown mid-game whenever this phone's own connection drops (joined players only).
+  const connectionBanner = me ? <PlayerConnectionBanner connected={selfConnected} /> : null;
 
   if (phase === "join" && step === "pin") {
     return (
@@ -342,6 +362,7 @@ export default function PlayScreen() {
     return (
       <>
         {settingsFab}
+        {connectionBanner}
         <HostStatusBanner connected={hostConnected} forPlayer />
         <CenterCard>
           <PlayerReconnectBanner show={showReconnectBanner} />
@@ -353,6 +374,16 @@ export default function PlayScreen() {
               {me.team.name}
             </p>
           )}
+          {me?.quizTitle && (
+            <p className="mt-3 text-sm font-semibold text-muted landscapePhone:mt-2">
+              🎬 {me.quizTitle}
+            </p>
+          )}
+          {players.length > 0 && (
+            <p className="mt-1 text-sm text-muted landscapePhone:text-xs">
+              {copy.player.lobbyCrowd(players.length)}
+            </p>
+          )}
           <p className="mt-6 text-muted animate-pulse landscapePhone:mt-3 landscapePhone:text-sm">{copy.player.lobbyWait}</p>
         </CenterCard>
       </>
@@ -362,6 +393,7 @@ export default function PlayScreen() {
     return (
       <>
         {settingsFab}
+        {connectionBanner}
         <HostStatusBanner connected={hostConnected} forPlayer />
         <Countdown countdown={countdown} />
       </>
@@ -371,6 +403,7 @@ export default function PlayScreen() {
     return (
       <>
         {settingsFab}
+        {connectionBanner}
         <HostStatusBanner connected={hostConnected} forPlayer />
         <DoublePointsWarning warning={doubleWarning} />
       </>
@@ -380,6 +413,7 @@ export default function PlayScreen() {
     return (
       <>
         {settingsFab}
+        {connectionBanner}
         <HostStatusBanner connected={hostConnected} forPlayer />
         <QuestionCard
           q={question}
@@ -394,6 +428,7 @@ export default function PlayScreen() {
     return (
       <>
         {settingsFab}
+        {connectionBanner}
         <HostStatusBanner connected={hostConnected} forPlayer />
         <PostAnswerWaiting
           me={me}
@@ -409,7 +444,8 @@ export default function PlayScreen() {
     return (
       <>
         {settingsFab}
-        <ResultCard result={result} q={question} />
+        {connectionBanner}
+        <ResultCard result={result} q={question} reveal={reveal} />
       </>
     );
   }
@@ -417,6 +453,7 @@ export default function PlayScreen() {
     return (
       <>
         {settingsFab}
+        {connectionBanner}
         <StandingsCard standings={standings} meId={me?.id ?? me?.pid ?? joinInfoRef.current?.pid} />
       </>
     );
@@ -475,8 +512,8 @@ function JoinPin({ pin, setPin, goProfile, error }) {
         <input
           className="alkheelank-input pin-display"
           inputMode="numeric"
-          maxLength={6}
-          value={pin}
+          maxLength={7}
+          value={formatPinInput(pin)}
           onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
           autoFocus
         />
@@ -565,18 +602,31 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
   );
 }
 
-function ResultCard({ result, q }) {
+function ResultCard({ result, q, reveal }) {
   const title = result?.correct
     ? copy.player.result.correct
     : result?.answered
     ? copy.player.result.wrong
     : copy.player.result.timeout;
+  // Show the right answer to anyone who missed it. The reveal broadcast carries
+  // the correct index (only sent after the question closes, so no spoilers).
+  const correctAnswer =
+    !result?.correct && reveal?.index === q?.index && reveal?.correctIndex != null
+      ? q?.answers?.[reveal.correctIndex]?.text
+      : null;
+  const correctStyle = correctAnswer != null ? tileStyle(q?.type, reveal.correctIndex) : null;
   return (
     <CenterCard>
       <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{title}</h2>
       <p className="mt-2 text-2xl font-bold landscapePhone:mt-1 landscapePhone:text-xl">
         {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
       </p>
+      {correctAnswer && (
+        <p className="mt-3 rounded-xl bg-ink-700/60 px-3 py-2 text-sm font-semibold text-paper ring-1 ring-white/10 landscapePhone:mt-2">
+          <span className="text-muted">{copy.player.result.correctWas}: </span>
+          <span style={{ color: correctStyle.color }}>{correctStyle.glyph}</span> {correctAnswer}
+        </p>
+      )}
       <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">
         {playerRankLine(result?.rank, result?.totalPlayers)} ·{" "}
         {(result?.totalScore ?? 0).toLocaleString()} pts total

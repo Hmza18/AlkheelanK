@@ -6,6 +6,7 @@ import { createQuiz, updateQuiz } from "../lib/db.js";
 import Dashboard from "./Dashboard.jsx";
 import QuizEditor from "./QuizEditor.jsx";
 import HostGame from "./HostGame.jsx";
+import ConfirmModal from "../components/ConfirmModal.jsx";
 import { clearHostSession, loadHostSession } from "../lib/hostSession.js";
 
 // Auth-gated host orchestrator. Switches between the dashboard, the quiz editor,
@@ -15,11 +16,10 @@ export default function Host() {
   const [params] = useSearchParams();
   const [guest] = useState(params.get("guest") === "1");
   const [editing, setEditing] = useState(null); // saved quiz being edited, or null
-  const [launch, setLaunch] = useState(() => {
-    const saved = loadHostSession();
-    return saved ? { reconnect: true } : null;
-  });
-  const [view, setView] = useState(() => (loadHostSession() ? "game" : "dashboard"));
+  const [launch, setLaunch] = useState(null);
+  // A saved host session means a game may still be live — ask before resuming
+  // instead of silently dropping the host back into it.
+  const [view, setView] = useState(() => (loadHostSession() ? "resume-prompt" : "dashboard"));
 
   // Guests are allowed without an account; if Supabase isn't configured we
   // auto-fall into guest mode so the app still works end to end.
@@ -83,6 +83,22 @@ export default function Host() {
 
   return (
     <div className="min-h-screen px-6 py-6">
+      {view === "resume-prompt" && (
+        <ConfirmModal
+          title="Resume your game?"
+          message="You have a game in progress from before. Pick it back up, or start fresh from the dashboard."
+          confirmLabel="Resume game"
+          cancelLabel="Start fresh"
+          onConfirm={() => {
+            setLaunch({ reconnect: true });
+            setView("game");
+          }}
+          onCancel={() => {
+            clearHostSession();
+            setView("dashboard");
+          }}
+        />
+      )}
       <Dashboard
         guest={guest && !user}
         onNew={() => {
@@ -98,9 +114,12 @@ export default function Host() {
           setLaunch({ quiz: { title: quiz.title, questions: quiz.questions } });
           setView("game");
         }}
-        onLaunchBuiltin={(quizId) => {
+        onLaunchBuiltin={(quiz) => {
           clearHostSession();
-          setLaunch({ quizId });
+          setLaunch({
+            quizId: quiz.id,
+            quizMeta: { title: quiz.title, questionCount: quiz.questionCount },
+          });
           setView("game");
         }}
       />

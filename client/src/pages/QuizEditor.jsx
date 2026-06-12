@@ -63,6 +63,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   const [aiAvailable, setAiAvailable] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
+  const [launchWarnOpen, setLaunchWarnOpen] = useState(false);
   const savedSnapshotRef = useRef(
     serializeQuiz(initial?.title || "", initial?.questions?.length ? initial.questions : [blankQuestion()])
   );
@@ -109,6 +110,20 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   };
   const removeQuestion = (i) =>
     setQuestions((qs) => (qs.length > 1 ? qs.filter((_, idx) => idx !== i) : qs));
+  const duplicateQuestion = (i) =>
+    setQuestions((qs) => {
+      if (qs.length >= MAX_QUESTIONS) return qs;
+      const copy = { ...qs[i], answers: [...(qs[i].answers || [])] };
+      return [...qs.slice(0, i + 1), copy, ...qs.slice(i + 1)];
+    });
+  const moveQuestion = (i, dir) =>
+    setQuestions((qs) => {
+      const j = i + dir;
+      if (j < 0 || j >= qs.length) return qs;
+      const next = [...qs];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
   const addFromBank = (q) => setQuestions((qs) => [...qs, { ...q }]);
 
   const ready =
@@ -153,6 +168,12 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
 
   const handleLaunch = () => {
     if (!ready) { setError("Add a title and fill in every question + answer."); return; }
+    // The game uses the edits either way — but warn account holders that the
+    // latest changes aren't saved to their library yet.
+    if (canSave && isDirty) {
+      setLaunchWarnOpen(true);
+      return;
+    }
     onLaunch(payload());
   };
 
@@ -190,10 +211,15 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
             index={i}
             q={q}
             canRemove={questions.length > 1}
+            canDuplicate={!atQuestionCap}
+            canMoveUp={i > 0}
+            canMoveDown={i < questions.length - 1}
             userId={userId}
             onChange={(patch) => update(i, patch)}
             onAnswer={(ai, v) => updateAnswer(i, ai, v)}
             onRemove={() => removeQuestion(i)}
+            onDuplicate={() => duplicateQuestion(i)}
+            onMove={(dir) => moveQuestion(i, dir)}
           />
         ))}
       </div>
@@ -262,6 +288,20 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         />
       )}
 
+      {launchWarnOpen && (
+        <ConfirmModal
+          title="Launch without saving?"
+          message="The game will use your latest edits, but they aren't saved to your account yet."
+          confirmLabel="Launch anyway"
+          cancelLabel="Keep editing"
+          onConfirm={() => {
+            setLaunchWarnOpen(false);
+            onLaunch(payload());
+          }}
+          onCancel={() => setLaunchWarnOpen(false)}
+        />
+      )}
+
       {discardOpen && (
         <ConfirmModal
           title="Discard unsaved changes?"
@@ -323,7 +363,20 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
 // ---------------------------------------------------------------------------
 // Question editor card
 // ---------------------------------------------------------------------------
-function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRemove }) {
+function QuestionEditor({
+  index,
+  q,
+  canRemove,
+  canDuplicate,
+  canMoveUp,
+  canMoveDown,
+  userId,
+  onChange,
+  onAnswer,
+  onRemove,
+  onDuplicate,
+  onMove,
+}) {
   const [bankSaved, setBankSaved] = useState(false);
   const [bankError, setBankError] = useState(null);
   const [pendingType, setPendingType] = useState(null);
@@ -369,6 +422,37 @@ function QuestionEditor({ index, q, canRemove, userId, onChange, onAnswer, onRem
       <div className="flex items-center justify-between">
         <span className="font-display text-lg font-bold text-muted">Q{index + 1}</span>
         <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-lg bg-ink-800 ring-1 ring-white/10">
+            <button
+              type="button"
+              onClick={() => onMove(-1)}
+              disabled={!canMoveUp}
+              title="Move question up"
+              aria-label={`Move question ${index + 1} up`}
+              className="min-h-touch rounded-l-lg px-2.5 py-2 text-sm font-bold text-muted hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              onClick={() => onMove(1)}
+              disabled={!canMoveDown}
+              title="Move question down"
+              aria-label={`Move question ${index + 1} down`}
+              className="min-h-touch rounded-r-lg px-2.5 py-2 text-sm font-bold text-muted hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              ↓
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={onDuplicate}
+            disabled={!canDuplicate}
+            title={canDuplicate ? "Duplicate this question" : `Quiz is at the ${MAX_QUESTIONS}-question limit`}
+            className="min-h-touch rounded-lg px-3 py-2 text-sm font-bold text-muted hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            ⧉ Duplicate
+          </button>
           {userId && q.question.trim() && (
             <button
               type="button"
@@ -553,11 +637,18 @@ const AI_AUDIENCES = [
   { id: "general", label: "🎯 Adults" },
   { id: "hard", label: "🔥 Hard" },
 ];
+// null = let the model match the topic's language.
+const AI_LANGUAGES = [
+  { id: null, label: "🌐 Auto" },
+  { id: "English", label: "English" },
+  { id: "Arabic", label: "العربية" },
+];
 
 function AiGeneratePanel({ onGenerated, onClose }) {
   const [topic, setTopic] = useState("");
   const [count, setCount] = useState(5);
   const [audience, setAudience] = useState("family");
+  const [language, setLanguage] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
 
@@ -569,7 +660,7 @@ function AiGeneratePanel({ onGenerated, onClose }) {
       const res = await fetch(`${SERVER_URL}/generate-quiz`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: topic.trim(), count, audience }),
+        body: JSON.stringify({ topic: topic.trim(), count, audience, language }),
       });
       const body = await res.json().catch(() => null);
       if (!res.ok) {
@@ -644,6 +735,23 @@ function AiGeneratePanel({ onGenerated, onClose }) {
               }`}
             >
               {a.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-muted">Language:</span>
+          {AI_LANGUAGES.map((l) => (
+            <button
+              key={l.label}
+              type="button"
+              disabled={busy}
+              onClick={() => setLanguage(l.id)}
+              className={`min-h-touch rounded-xl px-3 py-2 text-sm font-bold transition ${
+                language === l.id ? "bg-brand-mid text-paper" : "bg-ink-700 text-muted hover:text-paper"
+              }`}
+            >
+              {l.label}
             </button>
           ))}
         </div>

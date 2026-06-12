@@ -28,14 +28,14 @@ export default function QuestionScreen({
   className = "",
 }) {
   const tfClass = questionType === "tf" ? "question-screen--tf" : "";
-  const noImageClass = image ? "" : " question-screen--no-image";
+  const imageClass = image ? " question-screen--with-image" : " question-screen--no-image";
   const hasStageContent = !!(image || timer || stageInfo);
   const reduced = useReducedMotion();
   const delay = (d) => (reduced ? 0 : d);
   const rootClass =
     variant === "host"
-      ? `question-screen question-screen--host host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}${noImageClass}`
-      : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}${noImageClass}`;
+      ? `question-screen question-screen--host host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}${imageClass}`
+      : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}${imageClass}`;
 
   // Kahoot-order entrance: prompt → image → tiles (in AnswerTile) → timer.
   const ImageEl = animateImage ? motion.img : "img";

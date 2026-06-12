@@ -1923,17 +1923,9 @@ button:focus-visible {
   font-weight: 700;
 }
 
-/* Circular badge that fully frames the avatar so its ears/hats sit inside the
-   ring instead of being crossed/clipped by a tight round outline. */
+/* Let ears/hats extend past the chip edge — no dark backing circle (that read as a black blob). */
 .pregame-player-chip__avatar {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 9999px;
-  background: rgba(26, 24, 20, 0.55);
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.22);
+  overflow: visible;
 }
 
 .pregame-player-chip__team {

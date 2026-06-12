@@ -4,7 +4,7 @@ import { fadeUp, spring } from "../lib/motion.js";
 /**
  * Kahoot-style question layout:
  *   top   — countdown strip, question bar
- *   stage — large photo (center)
+ *   stage — large photo (center, intrinsic in phone landscape)
  *   dock  — full-width answer grid (2×2, or 1×2 for true/false)
  */
 export default function QuestionScreen({

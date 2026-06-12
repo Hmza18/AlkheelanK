@@ -926,7 +926,7 @@ button:focus-visible {
   /* Host landscape — vertical stack (meta → prompt → image → answers).
      Image gets flex:1 so it fills all space between prompt and the compact answer row. */
   .question-screen--host {
-    --qs-dock-h: clamp(5rem, 26dvh, 7rem);
+    --qs-dock-h: clamp(4.25rem, 23dvh, 6.5rem);
     height: 100dvh;
     max-height: 100dvh;
     overflow: hidden;
@@ -983,8 +983,8 @@ button:focus-visible {
   .question-screen--host .question-screen__stage {
     flex: 1 1 auto;
     min-height: 0;
-    max-height: min(100%, calc(100dvh - var(--qs-dock-h) - 4rem));
-    margin-top: 0;
+    max-height: min(100%, calc(100dvh - var(--qs-dock-h) - 3.5rem));
+    margin-top: 0.25rem;
     overflow: hidden;
   }
 
@@ -1165,13 +1165,14 @@ button:focus-visible {
     inset: 0;
     z-index: 1;
     display: grid;
-    grid-template-rows: 4px auto minmax(0, 1fr) clamp(5rem, 28svh, 8rem);
+    grid-template-rows: 4px auto minmax(0, 1fr) clamp(4.25rem, 24svh, 7rem);
     grid-template-columns: 1fr;
     grid-template-areas:
       "timer"
       "prompt"
       "stage"
       "dock";
+    row-gap: 0.3rem;
     width: 100%;
     height: 100svh;
     max-height: 100svh;
@@ -1342,8 +1343,9 @@ button:focus-visible {
 /* iPhone SE / very short phone landscape — tighter rows, smaller dock */
 @media (orientation: landscape) and (max-height: 23.5rem) {
   .question-screen--kahoot.question-screen--player {
-    grid-template-rows: 4px auto minmax(0, 1fr) clamp(4.5rem, 26svh, 7rem);
+    grid-template-rows: 4px auto minmax(0, 1fr) clamp(4rem, 24svh, 6.5rem);
     grid-template-columns: 1fr;
+    row-gap: 0.2rem;
   }
 
   .question-screen--kahoot .question-screen__prompt {

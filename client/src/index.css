@@ -1360,6 +1360,242 @@ button:focus-visible {
   }
 }
 
+/* Mobile phones in landscape: keep every quiz photo large, uncropped and free of
+   forced frame sizing while preserving a no-scroll answer dock at 844x390. */
+@media (max-width: 932px) and (orientation: landscape) {
+  .question-screen {
+    --qs-pad-top: max(0.1875rem, env(safe-area-inset-top, 0px));
+    --qs-pad-bottom: max(0.1875rem, env(safe-area-inset-bottom, 0px));
+    --qs-pad-x: max(0.25rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    --qs-dock-h: clamp(4.25rem, 24vh, 5.75rem);
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: var(--qs-pad-top) var(--qs-pad-x) var(--qs-pad-bottom);
+    overflow: hidden;
+  }
+
+  .question-screen__body {
+    min-height: 0;
+    gap: 0.125rem;
+    overflow: hidden;
+  }
+
+  .question-screen--host .question-screen__body {
+    flex: 1 1 auto;
+    gap: 0.125rem;
+  }
+
+  .question-screen--kahoot.question-screen--player {
+    grid-template-rows: 4px auto minmax(0, 1fr) clamp(4.25rem, 24vh, 5.75rem);
+    row-gap: 0.125rem;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 0;
+  }
+
+  .question-screen--kahoot .question-screen__body {
+    display: contents;
+  }
+
+  .question-progress {
+    margin-top: 0.0625rem;
+  }
+
+  .host-meta {
+    gap: 0.25rem;
+  }
+
+  .host-meta__index,
+  .host-meta__answered {
+    padding: 0.1rem 0.4rem;
+  }
+
+  .host-meta__index-now {
+    font-size: 0.75rem;
+  }
+
+  .host-meta__answered {
+    font-size: 0.625rem;
+  }
+
+  .host-answer-progress {
+    margin-top: 0.0625rem;
+    height: 2px;
+  }
+
+  .question-screen__prompt,
+  .question-screen--host .question-screen__prompt,
+  .question-screen--kahoot .question-screen__prompt {
+    margin-top: 0;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    font-size: clamp(0.875rem, 3.6vh, 1.125rem);
+    line-height: 1.14;
+    -webkit-line-clamp: 2;
+  }
+
+  .question-screen--kahoot .question-screen__prompt {
+    padding:
+      max(0.25rem, env(safe-area-inset-top, 0px))
+      max(0.5rem, env(safe-area-inset-right, 0px))
+      0.25rem
+      max(0.5rem, env(safe-area-inset-left, 0px));
+    border-radius: 0;
+  }
+
+  .question-screen__stage,
+  .question-screen--host .question-screen__stage,
+  .question-screen--kahoot .question-screen__stage {
+    flex: 1 1 auto;
+    align-self: stretch;
+    min-height: 0;
+    max-height: none;
+    margin-top: 0.0625rem;
+    padding: 0;
+    gap: clamp(0.25rem, 1.6vw, 0.5rem);
+    overflow: visible;
+  }
+
+  .question-screen--kahoot .question-screen__stage {
+    padding:
+      0.0625rem
+      max(0.25rem, env(safe-area-inset-right, 0px))
+      0
+      max(0.25rem, env(safe-area-inset-left, 0px));
+  }
+
+  .question-screen--host .question-screen__stage-side {
+    display: flex;
+    flex: 0 0 clamp(2rem, 7vw, 3rem);
+    max-width: clamp(2rem, 7vw, 3rem);
+  }
+
+  .question-screen--host .question-screen__stage-info {
+    display: none;
+  }
+
+  .question-screen__media,
+  .question-screen__media-frame,
+  .question-screen--host .question-screen__media,
+  .question-screen--host .question-screen__media-frame,
+  .question-screen--kahoot .question-screen__media,
+  .question-screen--kahoot .question-screen__media-frame {
+    flex: 1 1 auto;
+    align-self: center;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: 35vh;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .question-screen__media-frame::before,
+  .question-screen--kahoot .question-screen__media-frame::before {
+    display: none;
+  }
+
+  .question-screen__img,
+  .question-screen--host .question-screen__img,
+  .question-screen--kahoot .question-screen__img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 35vh;
+    object-fit: contain;
+    margin-inline: auto;
+    border-radius: 0.625rem;
+    box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.7);
+    outline: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .question-screen__dock,
+  .question-screen--host .question-screen__dock {
+    flex: 0 0 var(--qs-dock-h);
+    height: var(--qs-dock-h);
+    max-height: var(--qs-dock-h);
+    margin-top: 0.125rem;
+    padding: 0;
+  }
+
+  .question-screen--kahoot .question-screen__dock {
+    height: 100%;
+    max-height: 100%;
+    margin: 0;
+    padding:
+      0.125rem
+      max(0.25rem, env(safe-area-inset-right, 0px))
+      max(0.125rem, env(safe-area-inset-bottom, 0px))
+      max(0.25rem, env(safe-area-inset-left, 0px));
+  }
+
+  .question-screen__answers,
+  .question-screen--host .question-screen__answers,
+  .question-screen--kahoot .question-screen__answers {
+    height: 100%;
+    max-height: 100%;
+    gap: 0.25rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .question-screen--tf .question-screen__answers {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .question-screen__answers .answer-tile {
+    min-height: 0 !important;
+    max-height: 100% !important;
+    height: 100% !important;
+    padding: 0.25rem 0.4375rem !important;
+    gap: 0.25rem !important;
+    border-radius: 0.5rem !important;
+    font-size: clamp(0.6875rem, 2.25vh, 0.8125rem) !important;
+    line-height: 1.12 !important;
+    overflow: hidden !important;
+    box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.24) !important;
+  }
+
+  .question-screen__answers .answer-tile--kahoot {
+    grid-template-columns: minmax(2rem, 20%) 1fr;
+    padding: 0 !important;
+  }
+
+  .question-screen__answers .answer-tile__rail {
+    min-height: 0;
+  }
+
+  .question-screen__answers .answer-tile__icon {
+    width: 1rem !important;
+    height: 1rem !important;
+    font-size: 0.9375rem !important;
+  }
+
+  .question-screen__answers .answer-tile__icon svg {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+
+  .question-screen__answers .answer-tile__label,
+  .question-screen__answers .answer-tile--kahoot .answer-tile__label {
+    padding: 0.1875rem 0.3125rem;
+    font-size: clamp(0.6875rem, 2.25vh, 0.8125rem) !important;
+    line-height: 1.12 !important;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .question-screen__answers .answer-tile__label--tf {
+    font-size: clamp(0.75rem, 2.5vh, 0.875rem) !important;
+    -webkit-line-clamp: 1;
+  }
+}
+
 @keyframes alkheelank-wait-shimmer {
   0% {
     background-position: 200% 0;

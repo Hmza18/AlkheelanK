@@ -33,6 +33,7 @@ export default function QuestionScreen({
     variant === "host"
       ? `question-screen question-screen--host host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}`
       : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}`;
+  const mediaStateClass = image ? "question-screen--with-image" : "question-screen--without-image";
 
   const ImageEl = animateImage && !isPlayer ? motion.img : "img";
   const imageProps =
@@ -56,7 +57,7 @@ export default function QuestionScreen({
       : {};
 
   return (
-    <div className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
+    <div className={`${rootClass} ${mediaStateClass} ${className}`.trim()} data-question-key={questionKey}>
       {timerStrip}
       <div className="question-screen__body">
         {header ? <div className="question-screen__header">{header}</div> : null}

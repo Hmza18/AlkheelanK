@@ -584,6 +584,37 @@ button:focus-visible {
   grid-template-rows: minmax(3rem, auto);
 }
 
+/* No-photo player layout: the question keeps its natural height at the top and
+   the answer dock takes over all the leftover space, so the choices grow to
+   fill the gap a missing photo would otherwise leave. */
+.question-screen--player.question-screen--no-image {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.question-screen--player.question-screen--no-image .question-screen__answers {
+  height: 100%;
+  align-content: stretch;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.question-screen--player.question-screen--no-image.question-screen--tf .question-screen__answers {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.question-screen--player.question-screen--no-image .question-screen__answers > * {
+  display: flex;
+  min-height: 0;
+}
+
+.question-screen--player.question-screen--no-image .answer-tile {
+  flex: 1 1 auto;
+  height: 100%;
+}
+
+.question-screen--player.question-screen--no-image .answer-tile__label {
+  font-size: clamp(1rem, 3.6vw, 1.25rem);
+}
+
 .question-screen__timer-compact {
   display: none;
 }
@@ -1266,7 +1297,9 @@ button:focus-visible {
   }
 
   .question-screen--kahoot.question-screen--no-image.question-screen--player {
-    grid-template-rows: 4px auto clamp(4.25rem, 24svh, 7rem);
+    /* No photo: let the answer dock absorb the freed-up space so the tiles grow
+       to fill the gap instead of leaving an empty band under the question. */
+    grid-template-rows: 4px auto minmax(0, 1fr);
     grid-template-areas:
       "timer"
       "prompt"
@@ -1331,7 +1364,7 @@ button:focus-visible {
   }
 
   .question-screen--kahoot.question-screen--no-image.question-screen--player {
-    grid-template-rows: 4px auto clamp(4rem, 24svh, 6.5rem);
+    grid-template-rows: 4px auto minmax(0, 1fr);
     grid-template-areas:
       "timer"
       "prompt"

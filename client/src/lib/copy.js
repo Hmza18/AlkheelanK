@@ -29,6 +29,10 @@ export const copy = {
     lockedJoin: "The host locked the room. Ask them to unlock it so you can join.",
     kicked: "The host removed you from the lobby.",
   },
+  countdown: {
+    label: "Get ready",
+    go: "GO!",
+  },
   host: {
     recovered: "You're back — room restored.",
     playersBack: "Host is back on deck.",

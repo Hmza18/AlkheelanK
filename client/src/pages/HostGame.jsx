@@ -21,13 +21,16 @@ import LobbyView from "../components/host/LobbyView.jsx";
 import { HostRecoveredBanner, HostStatusBanner } from "../components/ConnectionBanner.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import DoublePointsWarning from "../components/DoublePointsWarning.jsx";
+import Countdown from "../components/Countdown.jsx";
 import { copy } from "../lib/copy.js";
+import { questionIntro } from "../lib/motion.js";
 import { saveHostSession, loadHostSession, clearHostSession } from "../lib/hostSession.js";
 import { tileStyle } from "../lib/answers.js";
 
 function statusToPhase(status, state) {
   const map = {
     lobby: "lobby",
+    countdown: "countdown",
     question: "question",
     "double-warning": "double-warning",
     reveal: "reveal",
@@ -71,6 +74,7 @@ export default function HostGame({ launch, onExit }) {
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [doubleWarning, setDoubleWarning] = useState(null);
+  const [countdown, setCountdown] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
   const [lobbyLocked, setLobbyLocked] = useState(false);
   const loggedRef = useRef(false);
@@ -150,6 +154,7 @@ export default function HostGame({ launch, onExit }) {
       if (state.final) setFinal(state.final);
       if (state.doubleWarning) setDoubleWarning(state.doubleWarning);
       else if (state.status !== "double-warning") setDoubleWarning(null);
+      if (state.countdown) setCountdown(state.countdown);
       setLobbyLocked(!!state.lobbyLocked);
       setHostConnected(true);
       wasHostDisconnectRef.current = false;
@@ -164,6 +169,13 @@ export default function HostGame({ launch, onExit }) {
       setReveal(null);
       setStandings(null);
       setPhase("double-warning");
+      sfx.moment();
+    };
+    const onCountdown = (c) => {
+      setCountdown(c);
+      setReveal(null);
+      setStandings(null);
+      setPhase("countdown");
     };
     const onQuestion = (q) => {
       setQuestion(q);
@@ -232,6 +244,7 @@ export default function HostGame({ launch, onExit }) {
     socket.on("host:created", onCreated);
     socket.on("host:state", onState);
     socket.on("game:players", onPlayers);
+    socket.on("game:countdown", onCountdown);
     socket.on("game:doublePointsWarning", onDoublePointsWarning);
     socket.on("game:question", onQuestion);
     socket.on("host:questionImage", onQuestionImage);
@@ -252,6 +265,7 @@ export default function HostGame({ launch, onExit }) {
       socket.off("host:created", onCreated);
       socket.off("host:state", onState);
       socket.off("game:players", onPlayers);
+      socket.off("game:countdown", onCountdown);
       socket.off("game:doublePointsWarning", onDoublePointsWarning);
       socket.off("game:question", onQuestion);
       socket.off("host:questionImage", onQuestionImage);
@@ -310,6 +324,7 @@ export default function HostGame({ launch, onExit }) {
           if (state.standings) setStandings(state.standings);
           if (state.final) setFinal(state.final);
           if (state.doubleWarning) setDoubleWarning(state.doubleWarning);
+          if (state.countdown) setCountdown(state.countdown);
           setLobbyLocked(!!state.lobbyLocked);
           setPhase(statusToPhase(state.status, state));
           setCreatingRoom(false);
@@ -392,6 +407,7 @@ export default function HostGame({ launch, onExit }) {
             error={hostError}
           />
         )}
+        {phase === "countdown" && <Countdown countdown={countdown} variant="host" />}
         {phase === "double-warning" && (
           <DoublePointsWarning warning={doubleWarning} variant="host" />
         )}
@@ -568,9 +584,26 @@ function QuestionView({ question, image, answerCount, paused }) {
           </div>
         </>
       }
-      timerStrip={<TimerStrip timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} />}
+      timerStrip={
+        <TimerStrip
+          timeLimit={question.timeLimit}
+          startedAt={question.startedAt}
+          paused={paused}
+          introDelay={questionIntro.timer}
+        />
+      }
       answers={question.answers.map((a, i) => (
-        <AnswerTile key={i} index={i} type={question.type} text={a.text} disabled big compact staggerIndex={i} />
+        <AnswerTile
+          key={i}
+          index={i}
+          type={question.type}
+          text={a.text}
+          disabled
+          big
+          compact
+          staggerIndex={i}
+          entranceDelay={questionIntro.tiles}
+        />
       ))}
       notice={
         paused ? (

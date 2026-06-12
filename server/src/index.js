@@ -45,6 +45,13 @@ const corsOrigin =
 const SEND_IMAGE_TO_PLAYERS = true;
 const DOUBLE_POINTS_WARNING_MS = 2200;
 
+// Synced 3-2-1-GO! on every screen between "Let's play" and the first question.
+const COUNTDOWN_MS = 3200;
+// Hold the question clock while clients play the entrance choreography
+// (prompt → image → tiles → timer). Keep in sync with `questionIntro` in
+// client/src/lib/motion.js.
+const QUESTION_INTRO_MS = 900;
+
 // How long the game survives a host disconnect before we tear it down. Long
 // enough to cover a phone/laptop hiccup or a tab reload, short enough that a
 // genuinely-gone host doesn't strand players forever.
@@ -187,6 +194,18 @@ function buildDoublePointsWarning(game, nextIndex) {
   };
 }
 
+// Lobby → first question: broadcast a server-timed countdown, then advance.
+// Clients derive 3/2/1/GO locally from startedAt so all screens stay in step.
+function startCountdown(game) {
+  game.status = "countdown";
+  game.countdown = { startedAt: Date.now(), durationMs: COUNTDOWN_MS };
+  io.to(gameRoom(game.pin)).emit("game:countdown", game.countdown);
+  game.timer = setTimeout(() => {
+    game.countdown = null;
+    advance(game);
+  }, COUNTDOWN_MS);
+}
+
 function advance(game, { skipDoubleWarning = false } = {}) {
   if (game.timer) {
     clearTimeout(game.timer);
@@ -201,7 +220,7 @@ function advance(game, { skipDoubleWarning = false } = {}) {
     game.timer = setTimeout(() => advance(game, { skipDoubleWarning: true }), DOUBLE_POINTS_WARNING_MS);
     return;
   }
-  const q = GM.startNextQuestion(game);
+  const q = GM.startNextQuestion(game, QUESTION_INTRO_MS);
   if (!q) {
     const final = GM.buildFinal(game);
     game.lastFinal = final;
@@ -222,7 +241,7 @@ function advance(game, { skipDoubleWarning = false } = {}) {
   }
 
   emitAnswerCount(game);
-  game.timer = setTimeout(() => closeQuestion(game), q.timeLimit * 1000 + 250);
+  game.timer = setTimeout(() => closeQuestion(game), q.timeLimit * 1000 + QUESTION_INTRO_MS + 250);
 }
 
 // Re-sync a freshly (re)connected player socket to the current game phase.
@@ -257,6 +276,10 @@ function syncPlayer(game, socket) {
     }
     case "double-warning": {
       socket.emit("game:doublePointsWarning", buildDoublePointsWarning(game, game.currentIndex + 1));
+      break;
+    }
+    case "countdown": {
+      if (game.countdown) socket.emit("game:countdown", game.countdown);
       break;
     }
     case "ended": {
@@ -341,7 +364,7 @@ io.on("connection", (socket) => {
       socket.emit("host:error", { message: "Need at least one player to start." });
       return;
     }
-    advance(game);
+    startCountdown(game);
   });
 
   // Host closes a question early ("Skip to results").

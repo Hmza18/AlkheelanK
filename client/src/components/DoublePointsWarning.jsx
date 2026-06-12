@@ -16,9 +16,9 @@ export default function DoublePointsWarning({ warning, variant = "player" }) {
         className="alkheelank-card relative mx-auto w-full max-w-lg overflow-hidden p-8 landscapePhone:p-5"
       >
         <motion.div
-          initial={{ scale: 0.7, rotate: -8 }}
-          animate={{ scale: [0.9, 1.08, 1], rotate: [0, 2, 0] }}
-          transition={{ duration: 0.65, ease: "easeOut" }}
+          initial={{ scale: 0.4, rotate: -10 }}
+          animate={{ scale: [0.4, 1.18, 1], rotate: [-10, 4, 0] }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
           className="mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-brand-mid/25 text-6xl ring-2 ring-brand-mid landscapePhone:h-16 landscapePhone:w-16 landscapePhone:text-4xl"
         >
           ⚡

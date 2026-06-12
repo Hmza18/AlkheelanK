@@ -18,6 +18,8 @@ import QuestionScreen from "../components/QuestionScreen.jsx";
 import QuestionProgress from "../components/QuestionProgress.jsx";
 import ScrollHint from "../components/ScrollHint.jsx";
 import DoublePointsWarning from "../components/DoublePointsWarning.jsx";
+import Countdown from "../components/Countdown.jsx";
+import { questionIntro } from "../lib/motion.js";
 
 export default function PlayScreen() {
   const navigate = useNavigate();
@@ -35,6 +37,7 @@ export default function PlayScreen() {
   const [me, setMe] = useState(null);
   const [question, setQuestion] = useState(null);
   const [doubleWarning, setDoubleWarning] = useState(null);
+  const [countdown, setCountdown] = useState(null);
   const [selected, setSelected] = useState(null);
   const [waitContext, setWaitContext] = useState(null);
   const [result, setResult] = useState(null);
@@ -160,6 +163,15 @@ export default function PlayScreen() {
       setPhase("double-warning");
       sfx.confirm?.();
     };
+    const onCountdown = (c) => {
+      setCountdown(c);
+      setSelected(null);
+      setWaitContext(null);
+      setResult(null);
+      setStandings(null);
+      setPaused(false);
+      setPhase("countdown");
+    };
     const onLocked = (payload) => {
       setSelected(payload.answerIndex);
       setWaitContext(payload.waitContext ?? null);
@@ -211,6 +223,7 @@ export default function PlayScreen() {
     socket.on("player:error", onPlayerError);
     socket.on("player:kicked", onKicked);
     socket.on("game:question", onQuestion);
+    socket.on("game:countdown", onCountdown);
     socket.on("game:doublePointsWarning", onDoublePointsWarning);
     socket.on("player:answerLocked", onLocked);
     socket.on("player:result", onResult);
@@ -228,6 +241,7 @@ export default function PlayScreen() {
       socket.off("player:error", onPlayerError);
       socket.off("player:kicked", onKicked);
       socket.off("game:question", onQuestion);
+      socket.off("game:countdown", onCountdown);
       socket.off("game:doublePointsWarning", onDoublePointsWarning);
       socket.off("player:answerLocked", onLocked);
       socket.off("player:result", onResult);
@@ -341,6 +355,15 @@ export default function PlayScreen() {
           )}
           <p className="mt-6 text-muted animate-pulse landscapePhone:mt-3 landscapePhone:text-sm">{copy.player.lobbyWait}</p>
         </CenterCard>
+      </>
+    );
+  }
+  if (phase === "countdown") {
+    return (
+      <>
+        {settingsFab}
+        <HostStatusBanner connected={hostConnected} forPlayer />
+        <Countdown countdown={countdown} />
       </>
     );
   }
@@ -503,7 +526,14 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
       prompt={q?.question}
       image={q?.image}
       animateImage
-      timerStrip={<TimerStrip timeLimit={q?.timeLimit} startedAt={q?.startedAt} paused={paused} />}
+      timerStrip={
+        <TimerStrip
+          timeLimit={q?.timeLimit}
+          startedAt={q?.startedAt}
+          paused={paused}
+          introDelay={questionIntro.timer}
+        />
+      }
       answers={q?.answers?.map((a, i) => (
         <AnswerTile
           key={i}
@@ -513,6 +543,8 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
           onClick={() => onAnswer(i)}
           selected={selected === i}
           disabled={selected !== null || paused}
+          staggerIndex={i}
+          entranceDelay={questionIntro.tiles}
           kahoot
           compact
         />

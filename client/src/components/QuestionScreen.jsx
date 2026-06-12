@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeUp, spring } from "../lib/motion.js";
+import { motionSafe, questionIntro, spring, useReducedMotion } from "../lib/motion.js";
 
 /**
  * Kahoot-style question layout:
@@ -28,32 +28,34 @@ export default function QuestionScreen({
   className = "",
 }) {
   const tfClass = questionType === "tf" ? "question-screen--tf" : "";
-  const isPlayer = variant === "player";
+  const reduced = useReducedMotion();
+  const delay = (d) => (reduced ? 0 : d);
   const rootClass =
     variant === "host"
       ? `question-screen question-screen--host host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}`
       : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}`;
 
-  const ImageEl = animateImage && !isPlayer ? motion.img : "img";
-  const imageProps =
-    animateImage && !isPlayer
-      ? {
-          initial: { opacity: 0, scale: 0.94, y: 8 },
-          animate: { opacity: 1, scale: 1, y: 0 },
-          transition: { ...spring.soft, delay: 0.08 },
-        }
-      : {};
+  // Kahoot-order entrance: prompt → image → tiles (in AnswerTile) → timer.
+  const ImageEl = animateImage ? motion.img : "img";
+  const imageProps = animateImage
+    ? {
+        key: `img-${questionKey ?? image}`,
+        initial: { opacity: 0, scale: 0.94, y: 8 },
+        animate: { opacity: 1, scale: 1, y: 0 },
+        transition: { ...motionSafe(spring.soft, reduced), delay: delay(questionIntro.image) },
+      }
+    : {};
 
   const PromptMotion = PromptTag === "h1" ? motion.h1 : motion.h2;
-  const PromptEl = animatePrompt && !isPlayer ? PromptMotion : PromptTag;
-  const promptProps =
-    animatePrompt && !isPlayer
-      ? {
-          key: questionKey ?? prompt,
-          ...fadeUp,
-          transition: spring.soft,
-        }
-      : {};
+  const PromptEl = animatePrompt ? PromptMotion : PromptTag;
+  const promptProps = animatePrompt
+    ? {
+        key: questionKey ?? prompt,
+        initial: { opacity: 0, y: 18, scale: 0.96 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        transition: { ...motionSafe(spring.soft, reduced), delay: delay(questionIntro.prompt) },
+      }
+    : {};
 
   return (
     <div className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
@@ -67,7 +69,15 @@ export default function QuestionScreen({
         </PromptEl>
         <div className="question-screen__stage">
           {timer ? (
-            <div className="question-screen__stage-side question-screen__timer">{timer}</div>
+            <motion.div
+              key={`timer-${questionKey ?? "q"}`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ ...motionSafe(spring.soft, reduced), delay: delay(questionIntro.timer) }}
+              className="question-screen__stage-side question-screen__timer"
+            >
+              {timer}
+            </motion.div>
           ) : null}
           {image ? (
             <div className="question-screen__media">

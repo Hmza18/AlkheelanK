@@ -64,3 +64,17 @@ export const phaseTransition = {
 export function listStagger(index, base = stagger.normal, reduced = false) {
   return reduced ? 0 : index * base;
 }
+
+/**
+ * Kahoot-style question entrance choreography (delays in seconds):
+ * prompt → image → answer tiles → timer strip. The server holds the question
+ * clock for QUESTION_INTRO_MS (server/src/index.js) so the timer never counts
+ * down while screens are still animating in — keep the two in sync.
+ */
+export const questionIntro = {
+  prompt: 0,
+  image: 0.08,
+  tiles: 0.28,
+  tileStagger: 0.07,
+  timer: 0.62,
+};

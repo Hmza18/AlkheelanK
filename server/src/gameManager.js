@@ -185,6 +185,7 @@ export function createGame(hostSocketId, quiz, settings) {
     teams: resolveTeams(safeSettings),
     status: "lobby",
     lobbyLocked: false,
+    countdown: null, // { startedAt, durationMs } during the pre-game 3-2-1
     currentIndex: -1,
     players: new Map(),
     sockets: new Map(),
@@ -349,7 +350,9 @@ function snapshotRanks(game) {
   leaderboard(game).forEach((p) => map.set(p.id, p.rank));
   return map;
 }
-export function startNextQuestion(game) {
+// `introMs` shifts startedAt into the future so the timer only starts once the
+// clients' entrance choreography has finished.
+export function startNextQuestion(game, introMs = 0) {
   const next = game.currentIndex + 1;
   if (next >= game.quiz.questions.length) {
     game.status = "ended";
@@ -364,7 +367,7 @@ export function startNextQuestion(game) {
   for (const p of game.players.values()) p.answered = false;
   const q = currentQuestion(game);
   game.questionTimeLimit = q.timeLimit;
-  game.questionStartedAt = Date.now();
+  game.questionStartedAt = Date.now() + introMs;
   return q;
 }
 export function recordAnswer(game, socketId, answerIndex) {
@@ -375,7 +378,9 @@ export function recordAnswer(game, socketId, answerIndex) {
   if (game.answers.has(player.pid)) return { ignored: "already_answered" };
   const q = currentQuestion(game);
   if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex >= q.answers.length) return { ignored: "bad_index" };
-  const elapsedMs = Date.now() - game.questionStartedAt;
+  // Clamp: an answer during the entrance intro (startedAt in the future) counts
+  // as instant, never negative.
+  const elapsedMs = Math.max(0, Date.now() - game.questionStartedAt);
   if (elapsedMs > game.questionTimeLimit * 1000) return { ignored: "too_late" };
   const correct = answerIndex === q.correct;
   let base = 0;
@@ -671,6 +676,7 @@ export function buildHostState(game) {
     teams: game.teams,
     mode: game.settings.mode,
     answerCount: { answered: game.answers.size, total: connectedCount(game) },
+    countdown: game.status === "countdown" ? game.countdown : null,
     question: game.currentIndex >= 0 && hasActiveQuestion ? buildPublicQuestion(game, { includeImage: true }) : null,
     doubleWarning:
       game.status === "double-warning"

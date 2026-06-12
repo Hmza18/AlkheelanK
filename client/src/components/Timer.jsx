@@ -1,11 +1,20 @@
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { sfx } from "../lib/sound.js";
+import { useReducedMotion } from "../lib/motion.js";
+
+// `startedAt` can sit slightly in the future while the question entrance
+// choreography plays — clamp so the bar holds full instead of overshooting.
+const clampRemaining = (timeLimit, start) =>
+  Math.min(timeLimit, Math.max(0, timeLimit - (Date.now() - start) / 1000));
 
 /**
  * Thin linear countdown for phone — rendered into `question-screen__timer-strip`.
  * Same local countdown model as the circular Timer; the server stays authoritative.
+ * `introDelay` (seconds) fades the strip in last during the question entrance.
  */
-export function TimerStrip({ timeLimit, startedAt, paused = false }) {
+export function TimerStrip({ timeLimit, startedAt, paused = false, introDelay = 0 }) {
+  const reduced = useReducedMotion();
   const [remaining, setRemaining] = useState(timeLimit);
 
   useEffect(() => {
@@ -13,7 +22,7 @@ export function TimerStrip({ timeLimit, startedAt, paused = false }) {
     let raf;
     const start = startedAt || Date.now();
     const loop = () => {
-      const rem = Math.max(0, timeLimit - (Date.now() - start) / 1000);
+      const rem = clampRemaining(timeLimit, start);
       setRemaining(rem);
       if (rem > 0) raf = requestAnimationFrame(loop);
     };
@@ -36,13 +45,24 @@ export function TimerStrip({ timeLimit, startedAt, paused = false }) {
     .filter(Boolean)
     .join(" ");
 
+  // Animate the strip itself (opacity only) — it is a positioned grid item in
+  // some layouts, so a wrapper element would break placement.
+  const animated = introDelay > 0 && !reduced;
+
   return (
-    <div className={stripClass} role="timer" aria-label={`${seconds} seconds left`}>
+    <motion.div
+      className={stripClass}
+      role="timer"
+      aria-label={`${seconds} seconds left`}
+      initial={animated ? { opacity: 0 } : false}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, delay: animated ? introDelay : 0 }}
+    >
       <div className="question-screen__timer-strip__bar" style={{ width: `${pct * 100}%`, backgroundColor: color }} />
       <span className="question-screen__timer-strip__secs" aria-hidden>
         {paused ? "⏸" : seconds}
       </span>
-    </div>
+    </motion.div>
   );
 }
 
@@ -66,8 +86,7 @@ export default function Timer({ timeLimit, startedAt, sound = false, paused = fa
     const start = startedAt || Date.now();
 
     const loop = () => {
-      const elapsed = (Date.now() - start) / 1000;
-      const rem = Math.max(0, timeLimit - elapsed);
+      const rem = clampRemaining(timeLimit, start);
       setRemaining(rem);
 
       const whole = Math.ceil(rem);

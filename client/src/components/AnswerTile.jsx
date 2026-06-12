@@ -15,6 +15,7 @@ export default function AnswerTile({
   disabled = false,
   selected = false,
   staggerIndex = 0,
+  entranceDelay = null,
   kahoot = false,
   // reveal state (optional):
   revealed = false,
@@ -74,9 +75,14 @@ export default function AnswerTile({
     </>
   );
 
-  // Player taps: native button — no entrance motion (fixes iOS touch + backdrop-filter bugs).
+  // Choreographed entrance: optional base delay (after prompt + image) plus the
+  // per-tile ▲ ◆ ● ■ stagger.
+  const delay = reduced ? 0 : (entranceDelay ?? 0) + listStagger(staggerIndex, 0.07);
+
+  // Player taps: keep the native button (fixes iOS touch + backdrop-filter bugs)
+  // and animate a wrapper div for the entrance instead.
   if (interactive) {
-    return (
+    const button = (
       <button
         type="button"
         onClick={handleClick}
@@ -88,6 +94,17 @@ export default function AnswerTile({
         {inner}
       </button>
     );
+    if (entranceDelay == null || reduced) return button;
+    return (
+      <motion.div
+        className="min-h-0 min-w-0"
+        initial={{ opacity: 0, y: 14, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ ...spring.snappy, delay }}
+      >
+        {button}
+      </motion.div>
+    );
   }
 
   return (
@@ -96,7 +113,7 @@ export default function AnswerTile({
       disabled={disabled}
       initial={reduced ? false : { opacity: 0, y: 14, scale: 0.94 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ ...spring.snappy, delay: listStagger(staggerIndex, 0.07, reduced) }}
+      transition={{ ...spring.snappy, delay }}
       whileTap={disabled ? undefined : { scale: 0.96 }}
       className={className}
       style={{ "--tile-color": s.color, backgroundColor: "var(--tile-color)" }}

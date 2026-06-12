@@ -28,12 +28,14 @@ export default function QuestionScreen({
   className = "",
 }) {
   const tfClass = questionType === "tf" ? "question-screen--tf" : "";
+  const noImageClass = image ? "" : " question-screen--no-image";
+  const hasStageContent = !!(image || timer || stageInfo);
   const reduced = useReducedMotion();
   const delay = (d) => (reduced ? 0 : d);
   const rootClass =
     variant === "host"
-      ? `question-screen question-screen--host host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}`
-      : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}`;
+      ? `question-screen question-screen--host host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}${noImageClass}`
+      : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}${noImageClass}`;
 
   // Kahoot-order entrance: prompt → image → tiles (in AnswerTile) → timer.
   const ImageEl = animateImage ? motion.img : "img";
@@ -67,35 +69,31 @@ export default function QuestionScreen({
         <PromptEl className="question-screen__prompt" {...promptProps}>
           {prompt}
         </PromptEl>
-        <div className="question-screen__stage">
-          {timer ? (
-            <motion.div
-              key={`timer-${questionKey ?? "q"}`}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ ...motionSafe(spring.soft, reduced), delay: delay(questionIntro.timer) }}
-              className="question-screen__stage-side question-screen__timer"
-            >
-              {timer}
-            </motion.div>
-          ) : null}
-          {image ? (
-            <div className="question-screen__media">
-              <div className="question-screen__media-frame">
-                <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
+        {hasStageContent ? (
+          <div className="question-screen__stage">
+            {timer ? (
+              <motion.div
+                key={`timer-${questionKey ?? "q"}`}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ ...motionSafe(spring.soft, reduced), delay: delay(questionIntro.timer) }}
+                className="question-screen__stage-side question-screen__timer"
+              >
+                {timer}
+              </motion.div>
+            ) : null}
+            {image ? (
+              <div className="question-screen__media">
+                <div className="question-screen__media-frame">
+                  <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="question-screen__media question-screen__media--empty" aria-hidden>
-              <div className="question-screen__empty-stage">
-                <span className="question-screen__empty-glyph">?</span>
-              </div>
-            </div>
-          )}
-          {stageInfo ? (
-            <div className="question-screen__stage-side question-screen__stage-info">{stageInfo}</div>
-          ) : null}
-        </div>
+            ) : null}
+            {stageInfo ? (
+              <div className="question-screen__stage-side question-screen__stage-info">{stageInfo}</div>
+            ) : null}
+          </div>
+        ) : null}
         {notice}
       </div>
       <div className="question-screen__dock">

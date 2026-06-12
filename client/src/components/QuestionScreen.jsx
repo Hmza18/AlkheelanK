@@ -30,6 +30,7 @@ export default function QuestionScreen({
   const tfClass = questionType === "tf" ? "question-screen--tf" : "";
   const reduced = useReducedMotion();
   const delay = (d) => (reduced ? 0 : d);
+  const hasImage = Boolean(image);
   const rootClass =
     variant === "host"
       ? `question-screen question-screen--host host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}`
@@ -67,7 +68,7 @@ export default function QuestionScreen({
         <PromptEl className="question-screen__prompt" {...promptProps}>
           {prompt}
         </PromptEl>
-        <div className="question-screen__stage">
+        <div className="question-screen__stage" data-quiz-media={hasImage ? "image" : "empty"}>
           {timer ? (
             <motion.div
               key={`timer-${questionKey ?? "q"}`}
@@ -79,7 +80,7 @@ export default function QuestionScreen({
               {timer}
             </motion.div>
           ) : null}
-          {image ? (
+          {hasImage ? (
             <div className="question-screen__media">
               <div className="question-screen__media-frame">
                 <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />

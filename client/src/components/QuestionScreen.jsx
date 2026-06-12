@@ -71,7 +71,7 @@ export default function QuestionScreen({
           ) : null}
           {image ? (
             <div className="question-screen__media">
-              <div className="question-screen__media-frame">
+              <div className="question-screen__media-frame question-screen__media-frame--image">
                 <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
               </div>
             </div>

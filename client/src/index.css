@@ -1480,9 +1480,9 @@ button:focus-visible {
   .question-screen--host .question-screen__media-frame,
   .question-screen--kahoot .question-screen__media,
   .question-screen--kahoot .question-screen__media-frame {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     align-self: center;
-    width: auto;
+    width: 100%;
     max-width: 100%;
     height: auto;
     min-height: 0;

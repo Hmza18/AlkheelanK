@@ -2179,7 +2179,12 @@ button:focus-visible {
   .question-screen--host {
     --qs-landscape-dock-h: clamp(5rem, 25vh, 6.5rem);
     display: grid;
-    grid-template-rows: minmax(0, 1fr) var(--qs-landscape-dock-h);
+    grid-template-rows: 4px minmax(0, 1fr) var(--qs-landscape-dock-h);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "timer"
+      "body"
+      "dock";
     row-gap: var(--qs-landscape-gap);
     max-width: none;
   }
@@ -2193,6 +2198,7 @@ button:focus-visible {
 
   .question-screen__body,
   .question-screen--host .question-screen__body {
+    grid-area: body;
     min-height: 0;
     display: flex;
     flex-direction: column;

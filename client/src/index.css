@@ -1350,8 +1350,8 @@ button:focus-visible {
     --qs-pad-bottom: max(0.25rem, env(safe-area-inset-bottom, 0px));
     --qs-pad-x: max(0.375rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
     --qs-dock-h: clamp(3.85rem, 21vh, 5.1rem);
-    height: 100svh;
-    max-height: 100svh;
+    height: 100dvh;
+    max-height: 100dvh;
     padding: var(--qs-pad-top) var(--qs-pad-x) var(--qs-pad-bottom);
     overflow: hidden;
   }

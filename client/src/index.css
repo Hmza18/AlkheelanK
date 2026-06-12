@@ -1384,6 +1384,11 @@ button:focus-visible {
     background: transparent;
   }
 
+  .question-screen--host {
+    height: 100svh;
+    max-height: 100svh;
+  }
+
   .question-screen--kahoot.question-screen--player {
     grid-template-rows: 4px minmax(0, 1fr) var(--qs-landscape-answer-h);
     grid-template-columns: 1fr;
@@ -1511,6 +1516,7 @@ button:focus-visible {
     min-height: 0;
     max-height: none;
     gap: clamp(0.35rem, 1.4vw, 0.75rem);
+    overflow: visible;
   }
 
   .question-screen--kahoot .question-screen__stage {
@@ -1566,7 +1572,7 @@ button:focus-visible {
   }
 
   .question-screen--host .question-screen__media {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
   }
 
   .question-screen__media-frame::before {

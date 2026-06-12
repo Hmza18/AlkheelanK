@@ -1354,6 +1354,7 @@ button:focus-visible {
   }
 
   .question-screen--kahoot.question-screen--player {
+    --qs-dock-h: clamp(3.75rem, 21vh, 5.25rem);
     grid-template-rows: 3px auto minmax(0, 1fr) var(--qs-dock-h);
     row-gap: 0.1875rem;
     height: 100vh;

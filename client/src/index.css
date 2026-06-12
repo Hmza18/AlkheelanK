@@ -3032,9 +3032,12 @@ button:focus-visible {
     overflow: visible;
   }
 
-  .question-screen--host .question-screen__media,
-  .question-screen--host .question-screen__media-frame {
+  .question-screen--host .question-screen__media {
     max-width: calc(100% - 3.625rem);
+  }
+
+  .question-screen--host .question-screen__media-frame {
+    max-width: 100%;
   }
 
   .question-screen__media-frame::before,

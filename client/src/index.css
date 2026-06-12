@@ -2412,7 +2412,8 @@ button:focus-visible {
   gap: clamp(1.25rem, 4dvh, 2.25rem);
   width: 100%;
   max-width: 60rem;
-  padding-top: clamp(5rem, 14dvh, 8rem);
+  /* extra clearance so the status pill doesn't crowd the PIN/QR card above */
+  padding-top: clamp(7rem, 18dvh, 11rem);
 }
 
 .lobby-logo {
@@ -2637,7 +2638,7 @@ button:focus-visible {
 
   .lobby-center {
     gap: clamp(1rem, 3.6dvh, 1.75rem);
-    padding-top: clamp(5.2rem, 15dvh, 7.5rem);
+    padding-top: clamp(6.75rem, 17dvh, 9.5rem);
   }
 
   .lobby-logo {

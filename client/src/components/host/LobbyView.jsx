@@ -210,7 +210,7 @@ export default function LobbyView({
       </div>
 
       <div className="lobby-center">
-        <Logo size="sm" className="lobby-logo" />
+        <Logo size="sm" withText={false} className="lobby-logo" />
 
         <span className="lobby-status-pill">
           {lobbyLocked
@@ -241,7 +241,9 @@ export default function LobbyView({
                     transition={{ type: "spring", stiffness: 500, damping: 18 }}
                     className="pregame-player-chip"
                   >
-                    <Avatar config={p.character} size={36} ring />
+                    <span className="pregame-player-chip__avatar">
+                      <Avatar config={p.character} size={30} />
+                    </span>
                     {p.nick}
                     {mode === "teams" && p.team?.name && (
                       <span

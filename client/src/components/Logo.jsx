@@ -29,7 +29,7 @@ function Mark({ size = 44 }) {
   );
 }
 
-export default function Logo({ size = "md", withMark = true, className = "" }) {
+export default function Logo({ size = "md", withMark = true, withText = true, className = "" }) {
   const text =
     size === "lg"
       ? "text-6xl sm:text-7xl"
@@ -40,9 +40,11 @@ export default function Logo({ size = "md", withMark = true, className = "" }) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       {withMark && <Mark size={markSize} />}
-      <span className={`font-display font-bold tracking-tight alkheelank-gradient-text ${text}`}>
-        Alkheeloot
-      </span>
+      {withText && (
+        <span className={`font-display font-bold tracking-tight alkheelank-gradient-text ${text}`}>
+          Alkheeloot
+        </span>
+      )}
     </div>
   );
 }

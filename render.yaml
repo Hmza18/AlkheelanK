@@ -12,3 +12,5 @@ services:
     envVars:
       - key: CORS_ORIGIN
         value: https://www.alkheelan.xyz,https://alkheelan.xyz,https://alkheelan-k.vercel.app,http://localhost:5173,http://127.0.0.1:5173
+      - key: STARTER_IMAGES_BASE_URL
+        sync: false

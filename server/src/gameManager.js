@@ -662,6 +662,13 @@ export function buildFinal(game) {
     questionBreakdown: game.questionStats,
   };
 }
+
+/** Player-safe final — omits per-question answer keys (host-only breakdown). */
+export function buildPlayerFinal(game) {
+  const full = game.lastFinal ?? buildFinal(game);
+  const { questionBreakdown: _omit, ...rest } = full;
+  return rest;
+}
 export function buildHostState(game) {
   const hasActiveQuestion = ["question", "reveal", "standings"].includes(game.status);
   return {

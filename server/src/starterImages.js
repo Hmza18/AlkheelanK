@@ -1,4 +1,10 @@
-/** Topic emoji + label per question — rendered as inline SVG data URIs at runtime. */
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ASSETS_DIR = path.join(__dirname, "../assets/starter-images");
+const MANIFEST_PATH = path.join(ASSETS_DIR, "manifest.json");
 
 function svgDataUri(emoji, accent, label) {
   const safe = String(label || "")
@@ -29,70 +35,103 @@ const ACCENTS = {
   Family: "#ea580c",
 };
 
-/** @type {Record<string, { emoji: string, label: string }[]>} */
+/** @type {Record<string, { query: string, emoji: string, label: string }[]>} */
 export const QUESTION_ART = {
   "house-party": [
-    { emoji: "🔴", label: "Red Planet" },
-    { emoji: "⬡", label: "Hexagon" },
-    { emoji: "🧱", label: "Great Wall" },
-    { emoji: "🌊", label: "Pacific Ocean" },
-    { emoji: "🖼️", label: "Mona Lisa" },
-    { emoji: "🍯", label: "Honey" },
-    { emoji: "🗣️", label: "Languages" },
-    { emoji: "🌙", label: "Moon landing" },
-    { emoji: "🥇", label: "Gold" },
+    { query: "mars planet red space", emoji: "🔴", label: "Red Planet" },
+    { query: "hexagon shape geometry", emoji: "⬡", label: "Hexagon" },
+    { query: "great wall china landscape", emoji: "🧱", label: "Great Wall" },
+    { query: "pacific ocean waves", emoji: "🌊", label: "Pacific Ocean" },
+    { query: "mona lisa painting art", emoji: "🖼️", label: "Mona Lisa" },
+    { query: "honey jar golden", emoji: "🍯", label: "Honey" },
+    { query: "world globe international flags", emoji: "🗣️", label: "Languages" },
+    { query: "moon landing astronaut apollo", emoji: "🌙", label: "Moon landing" },
+    { query: "gold ingot bullion bars", emoji: "🥇", label: "Gold" },
   ],
   "movie-night": [
-    { emoji: "🎬", label: "Forrest Gump" },
-    { emoji: "💍", label: "The One Ring" },
-    { emoji: "🤠", label: "Toy Story" },
-    { emoji: "🦖", label: "Jurassic Park" },
-    { emoji: "💊", label: "The Matrix" },
+    { query: "running shoes park bench", emoji: "🎬", label: "Forrest Gump" },
+    { query: "golden ring jewelry", emoji: "💍", label: "The One Ring" },
+    { query: "wooden toy blocks children play", emoji: "🤠", label: "Toy Story" },
+    { query: "dinosaur skeleton museum", emoji: "🦖", label: "Jurassic Park" },
+    { query: "red pill blue pill capsules", emoji: "💊", label: "The Matrix" },
   ],
   "general-knowledge": [
-    { emoji: "⏰", label: "Minutes in a day" },
-    { emoji: "🌈", label: "Primary colours" },
-    { emoji: "📅", label: "Leap year" },
-    { emoji: "💎", label: "Diamond" },
-    { emoji: "🗺️", label: "Continents" },
-    { emoji: "🌿", label: "Plants & air" },
-    { emoji: "🔊", label: "Sound vs light" },
-    { emoji: "🛑", label: "Octagon" },
+    { query: "clock time 24 hours", emoji: "⏰", label: "Minutes in a day" },
+    { query: "rainbow primary colors light", emoji: "🌈", label: "Primary colours" },
+    { query: "calendar leap year february", emoji: "📅", label: "Leap year" },
+    { query: "diamond gemstone sparkle", emoji: "💎", label: "Diamond" },
+    { query: "world map continents", emoji: "🗺️", label: "Continents" },
+    { query: "green plant leaves nature", emoji: "🌿", label: "Plants & air" },
+    { query: "sound waves audio waveform", emoji: "🔊", label: "Sound vs light" },
+    { query: "stop sign octagon road", emoji: "🛑", label: "Octagon" },
   ],
   "kids-corner": [
-    { emoji: "🎨", label: "Mixing colours" },
-    { emoji: "🐄", label: "Farm animals" },
-    { emoji: "🕷️", label: "Spider legs" },
-    { emoji: "🐶", label: "Puppy" },
-    { emoji: "🦅", label: "Flying birds" },
-    { emoji: "⚽", label: "Round shapes" },
-    { emoji: "☀️", label: "Day & night" },
-    { emoji: "📆", label: "Days in a week" },
+    { query: "mixing paint blue yellow green", emoji: "🎨", label: "Mixing colours" },
+    { query: "cow farm animal pasture", emoji: "🐄", label: "Farm animals" },
+    { query: "spider insect web", emoji: "🕷️", label: "Spider legs" },
+    { query: "puppy dog cute", emoji: "🐶", label: "Puppy" },
+    { query: "eagle bird flying sky", emoji: "🦅", label: "Flying birds" },
+    { query: "soccer ball round sports", emoji: "⚽", label: "Round shapes" },
+    { query: "sun sunshine sky daytime", emoji: "☀️", label: "Day & night" },
+    { query: "calendar week days", emoji: "📆", label: "Days in a week" },
   ],
   "around-the-world": [
-    { emoji: "🇷🇺", label: "Largest country" },
-    { emoji: "🇦🇺", label: "Canberra" },
-    { emoji: "🏞️", label: "Nile River" },
-    { emoji: "🏔️", label: "Mount Everest" },
-    { emoji: "🧊", label: "Arctic Ocean" },
-    { emoji: "🇮🇹", label: "Boot-shaped" },
-    { emoji: "🐧", label: "Antarctica" },
-    { emoji: "🌳", label: "Amazon" },
+    { query: "russia landscape snow taiga", emoji: "🇷🇺", label: "Largest country" },
+    { query: "canberra australia city", emoji: "🇦🇺", label: "Canberra" },
+    { query: "nile river africa", emoji: "🏞️", label: "Nile River" },
+    { query: "mount everest mountain snow", emoji: "🏔️", label: "Mount Everest" },
+    { query: "arctic ocean ice floe", emoji: "🧊", label: "Arctic Ocean" },
+    { query: "italy map boot shape", emoji: "🇮🇹", label: "Boot-shaped" },
+    { query: "antarctica penguin ice", emoji: "🐧", label: "Antarctica" },
+    { query: "amazon rainforest jungle", emoji: "🌳", label: "Amazon" },
   ],
   "family-faceoff": [
-    { emoji: "🥞", label: "Breakfast" },
-    { emoji: "🎂", label: "Birthday cake" },
-    { emoji: "🥚", label: "A dozen" },
-    { emoji: "👨‍👩‍👧", label: "Uncle" },
-    { emoji: "🎲", label: "Board games" },
-    { emoji: "📅", label: "Weekend" },
-    { emoji: "🥄", label: "Soup spoon" },
-    { emoji: "🐠", label: "Family pet" },
+    { query: "breakfast pancakes morning table", emoji: "🥞", label: "Breakfast" },
+    { query: "birthday cake candles celebration", emoji: "🎂", label: "Birthday cake" },
+    { query: "dozen eggs carton twelve", emoji: "🥚", label: "A dozen" },
+    { query: "family gathering uncle relatives", emoji: "👨‍👩‍👧", label: "Uncle" },
+    { query: "monopoly board game dice", emoji: "🎲", label: "Board games" },
+    { query: "weekend relaxing family home", emoji: "📅", label: "Weekend" },
+    { query: "chicken noodle soup bowl spoon", emoji: "🥄", label: "Soup spoon" },
+    { query: "goldfish aquarium pet", emoji: "🐠", label: "Family pet" },
   ],
 };
+
+function loadPhotoManifest() {
+  try {
+    const raw = fs.readFileSync(MANIFEST_PATH, "utf8");
+    const entries = JSON.parse(raw);
+    const set = new Set();
+    for (const e of entries) {
+      if (e.quizId != null && e.index != null && e.file) {
+        set.add(`${e.quizId}:${e.index}`);
+      }
+    }
+    return set;
+  } catch {
+    return new Set();
+  }
+}
+
+const PHOTO_MANIFEST = loadPhotoManifest();
+
+export function starterImagesBaseUrl() {
+  const base = process.env.STARTER_IMAGES_BASE_URL || "http://localhost:3001";
+  return base.replace(/\/$/, "");
+}
+
+export function starterPhotoUrl(quizId, index) {
+  return `${starterImagesBaseUrl()}/starter-images/${quizId}/${index}.webp`;
+}
 
 export function questionImageFor(quizId, index, category) {
   const art = QUESTION_ART[quizId]?.[index];
   if (!art) return null;
+
+  const key = `${quizId}:${index}`;
+  if (PHOTO_MANIFEST.has(key)) {
+    return starterPhotoUrl(quizId, index);
+  }
+
   return svgDataUri(art.emoji, ACCENTS[category] || "#d97706", art.label);
 }

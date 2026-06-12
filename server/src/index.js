@@ -1,7 +1,11 @@
 import http from "http";
+import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import cors from "cors";
 import { Server } from "socket.io";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import * as GM from "./gameManager.js";
 import { getQuiz, quizSummaries, validateCustomQuiz, getStarterForCopy } from "./quizzes.js";
@@ -76,6 +80,14 @@ function httpClientKey(req) {
 const app = express();
 app.use(cors({ origin: corsOrigin }));
 app.use(express.json({ limit: "32kb" }));
+
+app.use(
+  "/starter-images",
+  express.static(path.join(__dirname, "../assets/starter-images"), {
+    maxAge: "7d",
+    immutable: true,
+  }),
+);
 
 app.get("/", (_req, res) => {
   res.json({ name: "Alkheeloot server", status: "ok", ...GM.stats() });
@@ -206,6 +218,33 @@ function startCountdown(game) {
   }, COUNTDOWN_MS);
 }
 
+// Host reconnected mid-countdown — resume the existing beat instead of restarting.
+function resumeCountdown(game) {
+  if (!game.countdown) {
+    startCountdown(game);
+    return;
+  }
+  const { startedAt, durationMs } = game.countdown;
+  const remaining = durationMs - (Date.now() - startedAt);
+  game.status = "countdown";
+  io.to(gameRoom(game.pin)).emit("game:countdown", game.countdown);
+  if (remaining <= 0) {
+    game.countdown = null;
+    advance(game);
+    return;
+  }
+  game.timer = setTimeout(() => {
+    game.countdown = null;
+    advance(game);
+  }, remaining);
+}
+
+function emitGameFinal(game) {
+  game.lastFinal = GM.buildFinal(game);
+  io.to(gameRoom(game.pin)).emit("game:final", GM.buildPlayerFinal(game));
+  io.to(hostRoom(game.pin)).emit("host:final", game.lastFinal);
+}
+
 function advance(game, { skipDoubleWarning = false } = {}) {
   if (game.timer) {
     clearTimeout(game.timer);
@@ -222,9 +261,7 @@ function advance(game, { skipDoubleWarning = false } = {}) {
   }
   const q = GM.startNextQuestion(game, QUESTION_INTRO_MS);
   if (!q) {
-    const final = GM.buildFinal(game);
-    game.lastFinal = final;
-    io.to(gameRoom(game.pin)).emit("game:final", final);
+    emitGameFinal(game);
     return;
   }
   game.lastReveal = null;
@@ -285,7 +322,7 @@ function syncPlayer(game, socket) {
       break;
     }
     case "ended": {
-      if (game.lastFinal) socket.emit("game:final", game.lastFinal);
+      if (game.lastFinal) socket.emit("game:final", GM.buildPlayerFinal(game));
       break;
     }
     default:
@@ -312,8 +349,19 @@ io.on("connection", (socket) => {
         return;
       }
       chosen = valid;
-    } else {
+    } else if (quizId) {
       chosen = getQuiz(quizId);
+      if (!chosen) {
+        const message = "That quiz wasn't found.";
+        socket.emit("host:error", { message });
+        if (typeof ack === "function") ack({ error: message });
+        return;
+      }
+    } else {
+      const message = "No quiz selected.";
+      socket.emit("host:error", { message });
+      if (typeof ack === "function") ack({ error: message });
+      return;
     }
     const game = GM.createGame(socket.id, chosen, settings);
     socket.join(gameRoom(game.pin));
@@ -363,7 +411,7 @@ io.on("connection", (socket) => {
       );
       game.timer = setTimeout(() => advance(game, { skipDoubleWarning: true }), DOUBLE_POINTS_WARNING_MS);
     } else if (game.status === "countdown" && !game.timer) {
-      startCountdown(game); // re-runs the 3-2-1 fresh for everyone
+      resumeCountdown(game);
     }
     const state = GM.buildHostState(game);
     socket.emit("host:state", state);
@@ -646,4 +694,9 @@ setInterval(() => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Alkheeloot server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);
+  if (process.env.NODE_ENV === "production" && !process.env.STARTER_IMAGES_BASE_URL) {
+    console.warn(
+      "[config] STARTER_IMAGES_BASE_URL is unset — starter quiz photos will use http://localhost:3001 and break on player devices. Set it to your public server URL in Render.",
+    );
+  }
 });

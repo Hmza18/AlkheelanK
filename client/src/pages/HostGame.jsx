@@ -253,7 +253,7 @@ export default function HostGame({ launch, onExit }) {
     socket.on("game:standings", onStandings);
     socket.on("game:paused", onPaused);
     socket.on("game:resumed", onResumed);
-    socket.on("game:final", onFinal);
+    socket.on("host:final", onFinal);
     socket.on("game:lobbyLock", onLobbyLock);
     socket.on("host:error", onError);
     socket.on("game:ended", onEnded);
@@ -274,7 +274,7 @@ export default function HostGame({ launch, onExit }) {
       socket.off("game:standings", onStandings);
       socket.off("game:paused", onPaused);
       socket.off("game:resumed", onResumed);
-      socket.off("game:final", onFinal);
+      socket.off("host:final", onFinal);
       socket.off("game:lobbyLock", onLobbyLock);
       socket.off("host:error", onError);
       socket.off("game:ended", onEnded);

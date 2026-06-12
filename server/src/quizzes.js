@@ -391,14 +391,21 @@ export const QUIZZES = [
   },
 ];
 
-for (const quiz of QUIZZES) {
-  quiz.questions.forEach((q, i) => {
-    q.image = questionImageFor(quiz.id, i, quiz.category);
-  });
+/** Clone a built-in quiz and resolve starter image URLs at call time (not module load). */
+function hydrateQuizImages(quiz) {
+  return {
+    ...quiz,
+    questions: quiz.questions.map((qq, i) => ({
+      ...qq,
+      image: questionImageFor(quiz.id, i, quiz.category),
+    })),
+  };
 }
 
 export function getQuiz(id) {
-  return QUIZZES.find((q) => q.id === id) || QUIZZES[0];
+  const q = QUIZZES.find((x) => x.id === id);
+  if (!q) return null;
+  return hydrateQuizImages(q);
 }
 
 export function quizSummaries() {
@@ -420,13 +427,13 @@ export function getStarterForCopy(id) {
   if (!q) return null;
   return {
     title: q.title,
-    questions: q.questions.map((qq) => ({
+    questions: q.questions.map((qq, i) => ({
       type: qq.type || "mc",
       question: qq.question,
       answers: [...qq.answers],
       correct: qq.correct,
       timeLimit: qq.timeLimit,
-      image: qq.image || null,
+      image: questionImageFor(q.id, i, q.category),
     })),
   };
 }

@@ -2256,6 +2256,13 @@ button:focus-visible {
     flex: 1 1 auto;
   }
 
+  .question-screen--host .question-screen__stage::after {
+    content: "";
+    display: block;
+    width: clamp(2rem, 7vw, 3rem);
+    flex: 0 0 clamp(2rem, 7vw, 3rem);
+  }
+
   .question-screen--host .question-screen__stage-side {
     display: flex;
     width: clamp(2rem, 7vw, 3rem);
@@ -2303,6 +2310,8 @@ button:focus-visible {
 
   .question-screen__media-frame {
     flex: 0 1 auto;
+    width: fit-content;
+    max-width: 100%;
   }
 
   .question-screen__media-frame::before {

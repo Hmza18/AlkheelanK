@@ -2593,7 +2593,7 @@ button:focus-visible {
   align-self: center;
   padding: 0.45rem;
   border-radius: 0.75rem;
-  background: var(--alkheelank-surface-muted);
+  background: #ffffff;
   border: 1px solid var(--alkheelank-border-subtle);
 }
 

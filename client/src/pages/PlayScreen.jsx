@@ -11,7 +11,8 @@ import PostAnswerWaiting from "../components/PostAnswerWaiting.jsx";
 import { HostStatusBanner, PlayerReconnectBanner, PlayerConnectionBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
 import { tileStyle } from "../lib/answers.js";
-import { formatPinInput, isCompletePin, sanitizePin } from "../lib/pin.js";
+import PinInput from "../components/PinInput.jsx";
+import { isCompletePin, sanitizePin } from "../lib/pin.js";
 import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
@@ -605,32 +606,18 @@ function JoinPin({ pin, setPin, goProfile, error }) {
       <div className="mt-6 flex shrink-0 justify-center landscapePhone:mt-2">
         <Logo size="md" />
       </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          goProfile();
-        }}
-        noValidate
-        className="alkheelank-card mt-10 flex flex-col gap-4 p-6 landscapePhone:mt-4 landscapePhone:gap-3 landscapePhone:p-4"
-      >
+      <div className="alkheelank-card mt-10 flex flex-col gap-4 p-6 landscapePhone:mt-4 landscapePhone:gap-3 landscapePhone:p-4">
         <label className="alkheelank-label text-center">{copy.lobby.pinLabel}</label>
-        <input
-          className="alkheelank-input pin-display"
-          inputMode="numeric"
-          maxLength={7}
-          value={formatPinInput(pin)}
-          onChange={(e) => setPin(sanitizePin(e.target.value))}
-          autoFocus
-        />
+        <PinInput value={pin} onChange={setPin} autoFocus />
         {error && (
           <p className="rounded-xl bg-tile-triangle/20 px-4 py-2 text-center font-semibold text-tile-triangle">
             {error}
           </p>
         )}
-        <button type="submit" className="alkheelank-btn-primary w-full text-xl">
+        <button type="button" onClick={goProfile} className="alkheelank-btn-primary w-full text-xl">
           Continue →
         </button>
-      </form>
+      </div>
     </div>
   );
 }

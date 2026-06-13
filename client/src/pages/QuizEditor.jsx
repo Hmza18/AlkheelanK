@@ -64,6 +64,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   const [previewOpen, setPreviewOpen] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [launchWarnOpen, setLaunchWarnOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const savedSnapshotRef = useRef(
     serializeQuiz(initial?.title || "", initial?.questions?.length ? initial.questions : [blankQuestion()])
   );
@@ -88,6 +89,10 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
     return () => clearTimeout(t);
   }, [saved]);
 
+  useEffect(() => {
+    setSelectedIndex((i) => Math.min(i, Math.max(0, questions.length - 1)));
+  }, [questions.length]);
+
   const update = (i, patch) =>
     setQuestions((qs) => qs.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
   const updateAnswer = (i, ai, value) =>
@@ -96,8 +101,11 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         idx === i ? { ...q, answers: q.answers.map((a, x) => (x === ai ? value : a)) } : q
       )
     );
-  const addQuestion = () =>
-    setQuestions((qs) => (qs.length >= MAX_QUESTIONS ? qs : [...qs, blankQuestion()]));
+  const addQuestion = () => {
+    if (questions.length >= MAX_QUESTIONS) return;
+    setQuestions((qs) => [...qs, blankQuestion()]);
+    setSelectedIndex(questions.length);
+  };
   // Generated questions replace a lone untouched blank question instead of
   // appending after it, so a fresh quiz doesn't start with an empty card.
   const addGenerated = (gen) => {
@@ -108,15 +116,25 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
     });
     if (!title.trim() && gen.title) setTitle(gen.title);
   };
-  const removeQuestion = (i) =>
-    setQuestions((qs) => (qs.length > 1 ? qs.filter((_, idx) => idx !== i) : qs));
+  const removeQuestion = (i) => {
+    setQuestions((qs) => {
+      if (qs.length <= 1) return qs;
+      return qs.filter((_, idx) => idx !== i);
+    });
+    setSelectedIndex((sel) => {
+      if (sel > i) return sel - 1;
+      if (sel >= questions.length - 1) return Math.max(0, questions.length - 2);
+      return sel;
+    });
+  };
   const duplicateQuestion = (i) =>
     setQuestions((qs) => {
       if (qs.length >= MAX_QUESTIONS) return qs;
       const copy = { ...qs[i], answers: [...(qs[i].answers || [])] };
+      setSelectedIndex(i + 1);
       return [...qs.slice(0, i + 1), copy, ...qs.slice(i + 1)];
     });
-  const moveQuestion = (i, dir) =>
+  const moveQuestion = (i, dir) => {
     setQuestions((qs) => {
       const j = i + dir;
       if (j < 0 || j >= qs.length) return qs;
@@ -124,7 +142,19 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
-  const addFromBank = (q) => setQuestions((qs) => [...qs, { ...q }]);
+    setSelectedIndex((sel) => {
+      if (sel === i) return i + dir;
+      if (sel === i + dir) return i;
+      return sel;
+    });
+  };
+  const addFromBank = (q) => {
+    setQuestions((qs) => {
+      const next = [...qs, { ...q }];
+      setSelectedIndex(next.length - 1);
+      return next;
+    });
+  };
 
   const ready =
     title.trim() &&
@@ -178,8 +208,8 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   };
 
   return (
-    <div className="alkheelank-safe-x mx-auto max-w-3xl pb-36 pt-[max(0.5rem,env(safe-area-inset-top))]">
-      <div className="flex items-center justify-between">
+    <div className="alkheelank-safe-x mx-auto max-w-6xl pb-36 pt-[max(0.5rem,env(safe-area-inset-top))]">
+      <div className="flex items-center justify-between gap-4">
         <button
           type="button"
           onClick={requestLeave}
@@ -188,50 +218,57 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         >
           <Logo size="sm" />
         </button>
-        <button type="button" onClick={requestLeave} className="min-h-touch px-2 text-muted hover:text-paper">
+        <button type="button" onClick={requestLeave} className="min-h-touch px-2 text-muted hover:text-ink-900">
           ← Dashboard
         </button>
       </div>
 
-      <h1 className="mt-8 font-display text-3xl font-bold">
-        {initial?.id ? "Edit quiz" : "New quiz"}
-      </h1>
-      <input
-        className="alkheelank-input mt-4 !text-left !text-xl"
-        placeholder="Quiz title (e.g. Friday Family Trivia)"
-        maxLength={80}
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-
-      <div className="mt-6 flex flex-col gap-6">
-        {questions.map((q, i) => (
-          <QuestionEditor
-            key={i}
-            index={i}
-            q={q}
-            canRemove={questions.length > 1}
-            canDuplicate={!atQuestionCap}
-            canMoveUp={i > 0}
-            canMoveDown={i < questions.length - 1}
-            userId={userId}
-            onChange={(patch) => update(i, patch)}
-            onAnswer={(ai, v) => updateAnswer(i, ai, v)}
-            onRemove={() => removeQuestion(i)}
-            onDuplicate={() => duplicateQuestion(i)}
-            onMove={(dir) => moveQuestion(i, dir)}
+      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <h1 className="font-display text-3xl font-bold">
+            {initial?.id ? "Edit quiz" : "New quiz"}
+          </h1>
+          <input
+            className="alkheelank-input mt-3 !text-left !text-xl"
+            placeholder="Quiz title (e.g. Friday Family Trivia)"
+            maxLength={80}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
-        ))}
+        </div>
+        <p className="shrink-0 text-sm font-semibold text-muted">
+          {questions.length} / {MAX_QUESTIONS} questions
+        </p>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <button
-          onClick={addQuestion}
-          disabled={atQuestionCap}
-          className="alkheelank-btn-ghost flex-1 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          + Add question
-        </button>
+      <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+        <QuestionSidebar
+          questions={questions}
+          selectedIndex={selectedIndex}
+          onSelect={setSelectedIndex}
+          onAdd={addQuestion}
+          atQuestionCap={atQuestionCap}
+        />
+        <div className="min-w-0 flex-1">
+          <QuestionEditor
+            key={selectedIndex}
+            index={selectedIndex}
+            q={questions[selectedIndex]}
+            canRemove={questions.length > 1}
+            canDuplicate={!atQuestionCap}
+            canMoveUp={selectedIndex > 0}
+            canMoveDown={selectedIndex < questions.length - 1}
+            userId={userId}
+            onChange={(patch) => update(selectedIndex, patch)}
+            onAnswer={(ai, v) => updateAnswer(selectedIndex, ai, v)}
+            onRemove={() => removeQuestion(selectedIndex)}
+            onDuplicate={() => duplicateQuestion(selectedIndex)}
+            onMove={(dir) => moveQuestion(selectedIndex, dir)}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row lg:ml-[15.5rem]">
         {aiAvailable && (
           <button
             onClick={() => setAiOpen(true)}
@@ -317,16 +354,16 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         />
       )}
 
-      <div className="alkheelank-safe-bottom fixed inset-x-0 bottom-0 border-t border-white/10 bg-ink-900/90 px-6 py-4 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center gap-3">
+      <div className="alkheelank-safe-bottom fixed inset-x-0 bottom-0 border-t border-blue-200 bg-surface-elevated/95 px-6 py-4 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center gap-3">
           <span className={`hidden text-sm sm:block ${atQuestionCap ? "font-bold text-tile-circle" : "text-muted"}`}>
-            {questions.length} / {MAX_QUESTIONS} questions
+            Q{selectedIndex + 1} of {questions.length}
           </span>
           <div className="flex flex-1 items-center justify-end gap-3">
             {userId && (
               <button
                 onClick={() => setBankOpen(true)}
-                className="min-h-touch rounded-xl bg-ink-700 px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-white/10 hover:text-paper"
+                className="min-h-touch rounded-xl bg-surface-muted px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-blue-200 hover:text-ink-900"
                 title="Add questions from your bank"
               >
                 📚 From bank
@@ -338,7 +375,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
                 setError(null);
                 setPreviewOpen(true);
               }}
-              className="min-h-touch rounded-xl bg-ink-700 px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-white/10 hover:text-paper"
+              className="min-h-touch rounded-xl bg-surface-muted px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-blue-200 hover:text-ink-900"
               title="Play through the quiz exactly as players will see it"
             >
               ▶ Preview
@@ -357,6 +394,79 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         </div>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Question sidebar — Kahoot-style overview list
+// ---------------------------------------------------------------------------
+function QuestionSidebar({ questions, selectedIndex, onSelect, onAdd, atQuestionCap }) {
+  const renderItem = (q, i, compact = false) => {
+    const filled = q.question.trim() && ((q.type || "mc") === "tf" || q.answers.every((a) => a.trim()));
+    const type = q.type || "mc";
+    return (
+      <button
+        key={i}
+        type="button"
+        onClick={() => onSelect(i)}
+        className={`flex w-full items-start gap-2 rounded-xl border px-3 py-2.5 text-left transition ${
+          selectedIndex === i
+            ? "border-brand-mid bg-brand-mid/10 ring-1 ring-brand-mid/30"
+            : "border-blue-200 bg-surface-elevated hover:bg-surface-muted"
+        } ${compact ? "min-w-[9rem] shrink-0" : ""}`}
+      >
+        <span
+          className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg text-xs font-extrabold ${
+            filled ? "bg-tile-square/20 text-tile-square" : "bg-surface-muted text-muted"
+          }`}
+        >
+          {i + 1}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-bold text-ink-900">
+            {q.question.trim() || "Untitled question"}
+          </span>
+          <span className="mt-0.5 block text-[0.65rem] font-bold uppercase tracking-wider text-muted">
+            {type === "tf" ? "T/F" : "MC"} · {q.timeLimit ?? 20}s
+            {q.doublePoints ? " · 2×" : ""}
+          </span>
+        </span>
+        {q.image && (
+          <img src={q.image} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-blue-200" />
+        )}
+      </button>
+    );
+  };
+
+  return (
+    <>
+      <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
+        {questions.map((q, i) => renderItem(q, i, true))}
+        <button
+          type="button"
+          onClick={onAdd}
+          disabled={atQuestionCap}
+          className="flex min-h-[3.25rem] min-w-[3.25rem] shrink-0 items-center justify-center rounded-xl border border-dashed border-brand-mid/40 bg-brand-mid/5 text-xl font-bold text-brand-mid disabled:opacity-40"
+          title="Add question"
+        >
+          +
+        </button>
+      </div>
+      <aside className="hidden w-56 shrink-0 lg:block">
+        <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted">Questions</p>
+        <div className="sticky top-4 max-h-[calc(100dvh-12rem)] space-y-2 overflow-y-auto pr-1">
+          {questions.map((q, i) => renderItem(q, i))}
+          <button
+            type="button"
+            onClick={onAdd}
+            disabled={atQuestionCap}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-brand-mid/40 bg-brand-mid/5 px-3 py-3 text-sm font-bold text-brand-mid transition hover:bg-brand-mid/10 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            + Add question
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
 
@@ -418,18 +528,18 @@ function QuestionEditor({
   };
 
   return (
-    <div className="alkheelank-card p-5">
-      <div className="flex items-center justify-between">
-        <span className="font-display text-lg font-bold text-muted">Q{index + 1}</span>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-lg bg-ink-800 ring-1 ring-white/10">
+    <div className="alkheelank-card p-5 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="font-display text-lg font-bold text-ink-900">Question {index + 1}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center rounded-lg bg-surface-muted ring-1 ring-blue-200">
             <button
               type="button"
               onClick={() => onMove(-1)}
               disabled={!canMoveUp}
               title="Move question up"
               aria-label={`Move question ${index + 1} up`}
-              className="min-h-touch rounded-l-lg px-2.5 py-2 text-sm font-bold text-muted hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
+              className="min-h-touch rounded-l-lg px-2.5 py-2 text-sm font-bold text-muted hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-30"
             >
               ↑
             </button>
@@ -439,7 +549,7 @@ function QuestionEditor({
               disabled={!canMoveDown}
               title="Move question down"
               aria-label={`Move question ${index + 1} down`}
-              className="min-h-touch rounded-r-lg px-2.5 py-2 text-sm font-bold text-muted hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
+              className="min-h-touch rounded-r-lg px-2.5 py-2 text-sm font-bold text-muted hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-30"
             >
               ↓
             </button>
@@ -449,7 +559,7 @@ function QuestionEditor({
             onClick={onDuplicate}
             disabled={!canDuplicate}
             title={canDuplicate ? "Duplicate this question" : `Quiz is at the ${MAX_QUESTIONS}-question limit`}
-            className="min-h-touch rounded-lg px-3 py-2 text-sm font-bold text-muted hover:text-paper disabled:cursor-not-allowed disabled:opacity-30"
+            className="min-h-touch rounded-lg px-3 py-2 text-sm font-bold text-muted hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-30"
           >
             ⧉ Duplicate
           </button>
@@ -459,9 +569,7 @@ function QuestionEditor({
               onClick={saveToBank}
               title="Save this question to your bank"
               className={`min-h-touch rounded-lg px-3 py-2 text-sm font-bold transition ${
-                bankSaved
-                  ? "text-tile-square"
-                  : "text-muted hover:text-paper"
+                bankSaved ? "text-tile-square" : "text-muted hover:text-ink-900"
               }`}
             >
               {bankSaved ? "🔖 Saved" : "🔖 Bank"}
@@ -478,14 +586,14 @@ function QuestionEditor({
         </div>
       </div>
 
-      <div className="mt-3 inline-flex rounded-xl bg-ink-800 p-1 ring-1 ring-white/10">
+      <div className="mt-3 inline-flex rounded-xl bg-surface-muted p-1 ring-1 ring-blue-200">
         {[{ id: "mc", label: "Multiple choice" }, { id: "tf", label: "True / False" }].map((opt) => (
           <button
             key={opt.id}
             type="button"
             onClick={() => setType(opt.id)}
             className={`min-h-touch rounded-lg px-4 py-2.5 text-sm font-bold transition ${
-              type === opt.id ? "bg-brand-mid text-paper" : "text-muted hover:text-paper"
+              type === opt.id ? "bg-brand-mid text-white" : "text-muted hover:text-ink-900"
             }`}
           >
             {opt.label}
@@ -495,12 +603,12 @@ function QuestionEditor({
 
       {pendingType === "tf" && (
         <div className="mt-3 rounded-xl bg-tile-circle/10 px-4 py-3 ring-1 ring-tile-circle/30">
-          <p className="text-sm font-semibold text-paper">Switch to True / False? Your answer text will be replaced.</p>
+          <p className="text-sm font-semibold text-ink-900">Switch to True / False? Your answer text will be replaced.</p>
           <div className="mt-2 flex gap-2">
-            <button type="button" onClick={() => applyType("tf")} className="rounded-lg bg-brand-mid px-3 py-1.5 text-sm font-bold text-paper">
+            <button type="button" onClick={() => applyType("tf")} className="rounded-lg bg-brand-mid px-3 py-1.5 text-sm font-bold text-white">
               Switch
             </button>
-            <button type="button" onClick={() => setPendingType(null)} className="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted hover:text-paper">
+            <button type="button" onClick={() => setPendingType(null)} className="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted hover:text-ink-900">
               Cancel
             </button>
           </div>
@@ -508,12 +616,12 @@ function QuestionEditor({
       )}
       {pendingType === "mc" && (
         <div className="mt-3 rounded-xl bg-tile-circle/10 px-4 py-3 ring-1 ring-tile-circle/30">
-          <p className="text-sm font-semibold text-paper">Switch to multiple choice? Answer text will be cleared.</p>
+          <p className="text-sm font-semibold text-ink-900">Switch to multiple choice? Answer text will be cleared.</p>
           <div className="mt-2 flex gap-2">
-            <button type="button" onClick={() => applyType("mc")} className="rounded-lg bg-brand-mid px-3 py-1.5 text-sm font-bold text-paper">
+            <button type="button" onClick={() => applyType("mc")} className="rounded-lg bg-brand-mid px-3 py-1.5 text-sm font-bold text-white">
               Switch
             </button>
-            <button type="button" onClick={() => setPendingType(null)} className="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted hover:text-paper">
+            <button type="button" onClick={() => setPendingType(null)} className="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted hover:text-ink-900">
               Cancel
             </button>
           </div>
@@ -521,8 +629,8 @@ function QuestionEditor({
       )}
 
       <textarea
-        className="mt-3 w-full resize-none rounded-2xl bg-ink-800 px-4 py-3 text-lg font-semibold text-paper ring-2 ring-white/10 focus:outline-none focus:ring-brand-mid"
-        rows={2}
+        className="mt-4 w-full resize-none rounded-2xl bg-surface-elevated px-4 py-3 text-lg font-semibold text-ink-900 ring-2 ring-blue-200 focus:outline-none focus:ring-brand-mid"
+        rows={3}
         placeholder={type === "tf" ? "Type a statement (true or false)…" : "Type your question…"}
         maxLength={MAX_QUESTION_CHARS}
         value={q.question}
@@ -542,8 +650,8 @@ function QuestionEditor({
                 key={ai}
                 type="button"
                 onClick={() => onChange({ correct: ai })}
-                className={`flex min-h-touch items-center justify-center gap-2 rounded-2xl py-5 text-2xl font-bold text-paper transition ${
-                  isCorrect ? "ring-4 ring-paper" : "opacity-70 hover:opacity-100"
+                className={`flex min-h-touch items-center justify-center gap-2 rounded-2xl py-5 text-2xl font-bold text-white transition ${
+                  isCorrect ? "ring-4 ring-blue-300 scale-[1.02]" : "opacity-80 hover:opacity-100"
                 }`}
                 style={{ backgroundColor: s.color }}
               >
@@ -555,55 +663,48 @@ function QuestionEditor({
           })}
         </div>
       ) : (
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-2 gap-3">
           {q.answers.map((a, ai) => {
-            const s = answerStyle(ai);
             const isCorrect = q.correct === ai;
             return (
-              <div
-                key={ai}
-                className="flex items-center gap-2 rounded-2xl pl-3 pr-2 py-1"
-                style={{ backgroundColor: `${s.color}22` }}
-              >
-                <span className="text-2xl" style={{ color: s.color }}>{s.glyph}</span>
+              <div key={ai} className="flex flex-col gap-2">
+                <AnswerTile
+                  index={ai}
+                  type="mc"
+                  text={a.trim() || `Answer ${ai + 1}`}
+                  selected={isCorrect}
+                  onClick={() => onChange({ correct: ai })}
+                  kahoot
+                  compact
+                />
                 <input
-                  className="flex-1 bg-transparent py-2 font-semibold text-paper placeholder:text-muted/60 focus:outline-none"
+                  className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-blue-200 placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
                   placeholder={`Answer ${ai + 1}`}
                   maxLength={MAX_ANSWER_CHARS}
                   value={a}
                   onChange={(e) => onAnswer(ai, e.target.value)}
                 />
-                <button
-                  type="button"
-                  onClick={() => onChange({ correct: ai })}
-                  title="Mark as correct"
-                  className={`alkheelank-touch-target shrink-0 rounded-full text-sm font-bold transition ${
-                    isCorrect ? "bg-tile-square text-ink-900" : "bg-ink-700 text-muted hover:text-paper"
-                  }`}
-                >
-                  ✓
-                </button>
               </div>
             );
           })}
         </div>
       )}
 
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-4 flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={() => onChange({ doublePoints: !q.doublePoints })}
           className={`min-h-touch rounded-xl px-3 py-2.5 text-sm font-bold ring-1 transition ${
             q.doublePoints
-              ? "bg-brand-mid/25 text-paper ring-brand-mid"
-              : "bg-ink-800 text-muted ring-white/10 hover:text-paper"
+              ? "bg-brand-mid/15 text-brand-mid ring-brand-mid"
+              : "bg-surface-muted text-muted ring-blue-200 hover:text-ink-900"
           }`}
         >
           2× points
         </button>
         <label className="text-sm font-semibold text-muted">Time</label>
         <select
-          className="rounded-xl bg-ink-800 px-3 py-2 font-semibold text-paper ring-1 ring-white/10 focus:outline-none focus:ring-brand-mid"
+          className="rounded-xl bg-surface-elevated px-3 py-2 font-semibold text-ink-900 ring-1 ring-blue-200 focus:outline-none focus:ring-brand-mid"
           value={q.timeLimit}
           onChange={(e) => onChange({ timeLimit: Number(e.target.value) })}
         >
@@ -613,7 +714,7 @@ function QuestionEditor({
         </select>
         <span className="ml-auto text-sm text-muted">
           Correct:{" "}
-          <b className="text-paper">
+          <b className="text-ink-900">
             {type === "tf" ? tfStyle(q.correct).label : answerStyle(q.correct).glyph}
           </b>
         </span>
@@ -681,17 +782,17 @@ function AiGeneratePanel({ onGenerated, onClose }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         onClick={busy ? undefined : onClose}
-        className="absolute inset-0 bg-ink-900/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-blue-900/20 backdrop-blur-sm"
       />
       <motion.div
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 340, damping: 32 }}
-        className="relative z-10 w-full max-w-lg rounded-t-3xl bg-ink-800 p-6 shadow-2xl ring-1 ring-white/10 sm:rounded-3xl"
+        className="relative z-10 w-full max-w-lg rounded-t-3xl bg-surface-elevated p-6 shadow-2xl ring-1 ring-blue-200 sm:rounded-3xl"
       >
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold">✨ Generate with AI</h2>
-          <button type="button" onClick={onClose} disabled={busy} className="alkheelank-touch-target text-muted hover:text-paper">✕</button>
+          <button type="button" onClick={onClose} disabled={busy} className="alkheelank-touch-target text-muted hover:text-ink-900">✕</button>
         </div>
 
         <input
@@ -714,7 +815,7 @@ function AiGeneratePanel({ onGenerated, onClose }) {
               disabled={busy}
               onClick={() => setCount(n)}
               className={`min-h-touch rounded-xl px-4 py-2 text-sm font-bold transition ${
-                count === n ? "bg-brand-mid text-paper" : "bg-ink-700 text-muted hover:text-paper"
+                count === n ? "bg-brand-mid text-white" : "bg-surface-muted text-muted hover:text-ink-900"
               }`}
             >
               {n}
@@ -731,7 +832,7 @@ function AiGeneratePanel({ onGenerated, onClose }) {
               disabled={busy}
               onClick={() => setAudience(a.id)}
               className={`min-h-touch rounded-xl px-3 py-2 text-sm font-bold transition ${
-                audience === a.id ? "bg-brand-mid text-paper" : "bg-ink-700 text-muted hover:text-paper"
+                audience === a.id ? "bg-brand-mid text-white" : "bg-surface-muted text-muted hover:text-ink-900"
               }`}
             >
               {a.label}
@@ -748,7 +849,7 @@ function AiGeneratePanel({ onGenerated, onClose }) {
               disabled={busy}
               onClick={() => setLanguage(l.id)}
               className={`min-h-touch rounded-xl px-3 py-2 text-sm font-bold transition ${
-                language === l.id ? "bg-brand-mid text-paper" : "bg-ink-700 text-muted hover:text-paper"
+                language === l.id ? "bg-brand-mid text-white" : "bg-surface-muted text-muted hover:text-ink-900"
               }`}
             >
               {l.label}
@@ -790,12 +891,12 @@ function QuizPreview({ title, questions, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-ink-900">
+    <div className="fixed inset-0 z-50 flex flex-col bg-surface">
       <div className="flex shrink-0 items-center justify-between px-5 pt-[max(1rem,env(safe-area-inset-top))]">
         <span className="rounded-full bg-brand-mid/20 px-3 py-1 text-xs font-bold uppercase tracking-widest text-brand-end">
           Preview · {title}
         </span>
-        <button type="button" onClick={onClose} className="alkheelank-touch-target font-bold text-muted hover:text-paper">
+        <button type="button" onClick={onClose} className="alkheelank-touch-target font-bold text-muted hover:text-ink-900">
           ✕ Close
         </button>
       </div>
@@ -835,7 +936,7 @@ function QuizPreview({ title, questions, onClose }) {
         />
       </div>
 
-      <div className="alkheelank-safe-bottom flex shrink-0 items-center justify-center gap-3 border-t border-white/10 bg-ink-900/90 px-5 py-3">
+      <div className="alkheelank-safe-bottom flex shrink-0 items-center justify-center gap-3 border-t border-blue-200 bg-surface-elevated/95 px-5 py-3">
         <button
           onClick={() => goTo(index - 1)}
           disabled={index === 0}
@@ -898,19 +999,19 @@ function BankPicker({ userId, onAdd, onAddAll, onClose }) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-ink-900/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-blue-900/20 backdrop-blur-sm"
       />
       <motion.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 340, damping: 36 }}
-        className="relative z-10 flex w-full max-w-2xl flex-col rounded-t-3xl bg-ink-800 shadow-2xl ring-1 ring-white/10"
+        className="relative z-10 flex w-full max-w-2xl flex-col rounded-t-3xl bg-surface-elevated shadow-2xl ring-1 ring-blue-200"
         style={{ maxHeight: "80dvh" }}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
           <h2 className="font-display text-xl font-bold">Your Question Bank</h2>
-          <button type="button" onClick={onClose} className="alkheelank-touch-target text-muted hover:text-paper">✕</button>
+          <button type="button" onClick={onClose} className="alkheelank-touch-target text-muted hover:text-ink-900">✕</button>
         </div>
 
         <div className="px-6 pb-3">
@@ -952,7 +1053,7 @@ function BankPicker({ userId, onAdd, onAddAll, onClose }) {
                 return (
                   <div
                     key={row.id}
-                    className="flex items-start justify-between gap-4 rounded-2xl bg-ink-700/60 px-4 py-3 ring-1 ring-white/10"
+                    className="flex items-start justify-between gap-4 rounded-2xl bg-surface-muted px-4 py-3 ring-1 ring-blue-200"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -961,7 +1062,7 @@ function BankPicker({ userId, onAdd, onAddAll, onClose }) {
                         </span>
                         <span className="text-xs text-muted">{q.timeLimit}s</span>
                       </div>
-                      <p className="mt-1 line-clamp-2 font-semibold text-paper">{q.question}</p>
+                      <p className="mt-1 line-clamp-2 font-semibold text-ink-900">{q.question}</p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
                       <button
@@ -1066,11 +1167,11 @@ function ImagePicker({ image, onChange }) {
         <img
           src={image}
           alt="Question"
-          className="h-20 w-20 rounded-xl object-cover ring-1 ring-white/15"
+          className="h-20 w-20 rounded-xl object-cover ring-1 ring-blue-200"
           onError={() => setErr("Image failed to load — check the URL.")}
         />
         <div className="flex flex-col gap-1">
-          <span className="text-sm font-semibold text-paper">Image attached</span>
+          <span className="text-sm font-semibold text-ink-900">Image attached</span>
           <button
             onClick={() => onChange(null)}
             className="self-start rounded-lg px-2 py-1 text-sm font-semibold text-tile-triangle hover:bg-tile-triangle/10"
@@ -1089,15 +1190,15 @@ function ImagePicker({ image, onChange }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="rounded-xl bg-ink-700 px-3 py-2 text-sm font-semibold text-muted ring-1 ring-white/10 hover:text-paper"
+          className="rounded-xl bg-surface-muted px-3 py-2 text-sm font-semibold text-muted ring-1 ring-blue-200 hover:text-ink-900"
         >
           🖼️ Add image
         </button>
       ) : (
-        <div className="rounded-2xl bg-ink-800 p-3 ring-1 ring-white/10">
+        <div className="rounded-2xl bg-surface-muted p-3 ring-1 ring-blue-200">
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
-              className="flex-1 rounded-xl bg-ink-700 px-3 py-2 font-medium text-paper placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
+              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-blue-200 placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
               placeholder="Search free images… (e.g. mars planet)"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -1120,7 +1221,7 @@ function ImagePicker({ image, onChange }) {
                       type="button"
                       title={r.title}
                       onClick={() => { onChange(r.url); setOpen(false); }}
-                      className="group relative aspect-square overflow-hidden rounded-xl ring-1 ring-white/10 transition hover:ring-2 hover:ring-brand-mid"
+                      className="group relative aspect-square overflow-hidden rounded-xl ring-1 ring-blue-200 transition hover:ring-2 hover:ring-brand-mid"
                     >
                       <img src={r.thumbnail} alt={r.title} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
                     </button>
@@ -1131,9 +1232,9 @@ function ImagePicker({ image, onChange }) {
             </div>
           )}
 
-          <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-3 sm:flex-row">
+          <div className="mt-3 flex flex-col gap-2 border-t border-blue-200 pt-3 sm:flex-row">
             <input
-              className="flex-1 rounded-xl bg-ink-700 px-3 py-2 font-medium text-paper placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
+              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-blue-200 placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
               placeholder="…or paste an image URL"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
@@ -1151,7 +1252,7 @@ function ImagePicker({ image, onChange }) {
             </button>
             <button
               onClick={() => { setOpen(false); setErr(null); }}
-              className="text-sm text-muted hover:text-paper"
+              className="text-sm text-muted hover:text-ink-900"
             >
               Cancel
             </button>

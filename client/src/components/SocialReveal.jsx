@@ -74,7 +74,7 @@ function BarAvatars({ players, show, reduced }) {
           initial={reduced ? false : { scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={motionSafe({ ...spring.bouncy, delay: 0.12 + visible.length * 0.07 }, reduced)}
-          className="mt-0.5 rounded-full bg-ink-700/90 px-1.5 py-0.5 text-[9px] font-extrabold text-paper ring-1 ring-brand-mid/60"
+          className="mt-0.5 rounded-full bg-surface-muted/90 px-1.5 py-0.5 text-[9px] font-extrabold text-ink-900 ring-1 ring-brand-mid/60"
         >
           +{overflow}
         </motion.span>
@@ -113,14 +113,14 @@ function CorrectNames({ players, show, reduced }) {
           className="flex flex-col items-center gap-0.5"
         >
           <Avatar config={p.character} size={44} ring />
-          <span className="max-w-[4rem] truncate text-[10px] font-bold text-paper/90">{p.nick}</span>
+          <span className="max-w-[4rem] truncate text-[10px] font-bold text-ink-900/90">{p.nick}</span>
         </motion.div>
       ))}
       {overflow > 0 && (
         <motion.span
           initial={reduced ? false : { scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="self-center rounded-full bg-ink-800/90 px-3 py-2 text-sm font-extrabold text-paper ring-2 ring-brand-mid/50"
+          className="self-center rounded-full bg-surface-elevated px-3 py-2 text-sm font-extrabold text-ink-900 ring-2 ring-brand-mid/50"
         >
           +{overflow}
         </motion.span>
@@ -181,7 +181,7 @@ function RevealColumn({ index, type, count, maxCount, isCorrect, stage, correctP
 
       {/* answer label + count */}
       <motion.div
-        className={`relative z-10 mt-3 flex w-full max-w-[190px] items-center justify-center gap-2 rounded-2xl px-3 py-2.5 text-base font-bold text-paper shadow-tile landscapePhone:mt-1.5 landscapePhone:py-2 landscapePhone:text-sm ${
+        className={`relative z-10 mt-3 flex w-full max-w-[190px] items-center justify-center gap-2 rounded-2xl px-3 py-2.5 text-base font-bold text-ink-900 shadow-tile landscapePhone:mt-1.5 landscapePhone:py-2 landscapePhone:text-sm ${
           pop ? "ring-4 ring-paper shadow-glow" : ""
         }`}
         style={{ backgroundColor: s.color }}
@@ -260,14 +260,14 @@ export default function SocialReveal({ question, image, reveal, onStandings, ext
           <img
             src={image}
             alt=""
-            className="mx-auto mb-4 hidden h-20 w-20 rounded-xl object-cover ring-1 ring-white/10 sm:block landscapePhone:mb-2 landscapePhone:h-12 landscapePhone:w-12"
+            className="mx-auto mb-4 hidden h-20 w-20 rounded-xl object-cover ring-1 ring-blue-200 sm:block landscapePhone:mb-2 landscapePhone:h-12 landscapePhone:w-12"
           />
         )}
         <h1 className="alkheelank-heading text-3xl landscapePhone:text-xl landscapePhone:leading-snug sm:text-5xl landscapePhone:sm:text-xl">
           {question.question}
         </h1>
         {reveal.doublePoints && (
-          <div className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-brand-mid/25 px-5 py-2 text-lg font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:mt-1 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-sm">
+          <div className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-brand-mid/25 px-5 py-2 text-lg font-extrabold text-ink-900 ring-1 ring-brand-mid landscapePhone:mt-1 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-sm">
             ⚡ {copy.reveal.doublePoints}
           </div>
         )}
@@ -307,7 +307,7 @@ export default function SocialReveal({ question, image, reveal, onStandings, ext
           </h3>
           <div className="grid gap-2 sm:grid-cols-2">
             {reveal.teamStandings.map((t) => (
-              <div key={t.id} className="rounded-xl bg-ink-700/70 px-4 py-3 ring-1 ring-white/10">
+              <div key={t.id} className="rounded-xl bg-surface-muted px-4 py-3 ring-1 ring-blue-200">
                 <div className="flex items-center justify-between">
                   <span className="font-bold" style={{ color: t.color }}>
                     {t.rank}. {t.name}

@@ -14,29 +14,32 @@ export default {
     },
     extend: {
       colors: {
-        // Alkheeloot identity — warm "living-room" charcoal with an amber→orange→coral
-        // brand gradient. Cozy family game night, not a neon arcade.
+        // Alkheeloot — white cards on a true blue wash, kid-friendly everywhere.
+        surface: {
+          DEFAULT: "#dbeafe", // blue-100 page wash
+          elevated: "#ffffff",
+          muted: "#bfdbfe", // blue-200
+        },
         ink: {
-          900: "#1a1814", // deepest background (warm charcoal, not pure black)
-          800: "#242019",
-          700: "#2e2922",
-          600: "#3d362c",
-          500: "#4a4133",
+          900: "#1e3a8a", // blue-900 text
+          800: "#1e40af",
+          700: "#1d4ed8",
+          600: "#2563eb",
+          500: "#3b82f6",
         },
         brand: {
-          start: "#d97706", // amber-600
-          mid: "#ea580c", // orange-600
-          end: "#e11d48", // coral / rose-600 (accent pop)
+          start: "#60a5fa", // blue-400
+          mid: "#3b82f6", // blue-500
+          end: "#2563eb", // blue-600
         },
-        // Answer tile palette — four distinct, refined (non-neon) hues.
         tile: {
-          triangle: "#f43f5e", // rose
-          diamond: "#0ea5e9", // sky
-          circle: "#f59e0b", // amber
-          square: "#10b981", // emerald
+          triangle: "#f43f5e",
+          diamond: "#3b82f6",
+          circle: "#f59e0b",
+          square: "#10b981",
         },
-        paper: "#faf6f0", // warm off-white text (not pure white)
-        muted: "#b8a99a",
+        paper: "#ffffff",
+        muted: "#64748b",
         success: "#10b981",
         warning: "#f59e0b",
         error: "#f43f5e",
@@ -68,9 +71,10 @@ export default {
         body: ['"Inter"', "system-ui", "sans-serif"],
       },
       boxShadow: {
-        tile: "0 8px 0 0 rgba(0,0,0,0.25)",
-        "tile-sm": "0 5px 0 0 rgba(0,0,0,0.25)",
-        glow: "0 0 44px -12px rgba(217,119,6,0.45)",
+        tile: "0 8px 0 0 rgba(37, 99, 235, 0.22)",
+        "tile-sm": "0 5px 0 0 rgba(37, 99, 235, 0.22)",
+        glow: "0 0 40px -12px rgba(59, 130, 246, 0.35)",
+        card: "0 4px 20px -8px rgba(37, 99, 235, 0.14)",
       },
       keyframes: {
         "pop-in": {

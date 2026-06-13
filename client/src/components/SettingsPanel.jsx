@@ -59,7 +59,7 @@ export default function SettingsPanel({
           type="button"
           onClick={() => setOpen(true)}
           title="Settings"
-          className={`${positionClass} z-40 alkheelank-touch-target h-12 w-12 shrink-0 rounded-xl bg-ink-800/80 text-xl ring-1 ring-white/10 backdrop-blur transition hover:bg-ink-700 ${triggerClassName}`}
+          className={`${positionClass} z-40 alkheelank-touch-target h-12 w-12 shrink-0 rounded-xl bg-surface-elevated/95 text-xl ring-1 ring-blue-200 shadow-card backdrop-blur transition hover:bg-surface-muted ${triggerClassName}`}
         >
           ⚙️
         </button>
@@ -73,21 +73,21 @@ export default function SettingsPanel({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
-              className="fixed inset-0 z-50 bg-ink-900/60 backdrop-blur-sm"
+              className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm"
             />
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col overflow-y-auto bg-ink-800 p-6 shadow-2xl ring-1 ring-white/10"
+              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col overflow-y-auto bg-surface-elevated p-6 shadow-2xl ring-1 ring-blue-200"
             >
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-2xl font-bold">Settings</h2>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="alkheelank-touch-target rounded-xl bg-ink-700 text-lg text-muted ring-1 ring-white/10 hover:text-paper"
+                  className="alkheelank-touch-target rounded-xl bg-surface-muted text-lg text-muted ring-1 ring-blue-200 hover:text-ink-900"
                 >
                   ✕
                 </button>
@@ -97,13 +97,13 @@ export default function SettingsPanel({
                 <h3 className="alkheelank-label">Sound & vibe</h3>
 
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="font-semibold text-paper">Mute everything</span>
+                  <span className="font-semibold text-ink-900">Mute everything</span>
                   <Toggle on={!s.muted} onChange={(v) => update({ muted: !v })} />
                 </div>
 
                 <div className={`mt-6 ${s.muted ? "pointer-events-none opacity-40" : ""}`}>
                   <div className="flex items-center justify-between">
-                    <label className="font-semibold text-paper">Master volume</label>
+                    <label className="font-semibold text-ink-900">Master volume</label>
                     <span className="tabular-nums text-sm text-muted">{masterPct}%</span>
                   </div>
                   <input
@@ -118,12 +118,12 @@ export default function SettingsPanel({
                   />
 
                   <div className="mt-6 flex items-center justify-between">
-                    <span className="font-semibold text-paper">🎵 Lobby music</span>
+                    <span className="font-semibold text-ink-900">🎵 Lobby music</span>
                     <Toggle on={s.music} onChange={(v) => update({ music: v })} />
                   </div>
 
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="font-semibold text-paper">🔔 Sound effects</span>
+                    <span className="font-semibold text-ink-900">🔔 Sound effects</span>
                     <Toggle
                       on={s.sfx}
                       onChange={(v) => {
@@ -136,7 +136,7 @@ export default function SettingsPanel({
               </section>
 
               {hostControls && (
-                <section className="mt-8 border-t border-white/10 pt-6">
+                <section className="mt-8 border-t border-blue-200 pt-6">
                   <h3 className="alkheelank-label">{copy.host.pacing.label}</h3>
                   <div className="mt-3 flex gap-1.5">
                     {PACING_OPTIONS.map((opt) => (
@@ -150,8 +150,8 @@ export default function SettingsPanel({
                         }}
                         className={`min-h-touch flex-1 rounded-xl px-2 py-2.5 text-sm font-bold ring-1 transition ${
                           hostControls.pacing === opt.id
-                            ? "bg-brand-mid/25 ring-brand-mid text-paper"
-                            : "bg-ink-700 ring-white/10 text-muted hover:text-paper"
+                            ? "bg-brand-mid/15 ring-brand-mid text-brand-mid"
+                            : "bg-surface-muted ring-blue-200 text-muted hover:text-ink-900"
                         }`}
                       >
                         {opt.label}
@@ -160,7 +160,7 @@ export default function SettingsPanel({
                   </div>
 
                   {showQuestionControls && (
-                    <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4">
+                    <div className="mt-4 flex flex-col gap-2 border-t border-blue-200 pt-4">
                       <button
                         type="button"
                         onClick={() => {
@@ -185,7 +185,7 @@ export default function SettingsPanel({
                   )}
 
                   {showRevealControls && (
-                    <div className="mt-4 border-t border-white/10 pt-4">
+                    <div className="mt-4 border-t border-blue-200 pt-4">
                       <button
                         type="button"
                         onClick={() => {
@@ -218,7 +218,7 @@ function Toggle({ on, onChange }) {
       type="button"
       onClick={() => onChange(!on)}
       className={`relative inline-flex h-8 min-h-touch w-14 shrink-0 items-center rounded-full transition ${
-        on ? "bg-gradient-to-r from-brand-start to-brand-mid" : "bg-ink-600"
+        on ? "bg-gradient-to-r from-brand-start to-brand-mid" : "bg-surface-muted"
       }`}
       aria-pressed={on}
     >

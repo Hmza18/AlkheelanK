@@ -44,7 +44,7 @@ export default function SetupView({ quiz, settings, setSettings, onCreate, onCan
         {quiz && (
           <div className="alkheelank-card pregame-setup__card">
             <p className="alkheelank-label">Quiz</p>
-            <p className="mt-2 font-display text-xl font-bold text-paper">{quiz.title}</p>
+            <p className="mt-2 font-display text-xl font-bold text-ink-900">{quiz.title}</p>
             <p className="mt-1 text-sm font-semibold text-muted">
               {quiz.questionCount} question{quiz.questionCount === 1 ? "" : "s"}
             </p>

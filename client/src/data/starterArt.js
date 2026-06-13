@@ -3,9 +3,9 @@ export function starterCover(emoji, accent, subtitle = "") {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="${accent}" stop-opacity="0.55"/>
-      <stop offset="55%" stop-color="#2e2922"/>
-      <stop offset="100%" stop-color="#242019"/>
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="45%" stop-color="#dbeafe"/>
+      <stop offset="100%" stop-color="${accent}" stop-opacity="0.35"/>
     </linearGradient>
     <radialGradient id="glow" cx="72%" cy="18%" r="55%">
       <stop offset="0%" stop-color="${accent}" stop-opacity="0.35"/>
@@ -19,7 +19,7 @@ export function starterCover(emoji, accent, subtitle = "") {
   <text x="320" y="${subtitle ? 168 : 198}" font-size="112" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
   ${
     subtitle
-      ? `<text x="320" y="248" font-family="system-ui,sans-serif" font-size="28" font-weight="700" fill="#faf6f0" fill-opacity="0.88" text-anchor="middle">${subtitle}</text>`
+      ? `<text x="320" y="248" font-family="system-ui,sans-serif" font-size="28" font-weight="700" fill="#1e3a8a" fill-opacity="0.88" text-anchor="middle">${subtitle}</text>`
       : ""
   }
 </svg>`;
@@ -35,13 +35,13 @@ export function questionIllustration(emoji, accent, label) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img">
   <defs>
     <linearGradient id="qbg" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#242019"/>
+      <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="100%" stop-color="${accent}" stop-opacity="0.45"/>
     </linearGradient>
   </defs>
   <rect width="640" height="360" rx="24" fill="url(#qbg)"/>
   <text x="320" y="148" font-size="96" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
-  <text x="320" y="248" font-family="system-ui,sans-serif" font-size="24" font-weight="600" fill="#faf6f0" fill-opacity="0.92" text-anchor="middle">${safe}</text>
+  <text x="320" y="248" font-family="system-ui,sans-serif" font-size="24" font-weight="600" fill="#1e3a8a" fill-opacity="0.92" text-anchor="middle">${safe}</text>
 </svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg.trim())}`;
 }

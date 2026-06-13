@@ -16,8 +16,8 @@ export const ANSWERS = [
     shape: "diamond",
     glyph: "◆",
     label: "Diamond",
-    color: "#0ea5e9", // sky
-    color600: "#0284c7",
+    color: "#3b82f6", // blue
+    color600: "#2563eb",
   },
   {
     key: "circle",

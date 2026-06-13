@@ -31,7 +31,7 @@ export default function DoublePointsWarning({ warning, variant = "player" }) {
           Round {(warning?.index ?? 0) + 1}
           {warning?.total ? ` of ${warning.total}` : ""} is worth 2×.
         </p>
-        <p className="mt-5 animate-pulse text-sm font-bold uppercase tracking-widest text-paper/80 landscapePhone:mt-3 landscapePhone:text-xs">
+        <p className="mt-5 animate-pulse text-sm font-bold uppercase tracking-widest text-ink-900/80 landscapePhone:mt-3 landscapePhone:text-xs">
           Eyes up — question loading next
         </p>
         <ScrollHint />

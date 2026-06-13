@@ -543,7 +543,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
           </span>
           <span className="flex shrink-0 items-center gap-1.5 landscapePhone:gap-1">
             {q?.doublePoints ? (
-              <span className="hidden shrink-0 rounded-full bg-brand-mid/25 px-2 py-0.5 text-[0.625rem] font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:inline">
+              <span className="hidden shrink-0 rounded-full bg-brand-mid/15 px-2 py-0.5 text-[0.625rem] font-extrabold text-brand-mid ring-1 ring-brand-mid/30 landscapePhone:inline">
                 ⚡2×
               </span>
             ) : null}
@@ -555,7 +555,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
       progress={<QuestionProgress index={q?.index ?? 0} total={q?.total ?? 1} />}
       badge={
         q?.doublePoints ? (
-          <div className="mx-auto mt-1.5 inline-flex shrink-0 animate-pulse rounded-full bg-brand-mid/25 px-4 py-1 text-sm font-extrabold text-paper ring-1 ring-brand-mid landscapePhone:hidden">
+          <div className="mx-auto mt-1.5 inline-flex shrink-0 animate-pulse rounded-full bg-brand-mid/15 px-4 py-1 text-sm font-extrabold text-brand-mid ring-1 ring-brand-mid/30 landscapePhone:hidden">
             ⚡ 2X POINTS
           </div>
         ) : null
@@ -591,7 +591,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-ink-900/80 backdrop-blur-sm"
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-surface/90 backdrop-blur-sm"
           >
             <div className="text-6xl">⏸</div>
             <h2 className="mt-4 alkheelank-heading text-3xl">{copy.player.paused}</h2>
@@ -622,7 +622,7 @@ function ResultCard({ result, q, reveal }) {
         {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
       </p>
       {correctAnswer && (
-        <p className="mt-3 rounded-xl bg-ink-700/60 px-3 py-2 text-sm font-semibold text-paper ring-1 ring-white/10 landscapePhone:mt-2">
+        <p className="mt-3 rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-blue-200 landscapePhone:mt-2">
           <span className="text-muted">{copy.player.result.correctWas}: </span>
           <span style={{ color: correctStyle.color }}>{correctStyle.glyph}</span> {correctAnswer}
         </p>
@@ -664,7 +664,7 @@ function StandingsCard({ standings, meId }) {
           {standings.teamStandings.slice(0, 3).map((t) => (
             <div
               key={t.id}
-              className="mb-2 flex items-center justify-between rounded-xl bg-ink-700/60 px-3 py-2 landscapePhone:mb-1 landscapePhone:px-2 landscapePhone:py-1.5 landscapePhone:text-sm"
+              className="mb-2 flex items-center justify-between rounded-xl bg-surface-elevated px-3 py-2 ring-1 ring-blue-200 landscapePhone:mb-1 landscapePhone:px-2 landscapePhone:py-1.5 landscapePhone:text-sm"
             >
               <span className="font-bold" style={{ color: t.color }}>
                 {teamPodiumLabel(t)}

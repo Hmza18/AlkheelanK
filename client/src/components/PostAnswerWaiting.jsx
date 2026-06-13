@@ -33,7 +33,7 @@ export default function PostAnswerWaiting({
           aria-hidden
           style={{
             background:
-              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124, 58, 237, 0.35), transparent 70%)",
+              "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59, 130, 246, 0.2), transparent 70%)",
           }}
         />
 
@@ -73,7 +73,7 @@ export default function PostAnswerWaiting({
                 animate={{ opacity: 1, scale: 1 }}
                 src={question.image}
                 alt=""
-                className="relative mx-auto mt-5 max-h-32 w-auto rounded-xl object-contain shadow-lg ring-1 ring-white/10 landscapePhone:mx-0 landscapePhone:mt-2 landscapePhone:max-h-14"
+                className="relative mx-auto mt-5 max-h-32 w-auto rounded-xl object-contain shadow-lg ring-1 ring-blue-200 landscapePhone:mx-0 landscapePhone:mt-2 landscapePhone:max-h-14"
               />
             )}
 
@@ -125,7 +125,7 @@ export default function PostAnswerWaiting({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-ink-900/85 backdrop-blur-sm"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-blue-900/25 backdrop-blur-sm"
         >
           <div className="text-6xl landscapePhone:text-4xl">⏸</div>
           <h2 className="mt-4 alkheelank-heading text-3xl landscapePhone:mt-2 landscapePhone:text-xl">{copy.player.paused}</h2>

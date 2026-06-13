@@ -33,7 +33,7 @@ export function TimerStrip({ timeLimit, startedAt, paused = false, introDelay = 
   const pct = Math.max(0, Math.min(1, remaining / timeLimit));
   const danger = remaining <= 5 && !paused;
   const urgent = remaining <= Math.max(8, timeLimit * 0.25) && !paused;
-  const color = paused ? "#b8a99a" : danger ? "#f43f5e" : urgent ? "#fb923c" : "#ea580c";
+  const color = paused ? "#64748b" : danger ? "#f43f5e" : urgent ? "#60a5fa" : "#3b82f6";
   const seconds = Math.ceil(remaining);
 
   const stripClass = [
@@ -134,7 +134,7 @@ export default function Timer({ timeLimit, startedAt, sound = false, paused = fa
           cy={cx}
           r={R}
           fill="none"
-          stroke={paused ? "#b8a99a" : danger ? "#f43f5e" : urgent ? "#fb923c" : "#ea580c"}
+          stroke={paused ? "#64748b" : danger ? "#f43f5e" : urgent ? "#60a5fa" : "#3b82f6"}
           strokeWidth={strokeW}
           strokeLinecap="round"
           strokeDasharray={C}
@@ -148,7 +148,7 @@ export default function Timer({ timeLimit, startedAt, sound = false, paused = fa
       </svg>
       <span
         className={`absolute font-display font-bold tabular-nums ${fontSize} ${
-          paused ? "text-muted" : danger ? "text-tile-triangle" : "text-paper"
+          paused ? "text-muted" : danger ? "text-tile-triangle" : "text-ink-900"
         }`}
       >
         {paused ? "⏸" : seconds}

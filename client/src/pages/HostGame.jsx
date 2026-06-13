@@ -574,7 +574,7 @@ function QuestionView({ question, image, answerCount, paused }) {
       }
       badge={
         question.doublePoints ? (
-          <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-brand-mid/25 px-4 py-1.5 text-base font-extrabold text-paper ring-1 ring-brand-mid">
+          <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-brand-mid/15 px-4 py-1.5 text-base font-extrabold text-brand-mid ring-1 ring-brand-mid/30">
             ⚡ {copy.reveal.doublePoints}
           </div>
         ) : null
@@ -629,13 +629,13 @@ function StandingsView({ standings, onNext }) {
         <p className="alkheelank-label tracking-[0.3em] landscapePhone:tracking-widest landscapePhone:text-[10px]">{copy.standings.subtitle(standings.index, standings.total)}</p>
         <h1 className="mt-2 alkheelank-heading text-4xl alkheelank-gradient-text landscapePhone:mt-1 landscapePhone:text-2xl">{copy.standings.title}</h1>
       </div>
-      {standings.funStat && <div className="mx-auto mt-4 rounded-full bg-ink-700 px-5 py-2 text-center ring-1 ring-white/10 landscapePhone:mt-2 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-sm"><span className="font-bold text-paper">{standings.funStat.title}:</span> <span className="text-muted">{standings.funStat.subtitle}</span></div>}
+      {standings.funStat && <div className="mx-auto mt-4 rounded-full bg-surface-elevated px-5 py-2 text-center ring-1 ring-blue-200 landscapePhone:mt-2 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-sm"><span className="font-bold text-ink-900">{standings.funStat.title}:</span> <span className="text-muted">{standings.funStat.subtitle}</span></div>}
       {standings.mode === "teams" && standings.teamStandings?.length > 0 && (
         <div className="mt-8 landscapePhone:mt-3">
           <h3 className="mb-3 text-center alkheelank-heading text-2xl text-muted landscapePhone:mb-1 landscapePhone:text-lg">{copy.standings.teamRace}</h3>
           <div className="mx-auto grid max-w-3xl gap-2 sm:grid-cols-2">
             {standings.teamStandings.map((t) => (
-              <div key={t.id} className="rounded-xl bg-ink-700/70 px-4 py-3 ring-1 ring-white/10">
+              <div key={t.id} className="rounded-xl bg-surface-elevated px-4 py-3 ring-1 ring-blue-200">
                 <div className="flex items-center justify-between">
                   <span className="font-bold" style={{ color: t.color }}>{t.rank}. {t.name}</span>
                   <span className="font-display text-2xl tabular-nums">{t.score.toLocaleString()}</span>
@@ -728,9 +728,9 @@ function QuestionBreakdownView({ breakdown, onBack, onHome }) {
           const pctColor = pct >= 70 ? "text-tile-square" : pct >= 40 ? "text-tile-circle" : "text-tile-triangle";
           const maxCount = Math.max(1, ...q.counts);
           return (
-            <div key={q.index} className="rounded-2xl bg-ink-700/60 p-5 ring-1 ring-white/10 landscapePhone:p-3">
+            <div key={q.index} className="rounded-2xl bg-surface-elevated p-5 ring-1 ring-blue-200 landscapePhone:p-3">
               <div className="flex items-start justify-between gap-4">
-                <p className="font-semibold text-paper">
+                <p className="font-semibold text-ink-900">
                   <span className="mr-2 text-muted">Q{q.index + 1}.</span>
                   {q.question}
                 </p>
@@ -747,10 +747,10 @@ function QuestionBreakdownView({ breakdown, onBack, onHome }) {
                   return (
                     <div key={i} className="flex items-center gap-2 text-sm">
                       <span className="w-5 text-center" style={{ color: s.color }}>{s.glyph}</span>
-                      <span className={`w-32 truncate sm:w-48 ${isCorrect ? "font-bold text-paper" : "text-muted"}`}>
+                      <span className={`w-32 truncate sm:w-48 ${isCorrect ? "font-bold text-ink-900" : "text-muted"}`}>
                         {a}{isCorrect && " ✓"}
                       </span>
-                      <div className="h-3 flex-1 overflow-hidden rounded-full bg-ink-800">
+                      <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-muted">
                         <div
                           className="h-full rounded-full"
                           style={{

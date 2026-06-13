@@ -102,7 +102,7 @@ export default function Podium({ podium = [], sound = true, onComplete }) {
                       </span>
                     </motion.div>
                     <div className="mt-1 text-3xl landscapePhone:text-lg">{MEDALS[placeIdx]}</div>
-                    <div className="max-w-full truncate text-xl font-bold text-paper sm:text-2xl landscapePhone:text-sm landscapePhone:sm:text-sm">
+                    <div className="max-w-full truncate text-xl font-bold text-ink-900 sm:text-2xl landscapePhone:text-sm landscapePhone:sm:text-sm">
                       {player.nick}
                     </div>
                     <div className="font-display text-2xl font-bold alkheelank-gradient-text tabular-nums landscapePhone:text-base">

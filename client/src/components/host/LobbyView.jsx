@@ -11,20 +11,20 @@ import { sfx, isSoundOn, setSound, subscribeAudio } from "../../lib/sound.js";
 // faint and lobby-only so the global theme is untouched.
 const CONFETTI = [
   { c: "#f43f5e", top: "8%", left: "6%", size: 26, rot: 18, dur: 7, delay: 0 },
-  { c: "#0ea5e9", top: "16%", left: "88%", size: 20, rot: -12, dur: 8, delay: 0.6 },
+  { c: "#3b82f6", top: "16%", left: "88%", size: 20, rot: -12, dur: 8, delay: 0.6 },
   { c: "#f59e0b", top: "70%", left: "10%", size: 30, rot: 24, dur: 9, delay: 1.1 },
   { c: "#10b981", top: "78%", left: "84%", size: 22, rot: -20, dur: 7.5, delay: 0.3 },
-  { c: "#e11d48", top: "42%", left: "4%", size: 16, rot: 8, dur: 6.5, delay: 1.4 },
-  { c: "#d97706", top: "30%", left: "94%", size: 18, rot: -28, dur: 8.5, delay: 0.9 },
-  { c: "#0ea5e9", top: "88%", left: "40%", size: 14, rot: 14, dur: 7, delay: 0.2 },
+  { c: "#3b82f6", top: "42%", left: "4%", size: 16, rot: 8, dur: 6.5, delay: 1.4 },
+  { c: "#60a5fa", top: "30%", left: "94%", size: 18, rot: -28, dur: 8.5, delay: 0.9 },
+  { c: "#3b82f6", top: "88%", left: "40%", size: 14, rot: 14, dur: 7, delay: 0.2 },
   { c: "#f59e0b", top: "12%", left: "46%", size: 18, rot: -16, dur: 9, delay: 1.7 },
   { c: "#10b981", top: "58%", left: "92%", size: 16, rot: 22, dur: 6.8, delay: 0.5 },
   { c: "#f43f5e", top: "64%", left: "30%", size: 12, rot: -10, dur: 8.2, delay: 1.2 },
-  { c: "#d97706", top: "84%", left: "62%", size: 24, rot: 30, dur: 7.6, delay: 0.8 },
-  { c: "#0ea5e9", top: "22%", left: "20%", size: 14, rot: -22, dur: 9.4, delay: 1.5 },
+  { c: "#2563eb", top: "84%", left: "62%", size: 24, rot: 30, dur: 7.6, delay: 0.8 },
+  { c: "#3b82f6", top: "22%", left: "20%", size: 14, rot: -22, dur: 9.4, delay: 1.5 },
   { c: "#10b981", top: "6%", left: "70%", size: 16, rot: 12, dur: 7.1, delay: 0.4 },
   { c: "#f59e0b", top: "50%", left: "76%", size: 12, rot: -18, dur: 8.8, delay: 1.0 },
-  { c: "#e11d48", top: "92%", left: "16%", size: 18, rot: 26, dur: 6.6, delay: 1.9 },
+  { c: "#60a5fa", top: "92%", left: "16%", size: 18, rot: 26, dur: 6.6, delay: 1.9 },
   { c: "#f43f5e", top: "36%", left: "60%", size: 10, rot: -14, dur: 9.1, delay: 0.7 },
 ];
 
@@ -204,7 +204,7 @@ export default function LobbyView({
           </div>
         </div>
         <div className="lobby-header-card__qr" aria-label="Scan to join">
-          <QRCodeSVG value={joinUrl} size={148} bgColor="#2e2922" fgColor="#faf6f0" level="M" />
+          <QRCodeSVG value={joinUrl} size={148} bgColor="#ffffff" fgColor="#1d4ed8" level="M" />
         </div>
       </div>
 

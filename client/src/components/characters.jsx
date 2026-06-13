@@ -44,7 +44,7 @@ export const COLORS = [
   "#facc15",
   "#22c55e",
   "#10b981",
-  "#0ea5e9",
+  "#3b82f6",
   "#6366f1",
   "#d97706",
 ];
@@ -56,7 +56,7 @@ export const MOUTHS = ["smile", "grin", "oh"];
 export const DEFAULT_AVATAR = {
   base: "sun",
   accessory: "none",
-  color: "#0ea5e9",
+  color: "#3b82f6",
   hat: "none",
   glasses: "none",
   mouth: "smile",
@@ -251,7 +251,7 @@ const HAT_RENDER = {
   none: () => null,
   cap: () => <path d="M15 17 q17 -13 34 0 q-4 4 -34 3 z" fill="#10b981" />,
   crown: () => <polygon points="18,18 18,8 25,14 32,6 39,14 46,8 46,18" fill={GOLD} stroke="#b45309" strokeWidth="1" />,
-  party: () => <polygon points="32,0 23,18 41,18" fill="#d97706" stroke={LINE} strokeWidth="1" />,
+  party: () => <polygon points="32,0 23,18 41,18" fill="#3b82f6" stroke={LINE} strokeWidth="1" />,
 };
 
 const GLASSES_RENDER = {
@@ -299,7 +299,7 @@ export default function Avatar({
     const base = c.base === "mouse" ? "hamster" : PICKER_BASES.includes(c.base) ? c.base : "sun";
     return (
       <span
-        className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-white/30" : ""} ${className}`}
+        className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-blue-300" : ""} ${className}`}
         style={{ width: size, height: size }}
       >
         <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
@@ -312,7 +312,7 @@ export default function Avatar({
   const Base = LEGACY_DETAILS[c.base] || LEGACY_DETAILS.spark;
   return (
     <span
-      className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-white/30" : ""} ${className}`}
+      className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-blue-300" : ""} ${className}`}
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">

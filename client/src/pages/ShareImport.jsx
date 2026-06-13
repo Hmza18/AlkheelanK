@@ -111,7 +111,7 @@ export default function ShareImport() {
             <h2 className="mt-3 font-display text-2xl font-bold">{share.quiz_title}</h2>
             <p className="mt-1 text-sm text-muted">
               Share code:{" "}
-              <span className="font-mono font-bold text-paper">{share.code}</span>
+              <span className="font-mono font-bold text-ink-900">{share.code}</span>
             </p>
             <div className="mt-4 max-h-40 overflow-y-auto space-y-1">
               {(share.questions || []).slice(0, 8).map((q, i) => (
@@ -136,7 +136,7 @@ export default function ShareImport() {
               Login isn't configured — you can't import to an account yet.
             </p>
           ) : !user ? (
-            <div className="mt-4 rounded-2xl bg-ink-700/60 p-5 text-center ring-1 ring-white/10">
+            <div className="mt-4 rounded-2xl bg-surface-muted p-5 text-center ring-1 ring-blue-200">
               <p className="text-muted">Log in to save this quiz to your account.</p>
               <button
                 onClick={() => navigate(`/login?next=/share/${share.code}`)}
@@ -157,7 +157,7 @@ export default function ShareImport() {
 
           <button
             onClick={() => { setShare(null); setInput(""); setErr(null); }}
-            className="mt-3 w-full text-center text-sm text-muted hover:text-paper"
+            className="mt-3 w-full text-center text-sm text-muted hover:text-ink-900"
           >
             Try a different code
           </button>
@@ -183,7 +183,7 @@ export default function ShareImport() {
       )}
       <button
         onClick={() => navigate(-1)}
-        className="mt-4 text-sm text-muted hover:text-paper"
+        className="mt-4 text-sm text-muted hover:text-ink-900"
       >
         ← Back
       </button>

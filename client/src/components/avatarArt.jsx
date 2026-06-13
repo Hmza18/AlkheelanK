@@ -1,7 +1,7 @@
 // Clay-style 3D avatar faces — each character has a distinct personality read.
 
 const INK = "#2a2118";
-const SCLERA = "#faf6f0";
+const SCLERA = "#ffffff";
 const BLUSH = "#f4878a";
 const BLUSH_DARK = "#e86b72";
 
@@ -107,14 +107,14 @@ function ClayDefs({ uid, skin }) {
         <stop offset="100%" stopColor={rim} stopOpacity="0" />
       </radialGradient>
       <filter id={`${uid}-soft`} x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="2" stdDeviation="1.6" floodColor="#1a1814" floodOpacity="0.28" />
+        <feDropShadow dx="0" dy="2" stdDeviation="1.6" floodColor="#1e3a8a" floodOpacity="0.18" />
       </filter>
     </defs>
   );
 }
 
 function ClayShadow({ wide = false }) {
-  return <ellipse cx="32" cy="56" rx={wide ? 19 : 17} ry="4.5" fill="#1a1814" opacity="0.18" />;
+  return <ellipse cx="32" cy="56" rx={wide ? 19 : 17} ry="4.5" fill="#1e3a8a" opacity="0.12" />;
 }
 
 function ClayHead({ uid, cx = 32, cy = 34, rx = 21, ry = 22 }) {
@@ -300,8 +300,8 @@ function ClayAccessory({ id, uid }) {
     case "disguise":
       return (
         <g>
-          <circle cx="24" cy="30" r="7.5" fill="#bae6fd" opacity="0.45" />
-          <circle cx="40" cy="30" r="7.5" fill="#bae6fd" opacity="0.45" />
+          <circle cx="24" cy="30" r="7.5" fill="#93c5fd" opacity="0.45" />
+          <circle cx="40" cy="30" r="7.5" fill="#93c5fd" opacity="0.45" />
           <circle cx="24" cy="30" r="7.5" fill="none" stroke={INK} strokeWidth="2.2" />
           <circle cx="40" cy="30" r="7.5" fill="none" stroke={INK} strokeWidth="2.2" />
           <rect x="30.5" y="29" width="3" height="2" rx="1" fill={INK} />
@@ -339,7 +339,7 @@ function ClayAccessory({ id, uid }) {
       return (
         <g transform="rotate(-16 42 38)">
           <rect x="34" y="33.5" width="16" height="9" rx="2.2" fill="#fcd9bd" stroke="#d4a574" strokeWidth="0.7" />
-          <rect x="36.5" y="35.5" width="11" height="5" rx="1.2" fill="#faf6f0" />
+          <rect x="36.5" y="35.5" width="11" height="5" rx="1.2" fill="#ffffff" />
           <circle cx="39" cy="38" r="0.9" fill="#e7e5e4" />
           <circle cx="42" cy="38" r="0.9" fill="#e7e5e4" />
           <circle cx="45" cy="38" r="0.9" fill="#e7e5e4" />

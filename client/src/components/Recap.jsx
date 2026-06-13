@@ -24,7 +24,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
       value: `${(recap.fastestFinger.timeMs / 1000).toFixed(2)}s`,
 
-      tint: "#0ea5e9",
+      tint: "#3b82f6",
 
     },
 
@@ -70,7 +70,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
       transition={spring.soft}
 
-      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[2rem] bg-ink-800 p-7 shadow-2xl ring-1 ring-white/10 landscapePhone:max-h-[calc(100dvh-2rem)] landscapePhone:overflow-y-auto landscapePhone:p-4 landscapePhone:rounded-3xl"
+      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[2rem] bg-surface-elevated p-7 shadow-2xl ring-1 ring-blue-200 landscapePhone:max-h-[calc(100dvh-2rem)] landscapePhone:overflow-y-auto landscapePhone:p-4 landscapePhone:rounded-3xl"
 
     >
 
@@ -82,7 +82,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
         <span className="alkheelank-heading text-xl alkheelank-gradient-text">Alkheeloot</span>
 
-        <span className="alkheelank-label rounded-full bg-ink-700 px-3 py-1 normal-case">Party recap</span>
+        <span className="alkheelank-label rounded-full bg-surface-muted px-3 py-1 normal-case">Party recap</span>
 
       </div>
 
@@ -92,7 +92,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
       {recap?.winner && (
 
-        <div className="mt-5 flex items-center gap-4 rounded-3xl bg-gradient-to-r from-brand-start/25 to-brand-end/25 p-4 ring-1 ring-white/10">
+        <div className="mt-5 flex items-center gap-4 rounded-3xl bg-gradient-to-r from-brand-start/25 to-brand-end/25 p-4 ring-1 ring-blue-200">
 
           <div className="relative">
 
@@ -128,7 +128,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
               key={s.label}
 
-              className="flex items-center gap-3 rounded-2xl bg-ink-700/60 p-3 ring-1 ring-white/10"
+              className="flex items-center gap-3 rounded-2xl bg-surface-muted p-3 ring-1 ring-blue-200"
 
             >
 
@@ -152,7 +152,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
                 </p>
 
-                <p className="truncate font-bold text-paper">{s.person.nick}</p>
+                <p className="truncate font-bold text-ink-900">{s.person.nick}</p>
 
               </div>
 
@@ -180,7 +180,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
             {top.map((p, i) => (
 
-              <div key={p.id} className="flex items-center gap-3 rounded-xl bg-ink-700/40 px-3 py-2">
+              <div key={p.id} className="flex items-center gap-3 rounded-xl bg-surface-muted px-3 py-2">
 
                 <span className="w-5 text-center font-display font-bold text-muted">
 
@@ -190,9 +190,9 @@ export default function Recap({ recap, title, standings = [] }) {
 
                 <Avatar config={p.character} size={28} />
 
-                <span className="min-w-0 flex-1 truncate font-semibold text-paper">{p.nick}</span>
+                <span className="min-w-0 flex-1 truncate font-semibold text-ink-900">{p.nick}</span>
 
-                <span className="shrink-0 font-display font-bold tabular-nums text-paper">
+                <span className="shrink-0 font-display font-bold tabular-nums text-ink-900">
 
                   {p.score.toLocaleString()}
 
@@ -210,7 +210,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
 
 
-      <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs text-muted">
+      <div className="mt-5 flex items-center justify-between border-t border-blue-200 pt-4 text-xs text-muted">
 
         <span>
 

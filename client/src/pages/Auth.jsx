@@ -86,11 +86,11 @@ export default function Auth() {
       {!configured && (
         <div className="alkheelank-card mt-6 w-full p-4 text-center text-sm text-muted">
           Login isn't configured yet (no Supabase keys). You can still{" "}
-          <span className="text-paper">continue as guest</span> below.
+          <span className="font-semibold text-ink-900">continue as guest</span> below.
           {!import.meta.env.DEV && (
             <p className="mt-2 text-xs text-tile-triangle">
-              On the live site: add <code className="text-paper">VITE_SUPABASE_URL</code> and{" "}
-              <code className="text-paper">VITE_SUPABASE_ANON_KEY</code> in Vercel, then redeploy.
+              On the live site: add <code className="text-ink-900">VITE_SUPABASE_URL</code> and{" "}
+              <code className="text-ink-900">VITE_SUPABASE_ANON_KEY</code> in Vercel, then redeploy.
             </p>
           )}
         </div>
@@ -103,7 +103,7 @@ export default function Auth() {
       )}
 
       <form onSubmit={submit} className="alkheelank-card mt-6 w-full p-6">
-        <div className="mb-5 flex rounded-2xl bg-ink-800 p-1">
+        <div className="mb-5 flex rounded-2xl bg-surface-muted p-1">
           {["login", "signup"].map((m) => (
             <button
               key={m}
@@ -114,7 +114,7 @@ export default function Auth() {
                 setNotice(null);
               }}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold capitalize transition ${
-                mode === m ? "bg-gradient-to-r from-brand-start to-brand-mid text-paper" : "text-muted"
+                mode === m ? "bg-gradient-to-r from-brand-start to-brand-mid text-white" : "text-muted"
               }`}
             >
               {m === "login" ? "Log in" : "Sign up"}
@@ -126,7 +126,7 @@ export default function Auth() {
           type="button"
           onClick={google}
           disabled={busy || !configured}
-          className="flex w-full items-center justify-center gap-3 rounded-2xl bg-ink-800 px-4 py-3 font-bold text-paper ring-1 ring-white/10 transition hover:bg-ink-600 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-3 rounded-2xl bg-surface-muted px-4 py-3 font-bold text-ink-900 ring-1 ring-blue-200 transition hover:bg-surface-elevated disabled:opacity-50"
         >
           <GoogleIcon />
           Continue with Google
@@ -182,14 +182,14 @@ export default function Auth() {
 
       <button
         onClick={() => navigate("/host?guest=1")}
-        className="mt-5 text-muted underline-offset-4 hover:text-paper hover:underline"
+        className="mt-5 text-muted underline-offset-4 hover:text-ink-900 hover:underline"
       >
         Continue as guest →
       </button>
       <p className="mt-2 text-center text-xs text-muted/70">
         Guests can run a one-off game, but saving quizzes needs an account.
       </p>
-      <button onClick={() => navigate("/")} className="mt-4 text-sm text-muted hover:text-paper">
+      <button onClick={() => navigate("/")} className="mt-4 text-sm text-muted hover:text-ink-900">
         ← Home
       </button>
     </div>

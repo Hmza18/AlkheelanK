@@ -20,7 +20,7 @@ export default function SocialMoment({ highlight, show }) {
             <p className="text-xs font-bold uppercase tracking-widest text-brand-end">
               {highlight.title}
             </p>
-            <p className="truncate font-display text-xl font-bold text-paper">
+            <p className="truncate font-display text-xl font-bold text-ink-900">
               {highlight.player.nick}
             </p>
             <p className="text-sm text-muted">{highlight.subtitle}</p>

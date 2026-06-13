@@ -8,7 +8,7 @@ export default function BuiltByHamza({ className = "" }) {
         href={HAMZA_INSTAGRAM_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-paper underline-offset-4 transition hover:text-brand-mid hover:underline focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-mid"
+        className="text-ink-900 underline-offset-4 transition hover:text-brand-mid hover:underline focus-visible:rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-mid"
       >
         Hamza
       </a>

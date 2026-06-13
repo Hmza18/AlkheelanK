@@ -6,7 +6,7 @@ import { copy } from "../lib/copy.js";
 function SegmentedTabs({ tab, onTab }) {
   return (
     <div
-      className="mx-auto flex w-full max-w-sm rounded-full bg-ink-800/70 p-1 ring-1 ring-white/10"
+      className="mx-auto flex w-full max-w-sm rounded-full bg-surface-muted p-1 ring-1 ring-blue-200"
       role="tablist"
       aria-label="Avatar options"
     >
@@ -22,8 +22,8 @@ function SegmentedTabs({ tab, onTab }) {
             onClick={() => onTab(id)}
             className={`min-h-touch flex-1 rounded-full px-4 py-2.5 text-sm font-bold transition ${
               active
-                ? "bg-ink-700 text-paper ring-1 ring-brand-mid/60"
-                : "text-muted hover:text-paper/80"
+                ? "bg-surface-elevated text-ink-900 ring-1 ring-brand-mid/60"
+                : "text-muted hover:text-ink-900/80"
             }`}
           >
             {label}
@@ -44,7 +44,7 @@ function GridTile({ selected, onClick, label, children }) {
       className={`flex aspect-square w-full items-center justify-center rounded-2xl p-2 transition ${
         selected
           ? "bg-brand-mid/30 ring-2 ring-brand-mid"
-          : "bg-ink-800/70 ring-1 ring-white/10 hover:ring-white/20"
+          : "bg-surface-muted ring-1 ring-blue-200 hover:ring-brand-mid/30"
       }`}
     >
       {children}
@@ -86,7 +86,7 @@ function AvatarGrid({ tab, avatar, setBase, setAccessory }) {
 
 function TeamPicker({ teams, teamId, setTeamId }) {
   return (
-    <div className="w-full rounded-2xl bg-ink-800/70 p-3 ring-1 ring-white/10">
+    <div className="w-full rounded-2xl bg-surface-muted p-3 ring-1 ring-blue-200">
       <p className="alkheelank-label mb-2 text-center">Choose team</p>
       <div className="grid grid-cols-2 gap-2">
         {teams.map((t) => (
@@ -95,7 +95,7 @@ function TeamPicker({ teams, teamId, setTeamId }) {
             type="button"
             onClick={() => setTeamId(t.id)}
             className={`min-h-touch rounded-xl px-3 py-3 text-sm font-bold ring-1 ${
-              teamId === t.id ? "ring-paper text-paper" : "ring-white/10 text-muted"
+              teamId === t.id ? "ring-brand-mid text-ink-900" : "ring-blue-200 text-muted"
             }`}
             style={{ backgroundColor: `${t.color}22` }}
           >

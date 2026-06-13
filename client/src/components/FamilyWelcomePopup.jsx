@@ -25,7 +25,7 @@ export default function FamilyWelcomePopup() {
           {/* Backdrop */}
           <motion.div
             key="backdrop"
-            className="fixed inset-0 z-50 bg-ink-900/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-blue-900/20 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -38,7 +38,7 @@ export default function FamilyWelcomePopup() {
             role="dialog"
             aria-modal="true"
             aria-label="Welcome message"
-            className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-sm -translate-y-1/2 rounded-3xl bg-ink-800 p-7 ring-1 ring-white/10 shadow-[0_24px_64px_-16px_rgba(0,0,0,0.8)]"
+            className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-sm -translate-y-1/2 rounded-3xl bg-surface-elevated p-7 ring-1 ring-blue-200 shadow-card"
             initial={{ opacity: 0, scale: 0.88, y: "-44%" }}
             animate={{ opacity: 1, scale: 1, y: "-50%" }}
             exit={{ opacity: 0, scale: 0.92, y: "-44%" }}
@@ -56,7 +56,7 @@ export default function FamilyWelcomePopup() {
 
             <p className="mt-3 text-sm leading-relaxed text-muted">
               This game was built entirely for us — your entertainment, your laughs, your wins. And yes,{" "}
-              <span className="font-semibold text-paper">it works completely fine!</span> 😄
+              <span className="font-semibold text-ink-900">it works completely fine!</span> 😄
             </p>
 
             <p className="mt-3 text-sm leading-relaxed text-muted">
@@ -66,26 +66,26 @@ export default function FamilyWelcomePopup() {
             <div className="mt-4 flex flex-col gap-2">
               <a
                 href="tel:+97339559928"
-                className="flex items-center gap-3 rounded-xl bg-ink-700 px-4 py-3 ring-1 ring-white/10 transition hover:bg-ink-600"
+                className="flex items-center gap-3 rounded-xl bg-surface-muted px-4 py-3 ring-1 ring-blue-200 transition hover:bg-surface-elevated"
               >
                 <span className="text-xl">📞</span>
-                <span className="text-sm font-semibold text-paper">+973 3955 9928</span>
+                <span className="text-sm font-semibold text-ink-900">+973 3955 9928</span>
               </a>
 
               <a
                 href={HAMZA_INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-xl bg-ink-700 px-4 py-3 ring-1 ring-white/10 transition hover:bg-ink-600"
+                className="flex items-center gap-3 rounded-xl bg-surface-muted px-4 py-3 ring-1 ring-blue-200 transition hover:bg-surface-elevated"
               >
                 <span className="text-xl">📸</span>
-                <span className="text-sm font-semibold text-paper">@hamzamahari</span>
+                <span className="text-sm font-semibold text-ink-900">@hamzamahari</span>
               </a>
             </div>
 
-            <div className="mt-4 rounded-xl bg-ink-700/60 px-4 py-3 ring-1 ring-white/10">
+            <div className="mt-4 rounded-xl bg-surface-muted/60 px-4 py-3 ring-1 ring-blue-200">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted">Tips & support</p>
-              <p className="mt-1 text-sm text-paper">
+              <p className="mt-1 text-sm text-ink-900">
                 Feel free to send a tip via{" "}
                 <span className="font-bold alkheelank-gradient-text">Benefit Pay</span>{" "}
                 — same number above 💛

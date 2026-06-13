@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import Avatar from "../characters.jsx";
 import SettingsPanel from "../SettingsPanel.jsx";
-import { useTheme } from "../../lib/theme.jsx";
 import { copy } from "../../lib/copy.js";
 import { joinDisplayPath, joinQrUrl } from "../../lib/site.js";
 import { sfx, isSoundOn, setSound, subscribeAudio } from "../../lib/sound.js";
@@ -99,7 +98,6 @@ export default function LobbyView({
   onClose,
   error,
 }) {
-  const { theme } = useTheme();
   const pinStr = String(pin || "").padStart(6, "•");
   const joinUrl = joinQrUrl(pin);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -206,14 +204,7 @@ export default function LobbyView({
           </div>
         </div>
         <div className="lobby-header-card__qr" aria-label="Scan to join">
-          <QRCodeSVG
-            key={theme.id}
-            value={joinUrl}
-            size={148}
-            bgColor={theme.qrBg}
-            fgColor={theme.qrFg}
-            level="M"
-          />
+          <QRCodeSVG value={joinUrl} size={148} bgColor="#ffffff" fgColor="#1e293b" level="M" />
         </div>
       </div>
 

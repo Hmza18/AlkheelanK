@@ -25,7 +25,7 @@ import Countdown from "../components/Countdown.jsx";
 import { copy } from "../lib/copy.js";
 import { questionIntro } from "../lib/motion.js";
 import { saveHostSession, loadHostSession, clearHostSession } from "../lib/hostSession.js";
-import { starterImageSrc } from "../lib/starterImages.js";
+import { starterImageSrc, starterImageStoragePath } from "../lib/starterImages.js";
 import { tileStyle } from "../lib/answers.js";
 
 function statusToPhase(status, state) {
@@ -188,7 +188,7 @@ export default function HostGame({ launch, onExit }) {
       setPhase("question");
     };
     const onQuestionImage = ({ index, image }) =>
-      setImages((m) => ({ ...m, [index]: starterImageSrc(image) }));
+      setImages((m) => ({ ...m, [index]: starterImageStoragePath(image) ?? image }));
     const onAnswerCount = (c) => setAnswerCount(c);
     const onReveal = (r) => {
       setReveal(r);

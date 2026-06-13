@@ -16,6 +16,7 @@ import QuestionScreen from "../components/QuestionScreen.jsx";
 import { TimerStrip } from "../components/Timer.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import { normalizeStarterQuestions, starterImageSrc } from "../lib/starterImages.js";
+import { prepareStarterQuestionsForEditor } from "../lib/repairStarterImages.js";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 const MAX_QUESTIONS = 30;
@@ -101,7 +102,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   const [title, setTitle] = useState(initial?.title || "");
   const [questions, setQuestions] = useState(() =>
     initial?.questions?.length
-      ? normalizeStarterQuestions(initial.questions.map((q) => ({ ...q })))
+      ? prepareStarterQuestionsForEditor(initial.title || "", initial.questions)
       : [blankQuestion()],
   );
   const [saving, setSaving] = useState(false);
@@ -209,7 +210,10 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   const ready =
     title.trim() && questions.length > 0 && questions.every(questionFilled);
 
-  const payload = () => ({ title: title.trim() || "Untitled quiz", questions });
+  const payload = () => ({
+    title: title.trim() || "Untitled quiz",
+    questions: normalizeStarterQuestions(questions),
+  });
   const isDirty = useMemo(
     () => serializeQuiz(title, questions) !== savedSnapshotRef.current,
     [title, questions]

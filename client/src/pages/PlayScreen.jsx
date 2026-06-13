@@ -55,6 +55,7 @@ export default function PlayScreen() {
   const [showReconnectBanner, setShowReconnectBanner] = useState(false);
   const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
   const [savingAvatar, setSavingAvatar] = useState(false);
+  const [hintText, setHintText] = useState(null);
   const joinInfoRef = useRef(null);
   const pinRef = useRef(pin);
   const teamIdRef = useRef(teamId);
@@ -197,6 +198,7 @@ export default function PlayScreen() {
     const onHostStatus = ({ connected }) => {
       setHostConnected(connected !== false);
     };
+    const onHintReveal = ({ hint }) => setHintText(hint ?? null);
     const onQuestion = (q) => {
       setDoubleWarning(null);
       setQuestion(q);
@@ -206,6 +208,7 @@ export default function PlayScreen() {
       setReveal(null);
       setStandings(null);
       setPaused(!!q.paused);
+      setHintText(null);
       setPhase("question");
     };
     const onDoublePointsWarning = (warning) => {
@@ -288,6 +291,7 @@ export default function PlayScreen() {
     socket.on("player:error", onPlayerError);
     socket.on("player:kicked", onKicked);
     socket.on("game:question", onQuestion);
+    socket.on("player:hintReveal", onHintReveal);
     socket.on("game:countdown", onCountdown);
     socket.on("game:doublePointsWarning", onDoublePointsWarning);
     socket.on("player:answerLocked", onLocked);
@@ -309,6 +313,7 @@ export default function PlayScreen() {
       socket.off("player:error", onPlayerError);
       socket.off("player:kicked", onKicked);
       socket.off("game:question", onQuestion);
+      socket.off("player:hintReveal", onHintReveal);
       socket.off("game:countdown", onCountdown);
       socket.off("game:doublePointsWarning", onDoublePointsWarning);
       socket.off("player:answerLocked", onLocked);
@@ -523,6 +528,7 @@ export default function PlayScreen() {
           onSubmit={submit}
           onHint={() => socket.emit("player:hint")}
           paused={paused}
+          hintText={hintText}
         />
       </>
     );
@@ -630,7 +636,7 @@ const TYPE_TAGLINE = {
   puzzle: "Put them in order",
 };
 
-function QuestionCard({ q, selected, onSubmit, onHint, paused }) {
+function QuestionCard({ q, selected, onSubmit, onHint, paused, hintText }) {
   const type = q?.type || "mc";
   const locked = selected !== null || paused;
   const [hintOpen, setHintOpen] = useState(false);
@@ -823,7 +829,7 @@ function QuestionCard({ q, selected, onSubmit, onHint, paused }) {
                 animate={{ opacity: 1, y: 0 }}
                 className="max-w-md rounded-2xl bg-brand-mid/10 px-4 py-2 text-center text-sm font-semibold text-ink-900 ring-1 ring-brand-mid/30 landscapePhone:py-1.5 landscapePhone:text-xs"
               >
-                🔍 {q.hint}
+                🔍 {hintText ?? "…"}
               </motion.p>
             ) : (
               <button

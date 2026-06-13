@@ -655,10 +655,17 @@ io.on("connection", (socket) => {
   });
 
   // Player revealed the "Closer Look" hint — recorded server-side so the score
-  // penalty can't be dodged by hiding it again before answering.
+  // penalty can't be dodged by hiding it again before answering. The hint text
+  // is delivered only to the requesting socket AFTER the penalty is recorded,
+  // so players cannot read it from the question broadcast without paying the cost.
   socket.on("player:hint", () => {
     const game = GM.findGameBySocket(socket.id);
-    if (game) GM.useHint(game, socket.id);
+    if (!game) return;
+    const recorded = GM.useHint(game, socket.id);
+    if (recorded) {
+      const q = GM.currentQuestion(game);
+      socket.emit("player:hintReveal", { hint: q?.hint ?? null });
+    }
   });
 
   socket.on("player:answer", (payload = {}) => {

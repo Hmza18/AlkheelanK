@@ -15,16 +15,16 @@ export default {
     extend: {
       colors: {
         surface: {
-          DEFAULT: "var(--alkheelank-surface)",
-          elevated: "var(--alkheelank-surface-elevated)",
-          muted: "var(--alkheelank-surface-muted)",
+          DEFAULT: "rgb(var(--alkheelank-rgb-surface) / <alpha-value>)",
+          elevated: "rgb(var(--alkheelank-rgb-surface-elevated) / <alpha-value>)",
+          muted: "rgb(var(--alkheelank-rgb-surface-muted) / <alpha-value>)",
         },
         ink: {
-          900: "var(--alkheelank-ink-900)",
-          800: "var(--alkheelank-ink-800)",
-          700: "var(--alkheelank-ink-700)",
-          600: "var(--alkheelank-ink-600)",
-          500: "var(--alkheelank-ink-500)",
+          900: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
+          800: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
+          700: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
+          600: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
+          500: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
         },
         brand: {
           start: "rgb(var(--alkheelank-rgb-brand-start) / <alpha-value>)",

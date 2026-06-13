@@ -11,7 +11,7 @@ import PostAnswerWaiting from "../components/PostAnswerWaiting.jsx";
 import { HostStatusBanner, PlayerReconnectBanner, PlayerConnectionBanner } from "../components/ConnectionBanner.jsx";
 import { copy } from "../lib/copy.js";
 import { tileStyle } from "../lib/answers.js";
-import { formatPinInput } from "../lib/pin.js";
+import { formatPinInput, isCompletePin, sanitizePin } from "../lib/pin.js";
 import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
@@ -26,9 +26,9 @@ import { questionIntro } from "../lib/motion.js";
 export default function PlayScreen() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const pinParam = (params.get("pin") || "").replace(/\D/g, "").slice(0, 6);
+  const pinParam = sanitizePin(params.get("pin") || "");
   const [phase, setPhase] = useState("join");
-  const [step, setStep] = useState(pinParam.length === 6 ? "profile" : "pin");
+  const [step, setStep] = useState(isCompletePin(pinParam) ? "profile" : "pin");
   const [pin, setPin] = useState(pinParam);
   const [meta, setMeta] = useState(null);
   const [teamId, setTeamId] = useState(null);
@@ -59,11 +59,55 @@ export default function PlayScreen() {
   pinRef.current = pin;
   teamIdRef.current = teamId;
 
+  const peekJoinMeta = (cleanPin) => {
+    (async () => {
+      try {
+        await wakeServer();
+        await connectSocket();
+        socket.emit("player:peek", { pin: cleanPin }, (res) => {
+          if (!res) return;
+          if (res.error) {
+            setError(res.error);
+            return;
+          }
+          if (res.lobbyLocked) {
+            setError(copy.lobby.lockedJoin);
+            return;
+          }
+          if (res.status && res.status !== "lobby") {
+            setError("This game has already started.");
+            return;
+          }
+          setMeta(res);
+          if (res.mode === "teams" && res.teams?.length) {
+            teamIdRef.current = res.teams[0].id;
+            setTeamId(res.teams[0].id);
+          }
+          setError(null);
+        });
+      } catch (err) {
+        setError(formatConnectError(err));
+      }
+    })();
+  };
+
+  // QR / deep-link joins skip the PIN step — still peek so team pickers populate.
+  useEffect(() => {
+    const saved = loadPlayerSession();
+    if (saved?.pid && saved?.pin) {
+      const urlPin = isCompletePin(pinParam) ? pinParam : null;
+      if (!urlPin || urlPin === saved.pin) return;
+    }
+    if (!isCompletePin(pinParam)) return;
+    peekJoinMeta(pinParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Restore session after refresh — rejoin with saved pid before the join form.
   useEffect(() => {
     const saved = loadPlayerSession();
     if (!saved?.pid || !saved?.pin) return;
-    const urlPin = pinParam.length === 6 ? pinParam : null;
+    const urlPin = isCompletePin(pinParam) ? pinParam : null;
     if (urlPin && urlPin !== saved.pin) return;
 
     joinInfoRef.current = saved;
@@ -276,35 +320,20 @@ export default function PlayScreen() {
     };
   }, []);
 
-  const goProfile = async () => {
-    const cleanPin = pin.replace(/\D/g, "").slice(0, 6);
-    if (cleanPin.length !== 6) return setError(copy.player.pinStep);
+  const goProfile = () => {
+    const cleanPin = sanitizePin(pin);
+    if (!isCompletePin(cleanPin)) return setError(copy.player.pinStep);
     setError(null);
-    try {
-      await wakeServer();
-      await connectSocket();
-      socket.emit("player:peek", { pin: cleanPin }, (res) => {
-        if (res?.error) setError(res.error);
-        else if (res.lobbyLocked) {
-          setMeta(res);
-          setError(copy.lobby.lockedJoin);
-        } else if (res.status && res.status !== "lobby") {
-          setError("This game has already started.");
-        } else {
-          setMeta(res);
-          if (res.mode === "teams" && res.teams?.length) setTeamId(res.teams[0].id);
-          setStep("profile");
-          setError(null);
-        }
-      });
-    } catch (err) {
-      setError(formatConnectError(err));
-    }
+    pinRef.current = cleanPin;
+    setPin(cleanPin);
+    // Match QR/deep-link flow: profile step first, validate in the background.
+    setStep("profile");
+    peekJoinMeta(cleanPin);
   };
 
   const join = async (e) => {
     e.preventDefault();
-    const cleanPin = pin.replace(/\D/g, "").slice(0, 6);
+    const cleanPin = sanitizePin(pin);
     if (!nickname.trim()) return setError("Pick a nickname to join.");
     setJoining(true);
     setError(null);
@@ -589,7 +618,7 @@ function JoinPin({ pin, setPin, goProfile, error }) {
           inputMode="numeric"
           maxLength={7}
           value={formatPinInput(pin)}
-          onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          onChange={(e) => setPin(sanitizePin(e.target.value))}
           autoFocus
         />
         {error && (

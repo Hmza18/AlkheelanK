@@ -10,6 +10,8 @@ export const THEMES = {
     emoji: "💙",
     description: "White cards on a bright blue background.",
     metaColor: "#dbeafe",
+    qrBg: "#ffffff",
+    qrFg: "#1d4ed8",
   },
   classic: {
     id: "classic",
@@ -18,6 +20,8 @@ export const THEMES = {
     emoji: "🔥",
     description: "Orange accents on the original dark charcoal look.",
     metaColor: "#1a1814",
+    qrBg: "#faf6f0",
+    qrFg: "#ea580c",
   },
 };
 

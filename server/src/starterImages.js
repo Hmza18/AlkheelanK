@@ -115,14 +115,41 @@ function loadPhotoManifest() {
 
 const PHOTO_MANIFEST = loadPhotoManifest();
 
+/** Public origin for starter photo URLs (must be https in production). */
 export function starterImagesBaseUrl() {
-  const base = process.env.STARTER_IMAGES_BASE_URL || "http://localhost:3001";
-  return base.replace(/\/$/, "");
+  const explicit = process.env.STARTER_IMAGES_BASE_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
+
+  const render = process.env.RENDER_EXTERNAL_URL?.trim();
+  if (render) return render.replace(/\/$/, "");
+
+  const port = process.env.PORT || 3001;
+  return `http://localhost:${port}`;
 }
 
 export function starterPhotoUrl(quizId, index) {
   return `${starterImagesBaseUrl()}/starter-images/${quizId}/${index}.webp`;
 }
+
+export function starterCoverPhotoUrl(quizId) {
+  const coverPath = path.join(ASSETS_DIR, quizId, "cover.webp");
+  if (fs.existsSync(coverPath)) {
+    return `${starterImagesBaseUrl()}/starter-images/${quizId}/cover.webp`;
+  }
+  const key = `${quizId}:0`;
+  if (PHOTO_MANIFEST.has(key)) return starterPhotoUrl(quizId, 0);
+  return null;
+}
+
+/** Thematic Openverse queries for starter template cover cards. */
+export const COVER_ART = {
+  "house-party": { query: "house party friends celebrating", label: "House Party Mix" },
+  "movie-night": { query: "movie theater cinema screen", label: "Movie Night" },
+  "general-knowledge": { query: "library books reading study", label: "General Knowledge" },
+  "kids-corner": { query: "children playing colorful toys", label: "Kids' Corner" },
+  "around-the-world": { query: "world map travel globe", label: "Around the World" },
+  "family-faceoff": { query: "family game night table", label: "Family Face-Off" },
+};
 
 export function questionImageFor(quizId, index, category) {
   const art = QUESTION_ART[quizId]?.[index];

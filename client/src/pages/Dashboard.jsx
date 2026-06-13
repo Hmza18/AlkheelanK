@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { STARTER_SUMMARIES } from "../data/starterSummaries.js";
 import { useAuth } from "../lib/auth.jsx";
 import {
@@ -345,18 +344,24 @@ function MyQuizCard({ quiz, onLaunch, onEdit, onDuplicate, onDelete, onShare }) 
 // ---------------------------------------------------------------------------
 function StarterCard({ quiz, onLaunch, onCopy, copying, canCopy }) {
   const accent = CATEGORY_COLORS[quiz.category] || "#3b82f6";
+  const [coverSrc, setCoverSrc] = useState(quiz.coverImage);
   return (
     <div
       className="alkheelank-card flex flex-col overflow-hidden p-0"
       style={{ borderTop: `3px solid ${accent}` }}
     >
-      {quiz.coverImage && (
+      {coverSrc && (
         <div className="relative h-36 w-full shrink-0 overflow-hidden">
           <img
-            src={quiz.coverImage}
+            src={coverSrc}
             alt=""
             className="h-full w-full object-cover"
             loading="lazy"
+            onError={() => {
+              if (quiz.coverFallback && coverSrc !== quiz.coverFallback) {
+                setCoverSrc(quiz.coverFallback);
+              }
+            }}
           />
           <div
             className="absolute inset-0 bg-gradient-to-t from-surface-elevated via-surface-elevated/40 to-transparent"

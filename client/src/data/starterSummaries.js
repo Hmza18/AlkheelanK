@@ -1,4 +1,4 @@
-import { starterCover } from "./starterArt.js";
+import { starterCover, starterCoverPhoto } from "./starterArt.js";
 
 /** Bundled in the client — starter cards render instantly (no server fetch). */
 export const STARTER_SUMMARIES = [
@@ -9,7 +9,8 @@ export const STARTER_SUMMARIES = [
     emoji: "🎉",
     category: "Mixed",
     questionCount: 9,
-    coverImage: starterCover("🎉", "#3b82f6", "Mixed trivia"),
+    coverImage: starterCoverPhoto("house-party"),
+    coverFallback: starterCover("🎉", "#3b82f6", "Mixed trivia"),
   },
   {
     id: "movie-night",
@@ -18,7 +19,8 @@ export const STARTER_SUMMARIES = [
     emoji: "🎬",
     category: "Movies",
     questionCount: 5,
-    coverImage: starterCover("🎬", "#f43f5e", "Movies"),
+    coverImage: starterCoverPhoto("movie-night"),
+    coverFallback: starterCover("🎬", "#f43f5e", "Movies"),
   },
   {
     id: "general-knowledge",
@@ -27,7 +29,8 @@ export const STARTER_SUMMARIES = [
     emoji: "🧠",
     category: "General",
     questionCount: 8,
-    coverImage: starterCover("🧠", "#3b82f6", "General"),
+    coverImage: starterCoverPhoto("general-knowledge"),
+    coverFallback: starterCover("🧠", "#3b82f6", "General"),
   },
   {
     id: "kids-corner",
@@ -36,7 +39,8 @@ export const STARTER_SUMMARIES = [
     emoji: "🧸",
     category: "Kids",
     questionCount: 8,
-    coverImage: starterCover("🧸", "#f59e0b", "Kids"),
+    coverImage: starterCoverPhoto("kids-corner"),
+    coverFallback: starterCover("🧸", "#f59e0b", "Kids"),
   },
   {
     id: "around-the-world",
@@ -45,7 +49,8 @@ export const STARTER_SUMMARIES = [
     emoji: "🌍",
     category: "Geography",
     questionCount: 8,
-    coverImage: starterCover("🌍", "#10b981", "Geography"),
+    coverImage: starterCoverPhoto("around-the-world"),
+    coverFallback: starterCover("🌍", "#10b981", "Geography"),
   },
   {
     id: "family-faceoff",
@@ -54,6 +59,7 @@ export const STARTER_SUMMARIES = [
     emoji: "🏠",
     category: "Family",
     questionCount: 8,
-    coverImage: starterCover("🏠", "#1d4ed8", "Family"),
+    coverImage: starterCoverPhoto("family-faceoff"),
+    coverFallback: starterCover("🏠", "#1d4ed8", "Family"),
   },
 ];

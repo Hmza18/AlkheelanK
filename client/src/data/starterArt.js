@@ -1,4 +1,4 @@
-/** Self-contained SVG covers — no external CDN, works on Vercel instantly. */
+/** Self-contained SVG covers — fallback when server photos are unreachable. */
 export function starterCover(emoji, accent, subtitle = "") {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img">
   <defs>
@@ -24,6 +24,13 @@ export function starterCover(emoji, accent, subtitle = "") {
   }
 </svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg.trim())}`;
+}
+
+const SERVER_URL = (import.meta.env.VITE_SERVER_URL || "http://localhost:3001").replace(/\/$/, "");
+
+/** Openverse-sourced cover photo served from the game server. */
+export function starterCoverPhoto(quizId) {
+  return `${SERVER_URL}/starter-images/${quizId}/cover.webp`;
 }
 
 export function questionIllustration(emoji, accent, label) {

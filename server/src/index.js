@@ -743,9 +743,13 @@ setInterval(() => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Alkheeloot server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);
-  if (process.env.NODE_ENV === "production" && !process.env.STARTER_IMAGES_BASE_URL) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    !process.env.STARTER_IMAGES_BASE_URL &&
+    !process.env.RENDER_EXTERNAL_URL
+  ) {
     console.warn(
-      "[config] STARTER_IMAGES_BASE_URL is unset — starter quiz photos will use http://localhost:3001 and break on player devices. Set it to your public server URL in Render.",
+      "[config] Set STARTER_IMAGES_BASE_URL to your public server URL so starter quiz photos load on player devices.",
     );
   }
 });

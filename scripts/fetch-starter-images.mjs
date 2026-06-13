@@ -13,7 +13,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
-import { QUESTION_ART } from "../server/src/starterImages.js";
+import { COVER_ART, QUESTION_ART } from "../server/src/starterImages.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -86,27 +86,29 @@ async function processImage(buffer) {
     .toBuffer();
 }
 
-function manifestKey(quizId, index) {
-  return `${quizId}:${index}`;
+function entryKey(entry) {
+  if (entry.cover) return `${entry.quizId}:cover`;
+  return `${entry.quizId}:${entry.index}`;
 }
 
 function upsertManifestEntry(manifest, entry) {
-  const key = manifestKey(entry.quizId, entry.index);
-  const idx = manifest.findIndex((e) => manifestKey(e.quizId, e.index) === key);
+  const key = entryKey(entry);
+  const idx = manifest.findIndex((e) => entryKey(e) === key);
   if (idx >= 0) manifest[idx] = entry;
   else manifest.push(entry);
 }
 
-async function fetchOne(quizId, index, art, force) {
-  const relFile = `${quizId}/${index}.webp`;
+async function fetchOne(quizId, index, art, force, { cover = false } = {}) {
+  const relFile = cover ? `${quizId}/cover.webp` : `${quizId}/${index}.webp`;
   const outPath = path.join(OUT_DIR, relFile);
+  const tag = cover ? `${quizId}:cover` : `${quizId}:${index}`;
 
   if (!force && fs.existsSync(outPath)) {
-    console.log(`  skip (exists): ${quizId}:${index}`);
+    console.log(`  skip (exists): ${tag}`);
     return null;
   }
 
-  console.log(`  search: "${art.query}" (${quizId}:${index})`);
+  console.log(`  search: "${art.query}" (${tag})`);
   const results = await searchOpenverse(art.query);
   if (!results.length) throw new Error(`No Openverse results for "${art.query}"`);
 
@@ -120,7 +122,7 @@ async function fetchOne(quizId, index, art, force) {
 
       const entry = {
         quizId,
-        index,
+        ...(cover ? { cover: true } : { index }),
         file: relFile,
         query: art.query,
         label: art.label,
@@ -137,7 +139,7 @@ async function fetchOne(quizId, index, art, force) {
       console.log(`  try next (${err.message})`);
     }
   }
-  throw lastErr || new Error(`All downloads failed for ${quizId}:${index}`);
+  throw lastErr || new Error(`All downloads failed for ${tag}`);
 }
 
 async function main() {
@@ -148,8 +150,13 @@ async function main() {
   for (const [quizId, items] of Object.entries(QUESTION_ART)) {
     items.forEach((art, index) => {
       if (only && only !== `${quizId}:${index}`) return;
-      tasks.push({ quizId, index, art });
+      tasks.push({ quizId, index, art, cover: false });
     });
+  }
+  for (const [quizId, art] of Object.entries(COVER_ART)) {
+    if (only && only !== `${quizId}:cover`) continue;
+    if (only && only.includes(":") && only !== `${quizId}:cover`) continue;
+    tasks.push({ quizId, index: null, art, cover: true });
   }
 
   if (!tasks.length) {
@@ -161,9 +168,9 @@ async function main() {
   let ok = 0;
   let fail = 0;
 
-  for (const { quizId, index, art } of tasks) {
+  for (const { quizId, index, art, cover } of tasks) {
     try {
-      const entry = await fetchOne(quizId, index, art, force);
+      const entry = await fetchOne(quizId, index, art, force, { cover });
       if (entry) {
         upsertManifestEntry(manifest, entry);
         ok++;
@@ -171,14 +178,17 @@ async function main() {
       // brief pause to be polite to Openverse
       await new Promise((r) => setTimeout(r, 400));
     } catch (err) {
-      console.error(`  FAIL ${quizId}:${index}: ${err.message}`);
+      console.error(`  FAIL ${cover ? `${quizId}:cover` : `${quizId}:${index}`}: ${err.message}`);
       fail++;
     }
   }
 
-  manifest.sort((a, b) =>
-    a.quizId === b.quizId ? a.index - b.index : a.quizId.localeCompare(b.quizId),
-  );
+  manifest.sort((a, b) => {
+    if (a.quizId !== b.quizId) return a.quizId.localeCompare(b.quizId);
+    if (a.cover && !b.cover) return -1;
+    if (!a.cover && b.cover) return 1;
+    return (a.index ?? -1) - (b.index ?? -1);
+  });
   saveManifest(manifest);
   console.log(`\nDone: ${ok} saved, ${fail} failed. Manifest: ${MANIFEST_PATH}`);
   if (fail > 0) process.exit(1);

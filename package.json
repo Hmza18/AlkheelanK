@@ -8,6 +8,7 @@
     "apply-security": "node scripts/apply-schema.mjs --security",
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
-    "fetch-starter-images": "node scripts/fetch-starter-images.mjs"
+    "fetch-starter-images": "node scripts/fetch-starter-images.mjs",
+    "sync-starter-images": "node scripts/sync-starter-images.mjs"
   }
 }

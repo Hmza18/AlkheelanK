@@ -118,7 +118,13 @@ const PHOTO_MANIFEST = loadPhotoManifest();
 /** Public origin for starter photo URLs (must be https in production). */
 export function starterImagesBaseUrl() {
   const explicit = process.env.STARTER_IMAGES_BASE_URL?.trim();
-  if (explicit) return explicit.replace(/\/$/, "");
+  if (explicit) {
+    const cleaned = explicit.replace(/\/$/, "");
+    const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(cleaned);
+    if (!(process.env.NODE_ENV === "production" && isLocalhost)) {
+      return cleaned;
+    }
+  }
 
   const render = process.env.RENDER_EXTERNAL_URL?.trim();
   if (render) return render.replace(/\/$/, "");
@@ -127,18 +133,26 @@ export function starterImagesBaseUrl() {
   return `http://localhost:${port}`;
 }
 
+/** Relative path — preferred; client serves these from public/starter-images. */
+export function starterPhotoPath(quizId, index) {
+  return `/starter-images/${quizId}/${index}.webp`;
+}
+
+export function starterCoverPhotoPath(quizId) {
+  const coverPath = path.join(ASSETS_DIR, quizId, "cover.webp");
+  if (fs.existsSync(coverPath)) return `/starter-images/${quizId}/cover.webp`;
+  const key = `${quizId}:0`;
+  if (PHOTO_MANIFEST.has(key)) return starterPhotoPath(quizId, 0);
+  return null;
+}
+
 export function starterPhotoUrl(quizId, index) {
-  return `${starterImagesBaseUrl()}/starter-images/${quizId}/${index}.webp`;
+  return `${starterImagesBaseUrl()}${starterPhotoPath(quizId, index)}`;
 }
 
 export function starterCoverPhotoUrl(quizId) {
-  const coverPath = path.join(ASSETS_DIR, quizId, "cover.webp");
-  if (fs.existsSync(coverPath)) {
-    return `${starterImagesBaseUrl()}/starter-images/${quizId}/cover.webp`;
-  }
-  const key = `${quizId}:0`;
-  if (PHOTO_MANIFEST.has(key)) return starterPhotoUrl(quizId, 0);
-  return null;
+  const rel = starterCoverPhotoPath(quizId);
+  return rel ? `${starterImagesBaseUrl()}${rel}` : null;
 }
 
 /** Thematic Openverse queries for starter template cover cards. */
@@ -157,7 +171,7 @@ export function questionImageFor(quizId, index, category) {
 
   const key = `${quizId}:${index}`;
   if (PHOTO_MANIFEST.has(key)) {
-    return starterPhotoUrl(quizId, index);
+    return starterPhotoPath(quizId, index);
   }
 
   return svgDataUri(art.emoji, ACCENTS[category] || "#d97706", art.label);

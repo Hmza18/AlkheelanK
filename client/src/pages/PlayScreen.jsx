@@ -13,6 +13,7 @@ import { copy } from "../lib/copy.js";
 import { tileStyle } from "../lib/answers.js";
 import PinInput from "../components/PinInput.jsx";
 import { isCompletePin, sanitizePin } from "../lib/pin.js";
+import { starterImageSrc } from "../lib/starterImages.js";
 import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
@@ -811,7 +812,7 @@ function QuestionCard({ q, selected, onSubmit, onHint, paused }) {
         ) : null
       }
       prompt={q?.question}
-      image={q?.image}
+      image={starterImageSrc(q?.image)}
       animateImage
       notice={
         q?.hasHint ? (

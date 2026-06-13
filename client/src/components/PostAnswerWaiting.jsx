@@ -5,6 +5,7 @@ import { tileStyle } from "../lib/answers.js";
 import { pickWaitingMessage } from "../lib/waitingMessages.js";
 import { copy } from "../lib/copy.js";
 import { useReducedMotion } from "../lib/motion.js";
+import { starterImageSrc } from "../lib/starterImages.js";
 
 export default function PostAnswerWaiting({
   me,
@@ -72,7 +73,7 @@ export default function PostAnswerWaiting({
               <motion.img
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                src={question.image}
+                src={starterImageSrc(question.image)}
                 alt=""
                 className="relative mx-auto mt-5 max-h-32 w-auto rounded-xl object-contain shadow-lg ring-1 ring-edge landscapePhone:mx-0 landscapePhone:mt-2 landscapePhone:max-h-14"
               />

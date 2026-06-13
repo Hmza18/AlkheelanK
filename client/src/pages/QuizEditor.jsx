@@ -15,6 +15,7 @@ import AnswerTile from "../components/AnswerTile.jsx";
 import QuestionScreen from "../components/QuestionScreen.jsx";
 import { TimerStrip } from "../components/Timer.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
+import { normalizeStarterQuestions, starterImageSrc } from "../lib/starterImages.js";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 const MAX_QUESTIONS = 30;
@@ -98,8 +99,10 @@ function questionFilled(q) {
 // features (null for guests — bank buttons simply don't appear).
 export default function QuizEditor({ initial, canSave, userId, onCancel, onSave, onLaunch }) {
   const [title, setTitle] = useState(initial?.title || "");
-  const [questions, setQuestions] = useState(
-    initial?.questions?.length ? initial.questions.map((q) => ({ ...q })) : [blankQuestion()]
+  const [questions, setQuestions] = useState(() =>
+    initial?.questions?.length
+      ? normalizeStarterQuestions(initial.questions.map((q) => ({ ...q })))
+      : [blankQuestion()],
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -491,7 +494,7 @@ function QuestionSidebar({ questions, selectedIndex, onSelect, onAdd, atQuestion
           </span>
         </span>
         {q.image && (
-          <img src={q.image} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-edge" />
+          <img src={starterImageSrc(q.image)} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-edge" />
         )}
       </button>
     );
@@ -1302,7 +1305,7 @@ function QuizPreview({ title, questions, onClose }) {
             </div>
           }
           prompt={q.question}
-          image={q.image}
+          image={starterImageSrc(q.image)}
           animateImage
           timerStrip={
             <TimerStrip
@@ -1578,7 +1581,7 @@ function ImagePicker({ image, onChange }) {
     return (
       <div className="mt-3 flex items-center gap-3">
         <img
-          src={image}
+          src={starterImageSrc(image)}
           alt="Question"
           className="h-20 w-20 rounded-xl object-cover ring-1 ring-edge"
           onError={() => setErr("Image failed to load — check the URL.")}

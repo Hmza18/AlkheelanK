@@ -25,6 +25,7 @@ import Countdown from "../components/Countdown.jsx";
 import { copy } from "../lib/copy.js";
 import { questionIntro } from "../lib/motion.js";
 import { saveHostSession, loadHostSession, clearHostSession } from "../lib/hostSession.js";
+import { starterImageSrc } from "../lib/starterImages.js";
 import { tileStyle } from "../lib/answers.js";
 
 function statusToPhase(status, state) {
@@ -186,7 +187,8 @@ export default function HostGame({ launch, onExit }) {
       setAnswerCount((c) => ({ answered: 0, total: c.total }));
       setPhase("question");
     };
-    const onQuestionImage = ({ index, image }) => setImages((m) => ({ ...m, [index]: image }));
+    const onQuestionImage = ({ index, image }) =>
+      setImages((m) => ({ ...m, [index]: starterImageSrc(image) }));
     const onAnswerCount = (c) => setAnswerCount(c);
     const onReveal = (r) => {
       setReveal(r);
@@ -355,7 +357,9 @@ export default function HostGame({ launch, onExit }) {
     }
   };
 
-  const currentImage = question ? question.image ?? images[question.index] ?? null : null;
+  const currentImage = question
+    ? starterImageSrc(question.image ?? images[question.index] ?? null)
+    : null;
 
   // What's about to be launched — shown on the setup screen before the room exists.
   const launchQuizMeta =

@@ -501,6 +501,9 @@ function sanitizeQuestionImage(image, questionIndex) {
     }
     return { image: s };
   }
+  if (s.startsWith("/starter-images/") && s.length <= 128 && !s.includes("..")) {
+    return { image: s };
+  }
   let url;
   try {
     url = new URL(s);

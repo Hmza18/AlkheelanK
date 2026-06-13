@@ -26,11 +26,9 @@ export function starterCover(emoji, accent, subtitle = "") {
   return `data:image/svg+xml,${encodeURIComponent(svg.trim())}`;
 }
 
-const SERVER_URL = (import.meta.env.VITE_SERVER_URL || "http://localhost:3001").replace(/\/$/, "");
-
-/** Openverse-sourced cover photo served from the game server. */
+/** Openverse-sourced cover photo — same-origin from client/public/starter-images. */
 export function starterCoverPhoto(quizId) {
-  return `${SERVER_URL}/starter-images/${quizId}/cover.webp`;
+  return `/starter-images/${quizId}/cover.webp`;
 }
 
 export function questionIllustration(emoji, accent, label) {

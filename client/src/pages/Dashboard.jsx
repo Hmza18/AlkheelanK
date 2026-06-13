@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { STARTER_SUMMARIES } from "../data/starterSummaries.js";
+import { normalizeStarterQuestions } from "../lib/starterImages.js";
 import { useAuth } from "../lib/auth.jsx";
 import {
   createQuiz,
@@ -71,7 +72,7 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
       const data = await res.json();
       const { data: saved } = await createQuiz(user.id, {
         title: data.title,
-        questions: data.questions,
+        questions: normalizeStarterQuestions(data.questions),
       });
       if (saved) setQuizzes((qs) => [saved, ...qs]);
     } catch {

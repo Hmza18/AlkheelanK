@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import * as GM from "./gameManager.js";
 import { getQuiz, quizSummaries, validateCustomQuiz, getStarterForCopy } from "./quizzes.js";
 import { createRateLimiter, clientKey } from "./rateLimit.js";
-import { generateQuiz, isAiConfigured } from "./ai.js";
+import { generateQuiz, generateFromText, isAiConfigured } from "./ai.js";
 import { searchImages } from "./imageSearch.js";
 
 const PORT = process.env.PORT || 3001;
@@ -65,6 +65,7 @@ const limitHostCreate = createRateLimiter({ windowMs: 60_000, max: 8 });
 const limitPlayerPeek = createRateLimiter({ windowMs: 60_000, max: 40 });
 const limitPlayerJoin = createRateLimiter({ windowMs: 60_000, max: 30 });
 const limitGenerate = createRateLimiter({ windowMs: 60_000, max: 4 });
+const limitIngest = createRateLimiter({ windowMs: 60_000, max: 4 });
 const limitImageSearch = createRateLimiter({ windowMs: 60_000, max: 20 });
 
 function httpClientKey(req) {
@@ -126,6 +127,26 @@ app.post("/generate-quiz", async (req, res) => {
   } catch (err) {
     console.error("generate-quiz failed:", err?.message || err);
     res.status(502).json({ error: "Generation failed — try again in a moment." });
+  }
+});
+
+// AI quiz ingestion from a pasted document / PDF text. Larger body limit than
+// the default (documents are bigger than a topic string).
+app.post("/ingest-quiz", express.json({ limit: "64kb" }), async (req, res) => {
+  if (!isAiConfigured()) {
+    return res.status(503).json({ error: "AI generation isn't set up on this server." });
+  }
+  if (!limitIngest(httpClientKey(req))) {
+    return res.status(429).json({ error: "Too many imports — wait a minute and try again." });
+  }
+  try {
+    const { text, count, audience, language } = req.body || {};
+    const result = await generateFromText({ text, count, audience, language });
+    if (result.error) return res.status(400).json({ error: result.error });
+    res.json(result.data);
+  } catch (err) {
+    console.error("ingest-quiz failed:", err?.message || err);
+    res.status(502).json({ error: "Import failed — try again in a moment." });
   }
 });
 
@@ -609,10 +630,26 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ error: err.message });
   });
 
-  socket.on("player:answer", ({ answerIndex } = {}) => {
+  // Player revealed the "Closer Look" hint — recorded server-side so the score
+  // penalty can't be dodged by hiding it again before answering.
+  socket.on("player:hint", () => {
+    const game = GM.findGameBySocket(socket.id);
+    if (game) GM.useHint(game, socket.id);
+  });
+
+  socket.on("player:answer", (payload = {}) => {
     const game = GM.findGameBySocket(socket.id);
     if (!game) return;
-    const res = GM.recordAnswer(game, socket.id, answerIndex);
+    // Normalize the wire shape into the answer the grader expects. Back-compat:
+    // classic clients sent { answerIndex }; new types add indices/text/order.
+    const p = payload && typeof payload === "object" ? payload : {};
+    const answer = {
+      index: p.index ?? p.answerIndex,
+      indices: p.indices,
+      text: p.text,
+      order: p.order,
+    };
+    const res = GM.recordAnswer(game, socket.id, answer);
     const player = GM.playerBySocket(game, socket.id);
     if (res.ignored) {
       if (res.ignored === "already_answered" && player) {

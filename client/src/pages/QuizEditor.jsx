@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { answerStyle, tfStyle } from "../lib/answers.js";
 import { fileToDataURL } from "../lib/image.js";
+import { extractPdfText } from "../lib/pdf.js";
 import {
   isSetupError,
   addBankQuestion,
@@ -23,6 +24,14 @@ const MAX_ANSWER_CHARS = 120;
 const SETUP_HELP =
   "Your database isn't set up yet. Run supabase/schema.sql in the Supabase SQL editor (see README), then try again.";
 
+// Points mode used by the editor; normalizes the legacy `doublePoints` boolean.
+const questionPoints = (q) =>
+  q.points === "double" || q.points === "none" || q.points === "standard"
+    ? q.points
+    : q.doublePoints
+    ? "double"
+    : "standard";
+
 const blankQuestion = () => ({
   type: "mc",
   question: "",
@@ -30,6 +39,9 @@ const blankQuestion = () => ({
   correct: 0,
   timeLimit: 20,
   image: null,
+  points: "standard",
+  hint: "",
+  mediaPrompt: "",
 });
 
 function serializeQuiz(title, questions) {
@@ -39,12 +51,46 @@ function serializeQuiz(title, questions) {
       type: q.type || "mc",
       question: q.question,
       answers: [...(q.answers || [])],
-      correct: q.correct ?? 0,
+      correct: Array.isArray(q.correct) ? [...q.correct] : q.correct ?? 0,
+      accept: Array.isArray(q.accept) ? [...q.accept] : undefined,
       timeLimit: q.timeLimit ?? 20,
       image: q.image ?? null,
-      doublePoints: !!q.doublePoints,
+      points: questionPoints(q),
+      hint: q.hint ?? "",
+      mediaPrompt: q.mediaPrompt ?? "",
     })),
   });
+}
+
+// Per-type fresh answer fields, used when adding a question or switching type.
+const TYPE_DEFAULTS = {
+  mc: () => ({ answers: ["", "", "", ""], correct: 0, accept: undefined }),
+  tf: () => ({ answers: ["True", "False"], correct: 0, accept: undefined }),
+  ms: () => ({ answers: ["", "", "", ""], correct: [], accept: undefined }),
+  type: () => ({ answers: [], correct: 0, accept: ["", ""] }),
+  puzzle: () => ({ answers: ["", "", "", ""], correct: 0, accept: undefined }),
+};
+
+const TYPE_OPTIONS = [
+  { id: "mc", label: "Multiple choice", short: "MC" },
+  { id: "tf", label: "True / False", short: "T/F" },
+  { id: "ms", label: "Multi-select", short: "MS" },
+  { id: "type", label: "Type answer", short: "TYPE" },
+  { id: "puzzle", label: "Puzzle", short: "PUZ" },
+];
+
+// Is a question complete enough to launch?
+function questionFilled(q) {
+  if (!q.question?.trim()) return false;
+  const type = q.type || "mc";
+  if (type === "tf") return true;
+  if (type === "type") return (q.accept || []).some((a) => a.trim());
+  if (type === "ms") {
+    const filled = (q.answers || []).filter((a) => a.trim());
+    return filled.length >= 2 && Array.isArray(q.correct) && q.correct.length > 0;
+  }
+  if (type === "puzzle") return (q.answers || []).filter((a) => a.trim()).length >= 2;
+  return (q.answers || []).every((a) => a.trim()); // mc
 }
 
 // Create or edit a quiz. `initial` is null for a brand-new quiz, or a saved
@@ -60,6 +106,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   const [saved, setSaved] = useState(false);
   const [bankOpen, setBankOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [ingestOpen, setIngestOpen] = useState(false);
   const [aiAvailable, setAiAvailable] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
@@ -157,13 +204,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   };
 
   const ready =
-    title.trim() &&
-    questions.length > 0 &&
-    questions.every(
-      (q) =>
-        q.question.trim() &&
-        ((q.type || "mc") === "tf" || q.answers.every((a) => a.trim()))
-    );
+    title.trim() && questions.length > 0 && questions.every(questionFilled);
 
   const payload = () => ({ title: title.trim() || "Untitled quiz", questions });
   const isDirty = useMemo(
@@ -278,6 +319,15 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
             ✨ Generate with AI
           </button>
         )}
+        {aiAvailable && (
+          <button
+            onClick={() => setIngestOpen(true)}
+            className="alkheelank-btn-ghost flex-1 !text-brand-end"
+            title="Turn a document or pasted text into a quiz"
+          >
+            📄 Import from document
+          </button>
+        )}
       </div>
 
       {error && (
@@ -314,6 +364,13 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         <AiGeneratePanel
           onGenerated={(gen) => { addGenerated(gen); setAiOpen(false); }}
           onClose={() => setAiOpen(false)}
+        />
+      )}
+
+      {ingestOpen && (
+        <IngestPanel
+          onGenerated={(gen) => { addGenerated(gen); setIngestOpen(false); }}
+          onClose={() => setIngestOpen(false)}
         />
       )}
 
@@ -402,8 +459,9 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
 // ---------------------------------------------------------------------------
 function QuestionSidebar({ questions, selectedIndex, onSelect, onAdd, atQuestionCap }) {
   const renderItem = (q, i, compact = false) => {
-    const filled = q.question.trim() && ((q.type || "mc") === "tf" || q.answers.every((a) => a.trim()));
+    const filled = questionFilled(q);
     const type = q.type || "mc";
+    const typeShort = TYPE_OPTIONS.find((t) => t.id === type)?.short || "MC";
     return (
       <button
         key={i}
@@ -427,8 +485,9 @@ function QuestionSidebar({ questions, selectedIndex, onSelect, onAdd, atQuestion
             {q.question.trim() || "Untitled question"}
           </span>
           <span className="mt-0.5 block text-[0.65rem] font-bold uppercase tracking-wider text-muted">
-            {type === "tf" ? "T/F" : "MC"} · {q.timeLimit ?? 20}s
-            {q.doublePoints ? " · 2×" : ""}
+            {typeShort} · {q.timeLimit ?? 20}s
+            {questionPoints(q) === "double" ? " · 2×" : questionPoints(q) === "none" ? " · 0×" : ""}
+            {q.hint?.trim() ? " · 🔍" : ""}
           </span>
         </span>
         {q.image && (
@@ -491,29 +550,55 @@ function QuestionEditor({
   const [bankError, setBankError] = useState(null);
   const [pendingType, setPendingType] = useState(null);
   const type = q.type || "mc";
+  const points = questionPoints(q);
+
+  const answers = q.answers || [];
+  const accept = q.accept || [];
+  const correctArr = Array.isArray(q.correct) ? q.correct : [];
 
   const applyType = (next) => {
-    if (next === "tf") {
-      onChange({ type: "tf", answers: ["True", "False"], correct: Math.min(q.correct ?? 0, 1) });
-    } else {
-      onChange({ type: "mc", answers: ["", "", "", ""], correct: 0 });
-    }
+    onChange({ type: next, ...TYPE_DEFAULTS[next]() });
     setPendingType(null);
   };
 
   const setType = (next) => {
     if (next === type) return;
-    const hasMcAnswers = (q.answers || []).some((a) => a.trim());
-    if (next === "tf" && type === "mc" && hasMcAnswers) {
-      setPendingType("tf");
-      return;
-    }
-    if (next === "mc" && type === "tf") {
-      setPendingType("mc");
+    const hasContent = answers.some((a) => a.trim()) || accept.some((a) => a.trim());
+    if (hasContent) {
+      setPendingType(next);
       return;
     }
     applyType(next);
   };
+
+  // Variable-length option helpers (ms / puzzle / type).
+  const setAnswers = (arr) => onChange({ answers: arr });
+  const toggleMsCorrect = (i) => {
+    const set = new Set(correctArr);
+    set.has(i) ? set.delete(i) : set.add(i);
+    onChange({ correct: [...set].sort((a, b) => a - b) });
+  };
+  const addOption = () => answers.length < 6 && setAnswers([...answers, ""]);
+  const removeOption = (i) => {
+    if (answers.length <= 2) return;
+    const next = answers.filter((_, x) => x !== i);
+    if (type === "ms") {
+      const correct = correctArr.filter((c) => c !== i).map((c) => (c > i ? c - 1 : c));
+      onChange({ answers: next, correct });
+    } else {
+      setAnswers(next);
+    }
+  };
+  const moveOption = (i, dir) => {
+    const j = i + dir;
+    if (j < 0 || j >= answers.length) return;
+    const next = [...answers];
+    [next[i], next[j]] = [next[j], next[i]];
+    setAnswers(next);
+  };
+  const updateAccept = (i, v) => onChange({ accept: accept.map((a, x) => (x === i ? v : a)) });
+  const addAccept = () => accept.length < 8 && onChange({ accept: [...accept, ""] });
+  const removeAccept = (i) => accept.length > 1 && onChange({ accept: accept.filter((_, x) => x !== i) });
 
   const saveToBank = async () => {
     if (!userId || !q.question.trim()) return;
@@ -563,7 +648,7 @@ function QuestionEditor({
           >
             ⧉ Duplicate
           </button>
-          {userId && q.question.trim() && (
+          {userId && q.question.trim() && (type === "mc" || type === "tf") && (
             <button
               type="button"
               onClick={saveToBank}
@@ -586,13 +671,13 @@ function QuestionEditor({
         </div>
       </div>
 
-      <div className="mt-3 inline-flex rounded-xl bg-surface-muted p-1 ring-1 ring-edge">
-        {[{ id: "mc", label: "Multiple choice" }, { id: "tf", label: "True / False" }].map((opt) => (
+      <div className="mt-3 flex flex-wrap gap-1 rounded-xl bg-surface-muted p-1 ring-1 ring-edge">
+        {TYPE_OPTIONS.map((opt) => (
           <button
             key={opt.id}
             type="button"
             onClick={() => setType(opt.id)}
-            className={`min-h-touch rounded-lg px-4 py-2.5 text-sm font-bold transition ${
+            className={`min-h-touch rounded-lg px-3 py-2.5 text-sm font-bold transition ${
               type === opt.id ? "bg-brand-mid text-white" : "text-muted hover:text-ink-900"
             }`}
           >
@@ -601,24 +686,13 @@ function QuestionEditor({
         ))}
       </div>
 
-      {pendingType === "tf" && (
+      {pendingType && (
         <div className="mt-3 rounded-xl bg-tile-circle/10 px-4 py-3 ring-1 ring-tile-circle/30">
-          <p className="text-sm font-semibold text-ink-900">Switch to True / False? Your answer text will be replaced.</p>
+          <p className="text-sm font-semibold text-ink-900">
+            Switch to {TYPE_OPTIONS.find((t) => t.id === pendingType)?.label}? Your current answers will be reset.
+          </p>
           <div className="mt-2 flex gap-2">
-            <button type="button" onClick={() => applyType("tf")} className="rounded-lg bg-brand-mid px-3 py-1.5 text-sm font-bold text-white">
-              Switch
-            </button>
-            <button type="button" onClick={() => setPendingType(null)} className="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted hover:text-ink-900">
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-      {pendingType === "mc" && (
-        <div className="mt-3 rounded-xl bg-tile-circle/10 px-4 py-3 ring-1 ring-tile-circle/30">
-          <p className="text-sm font-semibold text-ink-900">Switch to multiple choice? Answer text will be cleared.</p>
-          <div className="mt-2 flex gap-2">
-            <button type="button" onClick={() => applyType("mc")} className="rounded-lg bg-brand-mid px-3 py-1.5 text-sm font-bold text-white">
+            <button type="button" onClick={() => applyType(pendingType)} className="rounded-lg bg-brand-mid px-3 py-1.5 text-sm font-bold text-white">
               Switch
             </button>
             <button type="button" onClick={() => setPendingType(null)} className="rounded-lg px-3 py-1.5 text-sm font-semibold text-muted hover:text-ink-900">
@@ -640,7 +714,7 @@ function QuestionEditor({
 
       <ImagePicker image={q.image} onChange={(image) => onChange({ image })} />
 
-      {type === "tf" ? (
+      {type === "tf" && (
         <div className="mt-4 grid grid-cols-2 gap-3">
           {["True", "False"].map((label, ai) => {
             const s = tfStyle(ai);
@@ -662,7 +736,9 @@ function QuestionEditor({
             );
           })}
         </div>
-      ) : (
+      )}
+
+      {type === "mc" && (
         <div className="mt-4 grid grid-cols-2 gap-3">
           {q.answers.map((a, ai) => {
             const isCorrect = q.correct === ai;
@@ -690,18 +766,127 @@ function QuestionEditor({
         </div>
       )}
 
+      {type === "ms" && (
+        <div className="mt-4 flex flex-col gap-2">
+          <p className="text-xs font-semibold text-muted">Tick every correct option (players must pick the exact set).</p>
+          {answers.map((a, ai) => {
+            const isCorrect = correctArr.includes(ai);
+            return (
+              <div key={ai} className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleMsCorrect(ai)}
+                  aria-label={isCorrect ? "Marked correct" : "Mark correct"}
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg text-lg font-bold ring-1 transition ${
+                    isCorrect ? "bg-tile-square/20 text-tile-square ring-tile-square" : "bg-surface-muted text-muted ring-edge"
+                  }`}
+                >
+                  {isCorrect ? "☑" : "☐"}
+                </button>
+                <input
+                  className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                  placeholder={`Option ${ai + 1}`}
+                  maxLength={MAX_ANSWER_CHARS}
+                  value={a}
+                  onChange={(e) => onAnswer(ai, e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeOption(ai)}
+                  disabled={answers.length <= 2}
+                  className="min-h-touch shrink-0 rounded-lg px-2 text-muted hover:text-tile-triangle disabled:opacity-30"
+                  aria-label="Remove option"
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })}
+          {answers.length < 6 && (
+            <button type="button" onClick={addOption} className="self-start rounded-lg px-3 py-2 text-sm font-bold text-brand-end hover:bg-brand-mid/10">
+              + Add option
+            </button>
+          )}
+        </div>
+      )}
+
+      {type === "type" && (
+        <div className="mt-4 flex flex-col gap-2">
+          <p className="text-xs font-semibold text-muted">Players type their answer. List every spelling you'll accept (case/spacing-insensitive).</p>
+          {accept.map((a, ai) => (
+            <div key={ai} className="flex items-center gap-2">
+              <input
+                className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                placeholder={ai === 0 ? "Correct answer" : "Also accept…"}
+                maxLength={MAX_ANSWER_CHARS}
+                value={a}
+                onChange={(e) => updateAccept(ai, e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => removeAccept(ai)}
+                disabled={accept.length <= 1}
+                className="min-h-touch shrink-0 rounded-lg px-2 text-muted hover:text-tile-triangle disabled:opacity-30"
+                aria-label="Remove accepted answer"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          {accept.length < 8 && (
+            <button type="button" onClick={addAccept} className="self-start rounded-lg px-3 py-2 text-sm font-bold text-brand-end hover:bg-brand-mid/10">
+              + Add accepted spelling
+            </button>
+          )}
+        </div>
+      )}
+
+      {type === "puzzle" && (
+        <div className="mt-4 flex flex-col gap-2">
+          <p className="text-xs font-semibold text-muted">List items in the correct order — players sort a shuffled copy.</p>
+          {answers.map((a, ai) => (
+            <div key={ai} className="flex items-center gap-2">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-mid/15 text-sm font-extrabold text-brand-mid">{ai + 1}</span>
+              <input
+                className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                placeholder={`Item ${ai + 1}`}
+                maxLength={MAX_ANSWER_CHARS}
+                value={a}
+                onChange={(e) => onAnswer(ai, e.target.value)}
+              />
+              <button type="button" onClick={() => moveOption(ai, -1)} disabled={ai === 0} className="min-h-touch shrink-0 rounded-lg px-2 text-muted hover:text-ink-900 disabled:opacity-30" aria-label="Move up">↑</button>
+              <button type="button" onClick={() => moveOption(ai, 1)} disabled={ai === answers.length - 1} className="min-h-touch shrink-0 rounded-lg px-2 text-muted hover:text-ink-900 disabled:opacity-30" aria-label="Move down">↓</button>
+              <button type="button" onClick={() => removeOption(ai)} disabled={answers.length <= 2} className="min-h-touch shrink-0 rounded-lg px-2 text-muted hover:text-tile-triangle disabled:opacity-30" aria-label="Remove item">✕</button>
+            </div>
+          ))}
+          {answers.length < 6 && (
+            <button type="button" onClick={addOption} className="self-start rounded-lg px-3 py-2 text-sm font-bold text-brand-end hover:bg-brand-mid/10">
+              + Add item
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => onChange({ doublePoints: !q.doublePoints })}
-          className={`min-h-touch rounded-xl px-3 py-2.5 text-sm font-bold ring-1 transition ${
-            q.doublePoints
-              ? "bg-brand-mid/15 text-brand-mid ring-brand-mid"
-              : "bg-surface-muted text-muted ring-edge hover:text-ink-900"
-          }`}
-        >
-          2× points
-        </button>
+        <div className="inline-flex rounded-xl bg-surface-muted p-1 ring-1 ring-edge">
+          {[
+            { id: "standard", label: "1×", title: "Standard points" },
+            { id: "double", label: "2×", title: "Double points" },
+            { id: "none", label: "0×", title: "No points — just for fun" },
+          ].map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              title={opt.title}
+              onClick={() => onChange({ points: opt.id, doublePoints: opt.id === "double" })}
+              className={`min-h-touch rounded-lg px-3 py-2 text-sm font-bold transition ${
+                points === opt.id ? "bg-brand-mid text-white" : "text-muted hover:text-ink-900"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
         <label className="text-sm font-semibold text-muted">Time</label>
         <select
           className="rounded-xl bg-surface-elevated px-3 py-2 font-semibold text-ink-900 ring-1 ring-edge focus:outline-none focus:ring-brand-mid"
@@ -715,9 +900,40 @@ function QuestionEditor({
         <span className="ml-auto text-sm text-muted">
           Correct:{" "}
           <b className="text-ink-900">
-            {type === "tf" ? tfStyle(q.correct).label : answerStyle(q.correct).glyph}
+            {type === "tf"
+              ? tfStyle(q.correct).label
+              : type === "mc"
+              ? answerStyle(q.correct).glyph
+              : type === "ms"
+              ? `${correctArr.length} option${correctArr.length === 1 ? "" : "s"}`
+              : type === "type"
+              ? "typed"
+              : "in order"}
           </b>
         </span>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1">
+          <span className="text-sm font-semibold text-muted">🔍 Closer Look hint <span className="font-normal">(optional — halves points if used)</span></span>
+          <input
+            className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-medium text-ink-900 ring-1 ring-edge placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand-mid"
+            placeholder="A nudge that doesn't give it away…"
+            maxLength={200}
+            value={q.hint ?? ""}
+            onChange={(e) => onChange({ hint: e.target.value })}
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-sm font-semibold text-muted">🎨 Media prompt <span className="font-normal">(optional — for cover art)</span></span>
+          <input
+            className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-medium text-ink-900 ring-1 ring-edge placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand-mid"
+            placeholder="Describe an image for this question…"
+            maxLength={400}
+            value={q.mediaPrompt ?? ""}
+            onChange={(e) => onChange({ mediaPrompt: e.target.value })}
+          />
+        </label>
       </div>
       {bankError && (
         <p className="mt-3 rounded-xl bg-tile-triangle/20 px-3 py-2 text-sm font-semibold text-tile-triangle">
@@ -873,6 +1089,180 @@ function AiGeneratePanel({ onGenerated, onClose }) {
 }
 
 // ---------------------------------------------------------------------------
+// Document ingestion panel — paste text or drop a PDF/TXT, extract → quiz
+// ---------------------------------------------------------------------------
+const INGEST_MAX_CHARS = 20000;
+
+function IngestPanel({ onGenerated, onClose }) {
+  const [text, setText] = useState("");
+  const [count, setCount] = useState(8);
+  const [audience, setAudience] = useState("family");
+  const [language, setLanguage] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [reading, setReading] = useState(false);
+  const [err, setErr] = useState(null);
+  const [sourceName, setSourceName] = useState(null);
+  const fileRef = useRef(null);
+
+  const onFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setErr(null);
+    setReading(true);
+    setSourceName(file.name);
+    try {
+      let extracted;
+      if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+        extracted = await extractPdfText(file);
+      } else {
+        extracted = await file.text();
+      }
+      if (!extracted?.trim()) {
+        setErr("Couldn't read any text from that file — it may be a scanned image. Try pasting the text instead.");
+      } else {
+        setText(extracted.slice(0, INGEST_MAX_CHARS));
+      }
+    } catch {
+      setErr("Couldn't read that file. Paste the text instead.");
+    } finally {
+      setReading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const build = async () => {
+    if (text.trim().length < 40 || busy) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`${SERVER_URL}/ingest-quiz`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text.slice(0, INGEST_MAX_CHARS), count, audience, language }),
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setErr(body?.error || "Import failed — try again in a moment.");
+        return;
+      }
+      onGenerated(body);
+    } catch {
+      setErr("Couldn't reach the server — check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        onClick={busy ? undefined : onClose}
+        className="absolute inset-0 bg-edge-scrim backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 340, damping: 32 }}
+        className="relative z-10 w-full max-w-lg rounded-t-3xl bg-surface-elevated p-6 shadow-2xl ring-1 ring-edge sm:rounded-3xl"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-xl font-bold">📄 Import from document</h2>
+          <button type="button" onClick={onClose} disabled={busy} className="alkheelank-touch-target text-muted hover:text-ink-900">✕</button>
+        </div>
+
+        <div className="mt-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={busy || reading}
+            className="alkheelank-btn-ghost !py-2 !text-sm disabled:opacity-50"
+          >
+            {reading ? "Reading…" : "⬆ Upload PDF / text"}
+          </button>
+          {sourceName && <span className="truncate text-xs text-muted">{sourceName}</span>}
+          <input ref={fileRef} type="file" accept=".pdf,.txt,.md,text/plain,application/pdf" onChange={onFile} className="hidden" />
+        </div>
+
+        <textarea
+          className="mt-3 w-full resize-none rounded-2xl bg-surface-elevated px-4 py-3 text-sm font-medium text-ink-900 ring-2 ring-edge focus:outline-none focus:ring-brand-mid"
+          rows={7}
+          placeholder="…or paste your notes, an article, or a chapter here."
+          maxLength={INGEST_MAX_CHARS}
+          value={text}
+          disabled={busy}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <p className="mt-1 text-right text-xs text-muted">{text.length.toLocaleString()} / {INGEST_MAX_CHARS.toLocaleString()}</p>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-muted">Questions:</span>
+          {AI_COUNTS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              disabled={busy}
+              onClick={() => setCount(n)}
+              className={`min-h-touch rounded-xl px-4 py-2 text-sm font-bold transition ${
+                count === n ? "bg-brand-mid text-white" : "bg-surface-muted text-muted hover:text-ink-900"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-muted">Crowd:</span>
+          {AI_AUDIENCES.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              disabled={busy}
+              onClick={() => setAudience(a.id)}
+              className={`min-h-touch rounded-xl px-3 py-2 text-sm font-bold transition ${
+                audience === a.id ? "bg-brand-mid text-white" : "bg-surface-muted text-muted hover:text-ink-900"
+              }`}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-muted">Language:</span>
+          {AI_LANGUAGES.map((l) => (
+            <button
+              key={l.label}
+              type="button"
+              disabled={busy}
+              onClick={() => setLanguage(l.id)}
+              className={`min-h-touch rounded-xl px-3 py-2 text-sm font-bold transition ${
+                language === l.id ? "bg-brand-mid text-white" : "bg-surface-muted text-muted hover:text-ink-900"
+              }`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+
+        {err && <p className="mt-4 rounded-xl bg-tile-triangle/20 px-4 py-3 text-sm font-semibold text-tile-triangle">{err}</p>}
+
+        <button
+          onClick={build}
+          disabled={text.trim().length < 40 || busy}
+          className="alkheelank-btn-primary mt-5 w-full disabled:opacity-50"
+        >
+          {busy ? "Reading & writing… ✍️" : `Build ${count} questions`}
+        </button>
+        {busy && <p className="mt-2 text-center text-xs text-muted">Pulling out the key ideas — usually 10–25 seconds.</p>}
+      </motion.div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Quiz preview — step through questions exactly as players will see them
 // ---------------------------------------------------------------------------
 function QuizPreview({ title, questions, onClose }) {
@@ -908,7 +1298,7 @@ function QuizPreview({ title, questions, onClose }) {
           header={
             <div className="question-screen__meta flex shrink-0 items-center justify-between text-sm font-semibold text-muted">
               <span>Q{index + 1} / {questions.length}</span>
-              <span>{q.doublePoints ? "⚡ 2× points" : type === "tf" ? "True / False" : "Multiple choice"}</span>
+              <span>{questionPoints(q) === "double" ? "⚡ 2× points" : questionPoints(q) === "none" ? "🎈 No points" : type === "tf" ? "True / False" : "Multiple choice"}</span>
             </div>
           }
           prompt={q.question}
@@ -922,17 +1312,40 @@ function QuizPreview({ title, questions, onClose }) {
               paused={revealed}
             />
           }
-          answers={q.answers.map((a, i) => (
-            <AnswerTile
-              key={i}
-              index={i}
-              type={type}
-              text={a}
-              revealed={revealed}
-              correct={i === q.correct}
-              onClick={() => setRevealed(true)}
-            />
-          ))}
+          answers={
+            type === "type" ? (
+              <div className="flex w-full flex-col gap-2">
+                <p className="text-sm font-semibold text-muted">⌨️ Players type the answer. Accepted:</p>
+                {(q.accept || []).filter((a) => a.trim()).map((a, i) => (
+                  <div key={i} className="rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge">
+                    {i === 0 ? "✓ " : ""}{a}
+                  </div>
+                ))}
+              </div>
+            ) : type === "puzzle" ? (
+              <div className="flex w-full flex-col gap-2">
+                <p className="text-sm font-semibold text-muted">↕ Correct order (players sort a shuffle):</p>
+                {q.answers.map((a, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge">
+                    <span className="grid h-6 w-6 place-items-center rounded bg-brand-mid/15 text-xs font-extrabold text-brand-mid">{i + 1}</span>
+                    {a}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              q.answers.map((a, i) => (
+                <AnswerTile
+                  key={i}
+                  index={i}
+                  type={type === "ms" ? "mc" : type}
+                  text={a}
+                  revealed={revealed}
+                  correct={Array.isArray(q.correct) ? q.correct.includes(i) : i === q.correct}
+                  onClick={() => setRevealed(true)}
+                />
+              ))
+            )
+          }
         />
       </div>
 

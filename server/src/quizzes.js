@@ -434,6 +434,9 @@ export function getStarterForCopy(id) {
       correct: qq.correct,
       timeLimit: qq.timeLimit,
       image: questionImageFor(q.id, i, q.category),
+      points: normalizePoints(qq),
+      hint: normalizeHint(qq.hint),
+      mediaPrompt: normalizeMediaPrompt(qq.mediaPrompt),
     })),
   };
 }
@@ -446,6 +449,40 @@ export function getStarterForCopy(id) {
 const MAX_QUESTIONS = 30;
 const MAX_QUESTION_TEXT_LEN = 500;
 const MAX_ANSWER_TEXT_LEN = 120;
+// Question types:
+//   mc     — 4 positional options, one correct (classic)
+//   tf     — True/False
+//   ms     — multi-select: 2-6 options, correct is an array of indices
+//   type   — type-answer: free text matched against `accept` keyword variants
+//   puzzle — ordering: 2-6 options stored in the CORRECT order, shuffled at play
+const QUESTION_TYPES = ["mc", "tf", "ms", "type", "puzzle"];
+const MIN_LIST_OPTIONS = 2; // ms / puzzle
+const MAX_LIST_OPTIONS = 6; // ms / puzzle
+const MAX_ACCEPT_VARIANTS = 8; // type-answer accepted spellings
+const MAX_HINT_LEN = 200;
+const MAX_MEDIA_PROMPT_LEN = 400;
+
+// Points mode: "standard" (1×), "double" (2×) or "none" (0× — just for fun).
+// Reads `q.points`; falls back to the legacy `q.doublePoints` boolean.
+function normalizePoints(q) {
+  const p = q?.points;
+  if (p === "double" || p === "none" || p === "standard") return p;
+  return q?.doublePoints ? "double" : "standard";
+}
+
+// A "Closer Look" hint is optional, shown to players who choose to reveal it
+// (at a score penalty). Plain text only — never HTML.
+function normalizeHint(raw) {
+  const s = String(raw ?? "").trim().slice(0, MAX_HINT_LEN);
+  return s || null;
+}
+
+// Editor/AI metadata: a descriptive prompt for generating cover art. Never sent
+// to players; lives with the question so it survives a save/load round-trip.
+function normalizeMediaPrompt(raw) {
+  const s = String(raw ?? "").trim().slice(0, MAX_MEDIA_PROMPT_LEN);
+  return s || null;
+}
 const MAX_IMAGE_LEN = 900_000; // per-question inline image cap (~900 KB base64)
 // Total image bytes across the whole quiz. Must be comfortably below the
 // Socket.io maxHttpBufferSize (configured to 4 MB in index.js) so the
@@ -501,28 +538,65 @@ export function validateCustomQuiz(raw) {
       return { error: `Question ${i + 1} is too long (max ${MAX_QUESTION_TEXT_LEN} characters).` };
     }
 
-    const type = q.type === "tf" ? "tf" : "mc";
-    const expected = type === "tf" ? 2 : 4;
+    const type = QUESTION_TYPES.includes(q.type) ? q.type : "mc";
+    const tooLong = (a) => a.length > MAX_ANSWER_TEXT_LEN;
+    const lenErr = `Question ${i + 1} has an answer that is too long (max ${MAX_ANSWER_TEXT_LEN} characters).`;
 
-    let answers;
+    let answers = [];
+    let correct = 0; // mc/tf: index · ms: sorted index array · type/puzzle: unused
+    let accept = null; // type-answer: accepted text variants
+
     if (type === "tf") {
       answers = ["True", "False"]; // canonical, ignore whatever the editor sent
-    } else {
+      correct = Number(q.correct);
+      if (!Number.isInteger(correct) || correct < 0 || correct > 1) {
+        return { error: `Mark the correct answer for question ${i + 1}.` };
+      }
+    } else if (type === "type") {
+      const variants = (Array.isArray(q.accept) ? q.accept : [])
+        .map((a) => String(a ?? "").trim())
+        .filter(Boolean);
+      if (variants.length === 0) {
+        return { error: `Question ${i + 1} needs at least one accepted answer.` };
+      }
+      if (variants.some(tooLong)) return { error: lenErr };
+      accept = variants.slice(0, MAX_ACCEPT_VARIANTS);
+      answers = []; // no positional tiles
+    } else if (type === "mc") {
       if (!Array.isArray(q.answers) || q.answers.length !== 4) {
         return { error: `Question ${i + 1} needs exactly 4 answers.` };
       }
       answers = q.answers.map((a) => String(a ?? "").trim());
-      if (answers.some((a) => !a)) {
-        return { error: `Question ${i + 1} has an empty answer.` };
+      if (answers.some((a) => !a)) return { error: `Question ${i + 1} has an empty answer.` };
+      if (answers.some(tooLong)) return { error: lenErr };
+      correct = Number(q.correct);
+      if (!Number.isInteger(correct) || correct < 0 || correct >= 4) {
+        return { error: `Mark the correct answer for question ${i + 1}.` };
       }
-      if (answers.some((a) => a.length > MAX_ANSWER_TEXT_LEN)) {
-        return { error: `Question ${i + 1} has an answer that is too long (max ${MAX_ANSWER_TEXT_LEN} characters).` };
+    } else {
+      // ms or puzzle — a 2-6 item list of non-empty options.
+      answers = (Array.isArray(q.answers) ? q.answers : [])
+        .map((a) => String(a ?? "").trim())
+        .filter(Boolean)
+        .slice(0, MAX_LIST_OPTIONS);
+      if (answers.length < MIN_LIST_OPTIONS) {
+        return { error: `Question ${i + 1} needs at least ${MIN_LIST_OPTIONS} options.` };
       }
-    }
-
-    const correct = Number(q.correct);
-    if (!Number.isInteger(correct) || correct < 0 || correct >= expected) {
-      return { error: `Mark the correct answer for question ${i + 1}.` };
+      if (answers.some(tooLong)) return { error: lenErr };
+      if (type === "ms") {
+        const set = [
+          ...new Set(
+            (Array.isArray(q.correct) ? q.correct : [])
+              .map(Number)
+              .filter((n) => Number.isInteger(n) && n >= 0 && n < answers.length),
+          ),
+        ].sort((a, b) => a - b);
+        if (set.length === 0) {
+          return { error: `Mark at least one correct answer for question ${i + 1}.` };
+        }
+        correct = set; // array of indices
+      }
+      // puzzle: answers are stored in the correct order; `correct` stays 0/unused.
     }
 
     let timeLimit = Number(q.timeLimit);
@@ -539,14 +613,19 @@ export function validateCustomQuiz(raw) {
       }
     }
 
+    const points = normalizePoints(q);
     questions.push({
       type,
       question: text,
       answers,
       correct,
+      accept, // type-answer only; null otherwise
       timeLimit,
       image,
-      doublePoints: !!q.doublePoints,
+      points,
+      doublePoints: points === "double", // back-compat: drives the 2× warning beat
+      hint: normalizeHint(q.hint),
+      mediaPrompt: normalizeMediaPrompt(q.mediaPrompt),
     });
   }
 

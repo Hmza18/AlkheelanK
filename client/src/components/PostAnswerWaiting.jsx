@@ -18,7 +18,8 @@ export default function PostAnswerWaiting({
     () => pickWaitingMessage(waitContext, question?.index ?? 0),
     [waitContext, question?.index]
   );
-  const tile = selected !== null && question ? tileStyle(question.type, selected) : null;
+  // Only mc/tf have a single positional tile to echo back; ms/type/puzzle don't.
+  const tile = typeof selected === "number" && question ? tileStyle(question.type, selected) : null;
 
   return (
     <div className="player-phase-fill alkheelank-screen-player relative flex flex-col items-center justify-center overflow-hidden text-center landscapePhone:py-2">

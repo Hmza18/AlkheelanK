@@ -517,8 +517,17 @@ function Centered({ children }) {
   );
 }
 
+const TYPE_LABEL = {
+  tf: "True / False",
+  ms: "Pick all that apply",
+  type: "Type answer",
+  puzzle: "Put in order",
+};
+
 function QuestionView({ question, image, answerCount, paused }) {
   const isTF = question.type === "tf";
+  const typeLabel = TYPE_LABEL[question.type];
+  const isType = question.type === "type";
   useEffect(() => {
     if (!question?.startedAt || paused) return;
     const timer = setInterval(() => {
@@ -544,7 +553,7 @@ function QuestionView({ question, image, answerCount, paused }) {
             <span className="host-meta__index-sep">/</span>
             <span className="host-meta__index-total">{question.total}</span>
           </span>
-          {isTF && <span className="host-meta__chip">True / False</span>}
+          {typeLabel && <span className="host-meta__chip">{typeLabel}</span>}
           <span className="host-meta__answered">
             <span className="host-meta__pulse" aria-hidden />
             <span className="host-meta__answered-count">{answerCount.answered}</span>
@@ -577,6 +586,10 @@ function QuestionView({ question, image, answerCount, paused }) {
           <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-brand-mid/15 px-4 py-1.5 text-base font-extrabold text-brand-mid ring-1 ring-brand-mid/30">
             ⚡ {copy.reveal.doublePoints}
           </div>
+        ) : question.points === "none" ? (
+          <div className="mx-auto mt-2 inline-flex shrink-0 items-center gap-2 rounded-full bg-surface-muted px-4 py-1.5 text-base font-extrabold text-muted ring-1 ring-edge">
+            🎈 Just for fun
+          </div>
         ) : null
       }
       prompt={question.question}
@@ -600,19 +613,28 @@ function QuestionView({ question, image, answerCount, paused }) {
           introDelay={questionIntro.timer}
         />
       }
-      answers={question.answers.map((a, i) => (
-        <AnswerTile
-          key={i}
-          index={i}
-          type={question.type}
-          text={a.text}
-          disabled
-          big
-          compact
-          staggerIndex={i}
-          entranceDelay={questionIntro.tiles}
-        />
-      ))}
+      answers={
+        isType ? (
+          <div className="grid w-full place-items-center rounded-3xl bg-surface-elevated px-6 py-10 ring-1 ring-edge">
+            <span className="text-5xl">⌨️</span>
+            <p className="mt-3 alkheelank-heading text-2xl text-muted">Players type their answer on their phones</p>
+          </div>
+        ) : (
+          question.answers.map((a, i) => (
+            <AnswerTile
+              key={i}
+              index={i}
+              type={question.type === "ms" || question.type === "puzzle" ? "mc" : question.type}
+              text={a.text}
+              disabled
+              big
+              compact
+              staggerIndex={i}
+              entranceDelay={questionIntro.tiles}
+            />
+          ))
+        )
+      }
       notice={
         paused ? (
           <p className="mt-2 shrink-0 text-center text-lg font-bold text-warning">⏸ Round paused — use show controls to resume</p>
@@ -740,31 +762,49 @@ function QuestionBreakdownView({ breakdown, onBack, onHome }) {
                 {q.correctCount} of {q.totalAnswers} answered correctly
                 {q.totalAnswers < q.totalPlayers && ` · ${q.totalPlayers - q.totalAnswers} didn't answer`}
               </p>
-              <div className="mt-3 space-y-1.5">
-                {q.answers.map((a, i) => {
-                  const s = tileStyle(q.type, i);
-                  const isCorrect = i === q.correctIndex;
-                  return (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <span className="w-5 text-center" style={{ color: s.color }}>{s.glyph}</span>
-                      <span className={`w-32 truncate sm:w-48 ${isCorrect ? "font-bold text-ink-900" : "text-muted"}`}>
-                        {a}{isCorrect && " ✓"}
-                      </span>
-                      <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-muted">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${(q.counts[i] / maxCount) * 100}%`,
-                            backgroundColor: s.color,
-                            opacity: isCorrect ? 1 : 0.45,
-                          }}
-                        />
+              {q.type === "type" ? (
+                <div className="mt-3 text-sm text-muted">
+                  Answer: <b className="text-ink-900">{(q.accept && q.accept[0]) || "—"}</b>
+                  {q.accept?.length > 1 && <span> (also: {q.accept.slice(1).join(", ")})</span>}
+                </div>
+              ) : q.type === "puzzle" ? (
+                <ol className="mt-3 space-y-1 text-sm">
+                  {q.answers.map((a, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <span className="grid h-5 w-5 place-items-center rounded bg-brand-mid/15 text-xs font-extrabold text-brand-mid">{i + 1}</span>
+                      <span className="font-semibold text-ink-900">{a}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <div className="mt-3 space-y-1.5">
+                  {q.answers.map((a, i) => {
+                    const s = tileStyle(q.type === "ms" ? "mc" : q.type, i);
+                    const isCorrect = Array.isArray(q.correctIndices)
+                      ? q.correctIndices.includes(i)
+                      : i === q.correctIndex;
+                    return (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <span className="w-5 text-center" style={{ color: s.color }}>{s.glyph}</span>
+                        <span className={`w-32 truncate sm:w-48 ${isCorrect ? "font-bold text-ink-900" : "text-muted"}`}>
+                          {a}{isCorrect && " ✓"}
+                        </span>
+                        <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-muted">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${(q.counts[i] / maxCount) * 100}%`,
+                              backgroundColor: s.color,
+                              opacity: isCorrect ? 1 : 0.45,
+                            }}
+                          />
+                        </div>
+                        <span className="w-6 text-right tabular-nums text-muted">{q.counts[i]}</span>
                       </div>
-                      <span className="w-6 text-right tabular-nums text-muted">{q.counts[i]}</span>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}

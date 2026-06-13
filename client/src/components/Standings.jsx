@@ -51,7 +51,7 @@ export default function Standings({ standings = [], highlightId = null, max = 8,
               } ${
                 mine
                   ? "bg-gradient-to-r from-brand-start/40 to-brand-mid/40 ring-brand-mid"
-                  : "bg-surface-muted ring-blue-200"
+                  : "bg-surface-muted ring-edge"
               } ${p.connected === false ? "opacity-60" : ""}`}
             >
               <span className="w-9 text-center text-2xl landscapePhone:w-7 landscapePhone:text-lg">
@@ -64,7 +64,7 @@ export default function Standings({ standings = [], highlightId = null, max = 8,
               <span className="flex min-w-0 flex-1 items-center gap-2 truncate landscapePhone:gap-1 landscapePhone:text-sm">
                 {p.nick}
                 {p.connected === false && (
-                  <span className="rounded-full bg-blue-200 px-2 py-0.5 text-xs font-semibold text-muted landscapePhone:px-1.5 landscapePhone:py-0 landscapePhone:text-[10px]">
+                  <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs font-semibold text-muted landscapePhone:px-1.5 landscapePhone:py-0 landscapePhone:text-[10px]">
                     away
                   </span>
                 )}

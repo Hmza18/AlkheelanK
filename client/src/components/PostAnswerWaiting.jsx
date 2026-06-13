@@ -73,7 +73,7 @@ export default function PostAnswerWaiting({
                 animate={{ opacity: 1, scale: 1 }}
                 src={question.image}
                 alt=""
-                className="relative mx-auto mt-5 max-h-32 w-auto rounded-xl object-contain shadow-lg ring-1 ring-blue-200 landscapePhone:mx-0 landscapePhone:mt-2 landscapePhone:max-h-14"
+                className="relative mx-auto mt-5 max-h-32 w-auto rounded-xl object-contain shadow-lg ring-1 ring-edge landscapePhone:mx-0 landscapePhone:mt-2 landscapePhone:max-h-14"
               />
             )}
 
@@ -125,7 +125,7 @@ export default function PostAnswerWaiting({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-blue-900/25 backdrop-blur-sm"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-edge-scrim backdrop-blur-sm"
         >
           <div className="text-6xl landscapePhone:text-4xl">⏸</div>
           <h2 className="mt-4 alkheelank-heading text-3xl landscapePhone:mt-2 landscapePhone:text-xl">{copy.player.paused}</h2>

@@ -622,7 +622,7 @@ function ResultCard({ result, q, reveal }) {
         {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
       </p>
       {correctAnswer && (
-        <p className="mt-3 rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-blue-200 landscapePhone:mt-2">
+        <p className="mt-3 rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge landscapePhone:mt-2">
           <span className="text-muted">{copy.player.result.correctWas}: </span>
           <span style={{ color: correctStyle.color }}>{correctStyle.glyph}</span> {correctAnswer}
         </p>
@@ -664,7 +664,7 @@ function StandingsCard({ standings, meId }) {
           {standings.teamStandings.slice(0, 3).map((t) => (
             <div
               key={t.id}
-              className="mb-2 flex items-center justify-between rounded-xl bg-surface-elevated px-3 py-2 ring-1 ring-blue-200 landscapePhone:mb-1 landscapePhone:px-2 landscapePhone:py-1.5 landscapePhone:text-sm"
+              className="mb-2 flex items-center justify-between rounded-xl bg-surface-elevated px-3 py-2 ring-1 ring-edge landscapePhone:mb-1 landscapePhone:px-2 landscapePhone:py-1.5 landscapePhone:text-sm"
             >
               <span className="font-bold" style={{ color: t.color }}>
                 {teamPodiumLabel(t)}

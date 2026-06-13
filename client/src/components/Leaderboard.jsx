@@ -25,7 +25,7 @@ export default function Leaderboard({ entries = [], highlightId = null, max = 8 
               className={`flex items-center gap-4 rounded-2xl px-4 py-3 text-xl font-bold ring-1 landscapePhone:gap-2 landscapePhone:px-3 landscapePhone:py-2 landscapePhone:text-base ${
                 mine
                   ? "bg-gradient-to-r from-brand-start/40 to-brand-mid/40 ring-brand-mid"
-                  : "bg-surface-elevated ring-blue-200"
+                  : "bg-surface-elevated ring-edge"
               }`}
             >
               <span className="w-8 shrink-0 text-center text-2xl landscapePhone:w-6 landscapePhone:text-lg">

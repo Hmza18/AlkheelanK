@@ -14,23 +14,22 @@ export default {
     },
     extend: {
       colors: {
-        // Alkheeloot — white cards on a true blue wash, kid-friendly everywhere.
         surface: {
-          DEFAULT: "#dbeafe", // blue-100 page wash
-          elevated: "#ffffff",
-          muted: "#bfdbfe", // blue-200
+          DEFAULT: "var(--alkheelank-surface)",
+          elevated: "var(--alkheelank-surface-elevated)",
+          muted: "var(--alkheelank-surface-muted)",
         },
         ink: {
-          900: "#1e3a8a", // blue-900 text
-          800: "#1e40af",
-          700: "#1d4ed8",
-          600: "#2563eb",
-          500: "#3b82f6",
+          900: "var(--alkheelank-ink-900)",
+          800: "var(--alkheelank-ink-800)",
+          700: "var(--alkheelank-ink-700)",
+          600: "var(--alkheelank-ink-600)",
+          500: "var(--alkheelank-ink-500)",
         },
         brand: {
-          start: "#60a5fa", // blue-400
-          mid: "#3b82f6", // blue-500
-          end: "#2563eb", // blue-600
+          start: "rgb(var(--alkheelank-rgb-brand-start) / <alpha-value>)",
+          mid: "rgb(var(--alkheelank-rgb-brand-mid) / <alpha-value>)",
+          end: "rgb(var(--alkheelank-rgb-brand-end) / <alpha-value>)",
         },
         tile: {
           triangle: "#f43f5e",
@@ -38,8 +37,12 @@ export default {
           circle: "#f59e0b",
           square: "#10b981",
         },
-        paper: "#ffffff",
-        muted: "#64748b",
+        paper: "var(--alkheelank-paper)",
+        muted: "rgb(var(--alkheelank-rgb-muted) / <alpha-value>)",
+        edge: {
+          DEFAULT: "var(--alkheelank-ring)",
+          scrim: "var(--alkheelank-overlay)",
+        },
         success: "#10b981",
         warning: "#f59e0b",
         error: "#f43f5e",
@@ -71,10 +74,10 @@ export default {
         body: ['"Inter"', "system-ui", "sans-serif"],
       },
       boxShadow: {
-        tile: "0 8px 0 0 rgba(37, 99, 235, 0.22)",
-        "tile-sm": "0 5px 0 0 rgba(37, 99, 235, 0.22)",
-        glow: "0 0 40px -12px rgba(59, 130, 246, 0.35)",
-        card: "0 4px 20px -8px rgba(37, 99, 235, 0.14)",
+        tile: "0 8px 0 0 rgba(0, 0, 0, 0.25)",
+        "tile-sm": "0 5px 0 0 rgba(0, 0, 0, 0.25)",
+        glow: "var(--alkheelank-shadow-glow)",
+        card: "var(--alkheelank-shadow-card)",
       },
       keyframes: {
         "pop-in": {

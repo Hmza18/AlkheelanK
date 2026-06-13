@@ -70,7 +70,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
       transition={spring.soft}
 
-      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[2rem] bg-surface-elevated p-7 shadow-2xl ring-1 ring-blue-200 landscapePhone:max-h-[calc(100dvh-2rem)] landscapePhone:overflow-y-auto landscapePhone:p-4 landscapePhone:rounded-3xl"
+      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[2rem] bg-surface-elevated p-7 shadow-2xl ring-1 ring-edge landscapePhone:max-h-[calc(100dvh-2rem)] landscapePhone:overflow-y-auto landscapePhone:p-4 landscapePhone:rounded-3xl"
 
     >
 
@@ -92,7 +92,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
       {recap?.winner && (
 
-        <div className="mt-5 flex items-center gap-4 rounded-3xl bg-gradient-to-r from-brand-start/25 to-brand-end/25 p-4 ring-1 ring-blue-200">
+        <div className="mt-5 flex items-center gap-4 rounded-3xl bg-gradient-to-r from-brand-start/25 to-brand-end/25 p-4 ring-1 ring-edge">
 
           <div className="relative">
 
@@ -128,7 +128,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
               key={s.label}
 
-              className="flex items-center gap-3 rounded-2xl bg-surface-muted p-3 ring-1 ring-blue-200"
+              className="flex items-center gap-3 rounded-2xl bg-surface-muted p-3 ring-1 ring-edge"
 
             >
 
@@ -210,7 +210,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
 
 
-      <div className="mt-5 flex items-center justify-between border-t border-blue-200 pt-4 text-xs text-muted">
+      <div className="mt-5 flex items-center justify-between border-t border-edge pt-4 text-xs text-muted">
 
         <span>
 

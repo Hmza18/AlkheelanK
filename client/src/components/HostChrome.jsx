@@ -3,7 +3,7 @@ import SettingsPanel from "./SettingsPanel.jsx";
 
 const IN_GAME_PHASES = ["lobby", "question", "reveal", "standings"];
 const settingsBtnClass =
-  "z-40 alkheelank-touch-target h-12 w-12 shrink-0 rounded-xl bg-surface-elevated/95 text-xl ring-1 ring-blue-200 shadow-card backdrop-blur transition hover:bg-surface-muted landscapePhone:h-9 landscapePhone:w-9 landscapePhone:min-h-9 landscapePhone:min-w-9 landscapePhone:rounded-lg landscapePhone:text-base";
+  "z-40 alkheelank-touch-target h-12 w-12 shrink-0 rounded-xl bg-surface-elevated/95 text-xl ring-1 ring-edge shadow-card backdrop-blur transition hover:bg-surface-muted landscapePhone:h-9 landscapePhone:w-9 landscapePhone:min-h-9 landscapePhone:min-w-9 landscapePhone:rounded-lg landscapePhone:text-base";
 
 /**
  * Host-only floating chrome. Portrait: settings icon bottom-left, end bottom-right,
@@ -52,7 +52,7 @@ export default function HostChrome({
             <button
               type="button"
               onClick={onDismissError}
-              className="shrink-0 rounded-lg px-2 py-1 text-xs font-bold text-ink-900 hover:bg-blue-100"
+              className="shrink-0 rounded-lg px-2 py-1 text-xs font-bold text-ink-900 hover:bg-surface-muted"
               aria-label="Dismiss error"
             >
               ✕
@@ -76,7 +76,7 @@ export default function HostChrome({
         <button
           type="button"
           onClick={onEndGame}
-          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-40 rounded-xl bg-surface-elevated/95 px-4 py-2 text-sm font-semibold text-muted ring-1 ring-blue-200 shadow-card backdrop-blur hover:text-ink-900 landscapePhone:hidden"
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-40 rounded-xl bg-surface-elevated/95 px-4 py-2 text-sm font-semibold text-muted ring-1 ring-edge shadow-card backdrop-blur hover:text-ink-900 landscapePhone:hidden"
         >
           {endLabel}
         </button>
@@ -100,7 +100,7 @@ export default function HostChrome({
           <button
             type="button"
             onClick={onEndGame}
-            className="pointer-events-auto h-9 shrink-0 rounded-lg bg-surface-elevated/95 px-3 text-xs font-semibold text-muted ring-1 ring-blue-200 shadow-card backdrop-blur hover:text-ink-900"
+            className="pointer-events-auto h-9 shrink-0 rounded-lg bg-surface-elevated/95 px-3 text-xs font-semibold text-muted ring-1 ring-edge shadow-card backdrop-blur hover:text-ink-900"
           >
             {endLabel}
           </button>

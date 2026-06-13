@@ -15,12 +15,12 @@ export default function ConfirmModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         onClick={onCancel}
-        className="absolute inset-0 bg-blue-900/20 backdrop-blur-sm"
+        className="absolute inset-0 bg-edge-scrim backdrop-blur-sm"
       />
       <motion.div
         initial={{ scale: 0.93, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative z-10 w-full max-w-sm rounded-3xl bg-surface-elevated p-7 shadow-2xl ring-1 ring-blue-200"
+        className="relative z-10 w-full max-w-sm rounded-3xl bg-surface-elevated p-7 shadow-2xl ring-1 ring-edge"
         role="alertdialog"
         aria-labelledby="confirm-modal-title"
         aria-describedby="confirm-modal-message"

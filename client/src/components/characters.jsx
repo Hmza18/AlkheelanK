@@ -299,7 +299,7 @@ export default function Avatar({
     const base = c.base === "mouse" ? "hamster" : PICKER_BASES.includes(c.base) ? c.base : "sun";
     return (
       <span
-        className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-blue-300" : ""} ${className}`}
+        className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-edge" : ""} ${className}`}
         style={{ width: size, height: size }}
       >
         <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
@@ -312,7 +312,7 @@ export default function Avatar({
   const Base = LEGACY_DETAILS[c.base] || LEGACY_DETAILS.spark;
   return (
     <span
-      className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-blue-300" : ""} ${className}`}
+      className={`inline-grid place-items-center overflow-visible ${ring ? "rounded-full ring-2 ring-edge" : ""} ${className}`}
       style={{ width: size, height: size }}
     >
       <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">

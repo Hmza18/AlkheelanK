@@ -86,9 +86,9 @@ export default function Landing() {
           </form>
 
           <div className="my-5 flex items-center gap-4">
-            <div className="h-px flex-1 bg-blue-200/60" />
+            <div className="h-px flex-1 bg-surface-muted/60" />
             <span className="text-sm font-semibold uppercase tracking-widest text-muted">or</span>
-            <div className="h-px flex-1 bg-blue-200/60" />
+            <div className="h-px flex-1 bg-surface-muted/60" />
           </div>
 
           <button onClick={() => navigate("/host")} className="alkheelank-btn-ghost w-full text-lg">

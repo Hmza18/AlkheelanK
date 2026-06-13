@@ -260,7 +260,7 @@ export default function SocialReveal({ question, image, reveal, onStandings, ext
           <img
             src={image}
             alt=""
-            className="mx-auto mb-4 hidden h-20 w-20 rounded-xl object-cover ring-1 ring-blue-200 sm:block landscapePhone:mb-2 landscapePhone:h-12 landscapePhone:w-12"
+            className="mx-auto mb-4 hidden h-20 w-20 rounded-xl object-cover ring-1 ring-edge sm:block landscapePhone:mb-2 landscapePhone:h-12 landscapePhone:w-12"
           />
         )}
         <h1 className="alkheelank-heading text-3xl landscapePhone:text-xl landscapePhone:leading-snug sm:text-5xl landscapePhone:sm:text-xl">
@@ -307,7 +307,7 @@ export default function SocialReveal({ question, image, reveal, onStandings, ext
           </h3>
           <div className="grid gap-2 sm:grid-cols-2">
             {reveal.teamStandings.map((t) => (
-              <div key={t.id} className="rounded-xl bg-surface-muted px-4 py-3 ring-1 ring-blue-200">
+              <div key={t.id} className="rounded-xl bg-surface-muted px-4 py-3 ring-1 ring-edge">
                 <div className="flex items-center justify-between">
                   <span className="font-bold" style={{ color: t.color }}>
                     {t.rank}. {t.name}

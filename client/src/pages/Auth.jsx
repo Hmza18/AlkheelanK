@@ -126,7 +126,7 @@ export default function Auth() {
           type="button"
           onClick={google}
           disabled={busy || !configured}
-          className="flex w-full items-center justify-center gap-3 rounded-2xl bg-surface-muted px-4 py-3 font-bold text-ink-900 ring-1 ring-blue-200 transition hover:bg-surface-elevated disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-3 rounded-2xl bg-surface-muted px-4 py-3 font-bold text-ink-900 ring-1 ring-edge transition hover:bg-surface-elevated disabled:opacity-50"
         >
           <GoogleIcon />
           Continue with Google

@@ -136,7 +136,7 @@ export default function ShareImport() {
               Login isn't configured — you can't import to an account yet.
             </p>
           ) : !user ? (
-            <div className="mt-4 rounded-2xl bg-surface-muted p-5 text-center ring-1 ring-blue-200">
+            <div className="mt-4 rounded-2xl bg-surface-muted p-5 text-center ring-1 ring-edge">
               <p className="text-muted">Log in to save this quiz to your account.</p>
               <button
                 onClick={() => navigate(`/login?next=/share/${share.code}`)}

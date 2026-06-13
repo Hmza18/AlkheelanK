@@ -354,7 +354,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
         />
       )}
 
-      <div className="alkheelank-safe-bottom fixed inset-x-0 bottom-0 border-t border-blue-200 bg-surface-elevated/95 px-6 py-4 backdrop-blur">
+      <div className="alkheelank-safe-bottom fixed inset-x-0 bottom-0 border-t border-edge bg-surface-elevated/95 px-6 py-4 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3">
           <span className={`hidden text-sm sm:block ${atQuestionCap ? "font-bold text-tile-circle" : "text-muted"}`}>
             Q{selectedIndex + 1} of {questions.length}
@@ -363,7 +363,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
             {userId && (
               <button
                 onClick={() => setBankOpen(true)}
-                className="min-h-touch rounded-xl bg-surface-muted px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-blue-200 hover:text-ink-900"
+                className="min-h-touch rounded-xl bg-surface-muted px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-edge hover:text-ink-900"
                 title="Add questions from your bank"
               >
                 📚 From bank
@@ -375,7 +375,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
                 setError(null);
                 setPreviewOpen(true);
               }}
-              className="min-h-touch rounded-xl bg-surface-muted px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-blue-200 hover:text-ink-900"
+              className="min-h-touch rounded-xl bg-surface-muted px-4 py-2.5 text-sm font-bold text-muted ring-1 ring-edge hover:text-ink-900"
               title="Play through the quiz exactly as players will see it"
             >
               ▶ Preview
@@ -412,7 +412,7 @@ function QuestionSidebar({ questions, selectedIndex, onSelect, onAdd, atQuestion
         className={`flex w-full items-start gap-2 rounded-xl border px-3 py-2.5 text-left transition ${
           selectedIndex === i
             ? "border-brand-mid bg-brand-mid/10 ring-1 ring-brand-mid/30"
-            : "border-blue-200 bg-surface-elevated hover:bg-surface-muted"
+            : "border-edge bg-surface-elevated hover:bg-surface-muted"
         } ${compact ? "min-w-[9rem] shrink-0" : ""}`}
       >
         <span
@@ -432,7 +432,7 @@ function QuestionSidebar({ questions, selectedIndex, onSelect, onAdd, atQuestion
           </span>
         </span>
         {q.image && (
-          <img src={q.image} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-blue-200" />
+          <img src={q.image} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-edge" />
         )}
       </button>
     );
@@ -532,7 +532,7 @@ function QuestionEditor({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-display text-lg font-bold text-ink-900">Question {index + 1}</span>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-lg bg-surface-muted ring-1 ring-blue-200">
+          <div className="flex items-center rounded-lg bg-surface-muted ring-1 ring-edge">
             <button
               type="button"
               onClick={() => onMove(-1)}
@@ -586,7 +586,7 @@ function QuestionEditor({
         </div>
       </div>
 
-      <div className="mt-3 inline-flex rounded-xl bg-surface-muted p-1 ring-1 ring-blue-200">
+      <div className="mt-3 inline-flex rounded-xl bg-surface-muted p-1 ring-1 ring-edge">
         {[{ id: "mc", label: "Multiple choice" }, { id: "tf", label: "True / False" }].map((opt) => (
           <button
             key={opt.id}
@@ -629,7 +629,7 @@ function QuestionEditor({
       )}
 
       <textarea
-        className="mt-4 w-full resize-none rounded-2xl bg-surface-elevated px-4 py-3 text-lg font-semibold text-ink-900 ring-2 ring-blue-200 focus:outline-none focus:ring-brand-mid"
+        className="mt-4 w-full resize-none rounded-2xl bg-surface-elevated px-4 py-3 text-lg font-semibold text-ink-900 ring-2 ring-edge focus:outline-none focus:ring-brand-mid"
         rows={3}
         placeholder={type === "tf" ? "Type a statement (true or false)…" : "Type your question…"}
         maxLength={MAX_QUESTION_CHARS}
@@ -651,7 +651,7 @@ function QuestionEditor({
                 type="button"
                 onClick={() => onChange({ correct: ai })}
                 className={`flex min-h-touch items-center justify-center gap-2 rounded-2xl py-5 text-2xl font-bold text-white transition ${
-                  isCorrect ? "ring-4 ring-blue-300 scale-[1.02]" : "opacity-80 hover:opacity-100"
+                  isCorrect ? "ring-4 ring-edge scale-[1.02]" : "opacity-80 hover:opacity-100"
                 }`}
                 style={{ backgroundColor: s.color }}
               >
@@ -678,7 +678,7 @@ function QuestionEditor({
                   compact
                 />
                 <input
-                  className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-blue-200 placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                  className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
                   placeholder={`Answer ${ai + 1}`}
                   maxLength={MAX_ANSWER_CHARS}
                   value={a}
@@ -697,14 +697,14 @@ function QuestionEditor({
           className={`min-h-touch rounded-xl px-3 py-2.5 text-sm font-bold ring-1 transition ${
             q.doublePoints
               ? "bg-brand-mid/15 text-brand-mid ring-brand-mid"
-              : "bg-surface-muted text-muted ring-blue-200 hover:text-ink-900"
+              : "bg-surface-muted text-muted ring-edge hover:text-ink-900"
           }`}
         >
           2× points
         </button>
         <label className="text-sm font-semibold text-muted">Time</label>
         <select
-          className="rounded-xl bg-surface-elevated px-3 py-2 font-semibold text-ink-900 ring-1 ring-blue-200 focus:outline-none focus:ring-brand-mid"
+          className="rounded-xl bg-surface-elevated px-3 py-2 font-semibold text-ink-900 ring-1 ring-edge focus:outline-none focus:ring-brand-mid"
           value={q.timeLimit}
           onChange={(e) => onChange({ timeLimit: Number(e.target.value) })}
         >
@@ -782,13 +782,13 @@ function AiGeneratePanel({ onGenerated, onClose }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         onClick={busy ? undefined : onClose}
-        className="absolute inset-0 bg-blue-900/20 backdrop-blur-sm"
+        className="absolute inset-0 bg-edge-scrim backdrop-blur-sm"
       />
       <motion.div
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 340, damping: 32 }}
-        className="relative z-10 w-full max-w-lg rounded-t-3xl bg-surface-elevated p-6 shadow-2xl ring-1 ring-blue-200 sm:rounded-3xl"
+        className="relative z-10 w-full max-w-lg rounded-t-3xl bg-surface-elevated p-6 shadow-2xl ring-1 ring-edge sm:rounded-3xl"
       >
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold">✨ Generate with AI</h2>
@@ -936,7 +936,7 @@ function QuizPreview({ title, questions, onClose }) {
         />
       </div>
 
-      <div className="alkheelank-safe-bottom flex shrink-0 items-center justify-center gap-3 border-t border-blue-200 bg-surface-elevated/95 px-5 py-3">
+      <div className="alkheelank-safe-bottom flex shrink-0 items-center justify-center gap-3 border-t border-edge bg-surface-elevated/95 px-5 py-3">
         <button
           onClick={() => goTo(index - 1)}
           disabled={index === 0}
@@ -999,14 +999,14 @@ function BankPicker({ userId, onAdd, onAddAll, onClose }) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-blue-900/20 backdrop-blur-sm"
+        className="absolute inset-0 bg-edge-scrim backdrop-blur-sm"
       />
       <motion.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 340, damping: 36 }}
-        className="relative z-10 flex w-full max-w-2xl flex-col rounded-t-3xl bg-surface-elevated shadow-2xl ring-1 ring-blue-200"
+        className="relative z-10 flex w-full max-w-2xl flex-col rounded-t-3xl bg-surface-elevated shadow-2xl ring-1 ring-edge"
         style={{ maxHeight: "80dvh" }}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
@@ -1053,7 +1053,7 @@ function BankPicker({ userId, onAdd, onAddAll, onClose }) {
                 return (
                   <div
                     key={row.id}
-                    className="flex items-start justify-between gap-4 rounded-2xl bg-surface-muted px-4 py-3 ring-1 ring-blue-200"
+                    className="flex items-start justify-between gap-4 rounded-2xl bg-surface-muted px-4 py-3 ring-1 ring-edge"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -1167,7 +1167,7 @@ function ImagePicker({ image, onChange }) {
         <img
           src={image}
           alt="Question"
-          className="h-20 w-20 rounded-xl object-cover ring-1 ring-blue-200"
+          className="h-20 w-20 rounded-xl object-cover ring-1 ring-edge"
           onError={() => setErr("Image failed to load — check the URL.")}
         />
         <div className="flex flex-col gap-1">
@@ -1190,15 +1190,15 @@ function ImagePicker({ image, onChange }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="rounded-xl bg-surface-muted px-3 py-2 text-sm font-semibold text-muted ring-1 ring-blue-200 hover:text-ink-900"
+          className="rounded-xl bg-surface-muted px-3 py-2 text-sm font-semibold text-muted ring-1 ring-edge hover:text-ink-900"
         >
           🖼️ Add image
         </button>
       ) : (
-        <div className="rounded-2xl bg-surface-muted p-3 ring-1 ring-blue-200">
+        <div className="rounded-2xl bg-surface-muted p-3 ring-1 ring-edge">
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
-              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-blue-200 placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
+              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-edge placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
               placeholder="Search free images… (e.g. mars planet)"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -1221,7 +1221,7 @@ function ImagePicker({ image, onChange }) {
                       type="button"
                       title={r.title}
                       onClick={() => { onChange(r.url); setOpen(false); }}
-                      className="group relative aspect-square overflow-hidden rounded-xl ring-1 ring-blue-200 transition hover:ring-2 hover:ring-brand-mid"
+                      className="group relative aspect-square overflow-hidden rounded-xl ring-1 ring-edge transition hover:ring-2 hover:ring-brand-mid"
                     >
                       <img src={r.thumbnail} alt={r.title} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
                     </button>
@@ -1232,9 +1232,9 @@ function ImagePicker({ image, onChange }) {
             </div>
           )}
 
-          <div className="mt-3 flex flex-col gap-2 border-t border-blue-200 pt-3 sm:flex-row">
+          <div className="mt-3 flex flex-col gap-2 border-t border-edge pt-3 sm:flex-row">
             <input
-              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-blue-200 placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
+              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-edge placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
               placeholder="…or paste an image URL"
               value={url}
               onChange={(e) => setUrl(e.target.value)}

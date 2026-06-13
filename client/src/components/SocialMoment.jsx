@@ -13,7 +13,7 @@ export default function SocialMoment({ highlight, show }) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.96 }}
           transition={{ ...spring.bouncy, delay: stagger.relaxed }}
-          className="mx-auto mt-6 flex w-full max-w-md items-center gap-4 rounded-2xl bg-gradient-to-r from-brand-start/20 via-brand-mid/15 to-brand-end/20 px-5 py-4 ring-1 ring-brand-mid/40"
+          className="mx-auto mt-6 flex w-full max-w-md items-center gap-4 rounded-2xl bg-brand-gradient-soft-x px-5 py-4 ring-1 ring-brand-mid/40"
         >
           <Avatar config={highlight.player.character} size={56} ring />
           <div className="min-w-0 text-left">

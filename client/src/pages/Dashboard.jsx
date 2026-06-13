@@ -331,7 +331,7 @@ function MyQuizCard({ quiz, onLaunch, onEdit, onDuplicate, onDelete, onShare }) 
         </button>
         <button
           onClick={onLaunch}
-          className="flex-1 rounded-xl bg-gradient-to-r from-brand-start to-brand-mid py-2 text-sm font-bold text-white hover:brightness-110"
+          className="flex-1 rounded-xl bg-brand-gradient-2 py-2 text-sm font-bold text-white hover:brightness-110"
         >
           ▶ Host
         </button>

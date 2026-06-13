@@ -13,23 +13,26 @@ export default {
       },
     },
     extend: {
+      ringColor: {
+        edge: "var(--alkheelank-ring)",
+      },
       colors: {
         surface: {
-          DEFAULT: "rgb(var(--alkheelank-rgb-surface) / <alpha-value>)",
-          elevated: "rgb(var(--alkheelank-rgb-surface-elevated) / <alpha-value>)",
-          muted: "rgb(var(--alkheelank-rgb-surface-muted) / <alpha-value>)",
+          DEFAULT: "rgba(var(--alkheelank-rgb-surface), <alpha-value>)",
+          elevated: "rgba(var(--alkheelank-rgb-surface-elevated), <alpha-value>)",
+          muted: "rgba(var(--alkheelank-rgb-surface-muted), <alpha-value>)",
         },
         ink: {
-          900: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
-          800: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
-          700: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
-          600: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
-          500: "rgb(var(--alkheelank-rgb-text) / <alpha-value>)",
+          900: "rgba(var(--alkheelank-rgb-text), <alpha-value>)",
+          800: "rgba(var(--alkheelank-rgb-text), <alpha-value>)",
+          700: "rgba(var(--alkheelank-rgb-text), <alpha-value>)",
+          600: "rgba(var(--alkheelank-rgb-text), <alpha-value>)",
+          500: "rgba(var(--alkheelank-rgb-text), <alpha-value>)",
         },
         brand: {
-          start: "rgb(var(--alkheelank-rgb-brand-start) / <alpha-value>)",
-          mid: "rgb(var(--alkheelank-rgb-brand-mid) / <alpha-value>)",
-          end: "rgb(var(--alkheelank-rgb-brand-end) / <alpha-value>)",
+          start: "rgba(var(--alkheelank-rgb-brand-start), <alpha-value>)",
+          mid: "rgba(var(--alkheelank-rgb-brand-mid), <alpha-value>)",
+          end: "rgba(var(--alkheelank-rgb-brand-end), <alpha-value>)",
         },
         tile: {
           triangle: "#f43f5e",
@@ -38,7 +41,7 @@ export default {
           square: "#10b981",
         },
         paper: "var(--alkheelank-paper)",
-        muted: "rgb(var(--alkheelank-rgb-muted) / <alpha-value>)",
+        muted: "rgba(var(--alkheelank-rgb-muted), <alpha-value>)",
         edge: {
           DEFAULT: "var(--alkheelank-ring)",
           scrim: "var(--alkheelank-overlay)",

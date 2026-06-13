@@ -678,7 +678,7 @@ function QuestionEditor({
                   compact
                 />
                 <input
-                  className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                  className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand-mid"
                   placeholder={`Answer ${ai + 1}`}
                   maxLength={MAX_ANSWER_CHARS}
                   value={a}
@@ -1198,7 +1198,7 @@ function ImagePicker({ image, onChange }) {
         <div className="rounded-2xl bg-surface-muted p-3 ring-1 ring-edge">
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
-              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-edge placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
+              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-edge placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand-mid"
               placeholder="Search free images… (e.g. mars planet)"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -1228,13 +1228,13 @@ function ImagePicker({ image, onChange }) {
                   ))}
                 </div>
               )}
-              <p className="mt-2 text-[10px] text-muted/70">Openly licensed images via Openverse.</p>
+              <p className="mt-2 text-[10px] text-muted">Openly licensed images via Openverse.</p>
             </div>
           )}
 
           <div className="mt-3 flex flex-col gap-2 border-t border-edge pt-3 sm:flex-row">
             <input
-              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-edge placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-mid"
+              className="flex-1 rounded-xl bg-surface-elevated px-3 py-2 font-medium text-ink-900 ring-1 ring-edge placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand-mid"
               placeholder="…or paste an image URL"
               value={url}
               onChange={(e) => setUrl(e.target.value)}

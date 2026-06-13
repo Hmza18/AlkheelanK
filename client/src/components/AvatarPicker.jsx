@@ -23,7 +23,7 @@ function SegmentedTabs({ tab, onTab }) {
             className={`min-h-touch flex-1 rounded-full px-4 py-2.5 text-sm font-bold transition ${
               active
                 ? "bg-surface-elevated text-ink-900 ring-1 ring-brand-mid/60"
-                : "text-muted hover:text-ink-900/80"
+                : "text-muted hover:text-ink-900"
             }`}
           >
             {label}
@@ -136,7 +136,7 @@ export default function AvatarPicker({
         </div>
 
         <div className="alkheelank-card mt-8 flex w-full flex-col items-center gap-5 p-6 lg:mt-10 landscapePhone:mt-3 landscapePhone:gap-3 landscapePhone:p-4">
-          <div className="flex w-full flex-col items-center bg-gradient-to-br from-brand-start/20 via-brand-mid/15 to-brand-end/10 rounded-2xl px-6 py-5 ring-1 ring-brand-mid/25 landscapePhone:px-4 landscapePhone:py-2.5">
+          <div className="flex w-full flex-col items-center bg-brand-gradient-soft-br rounded-2xl px-6 py-5 ring-1 ring-brand-mid/25 landscapePhone:px-4 landscapePhone:py-2.5">
             <p className="alkheelank-label mb-3 text-center landscapePhone:mb-1.5">Your look</p>
             <Avatar config={avatar} size={120} variant="picker" className="landscapePhone:hidden" />
             <span className="hidden landscapePhone:inline-flex">

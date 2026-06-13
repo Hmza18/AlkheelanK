@@ -50,7 +50,7 @@ export default function Standings({ standings = [], highlightId = null, max = 8,
                 compactLandscape ? "landscapePhone:rounded-xl" : ""
               } ${
                 mine
-                  ? "bg-gradient-to-r from-brand-start/40 to-brand-mid/40 ring-brand-mid"
+                  ? "bg-brand-gradient-highlight ring-brand-mid"
                   : "bg-surface-muted ring-edge"
               } ${p.connected === false ? "opacity-60" : ""}`}
             >

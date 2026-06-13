@@ -76,7 +76,7 @@ export default function HostChrome({
         <button
           type="button"
           onClick={onEndGame}
-          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-40 rounded-xl bg-surface-elevated/95 px-4 py-2 text-sm font-semibold text-muted ring-1 ring-edge shadow-card backdrop-blur hover:text-ink-900 landscapePhone:hidden"
+          className="fixed host-end-fab right-[max(1rem,env(safe-area-inset-right))] z-40 rounded-xl bg-surface-elevated/95 px-4 py-2 text-sm font-semibold text-muted ring-1 ring-edge shadow-card backdrop-blur hover:text-ink-900 landscapePhone:hidden"
         >
           {endLabel}
         </button>

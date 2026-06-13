@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .ring-edge {
+    --tw-ring-opacity: 1;
+    --tw-ring-color: var(--alkheelank-ring);
+  }
+  .ring-brand-mid {
+    --tw-ring-opacity: 1;
+    --tw-ring-color: var(--alkheelank-brand-mid);
+  }
+  .bg-brand-gradient {
+    background-image: linear-gradient(
+      to right,
+      var(--alkheelank-brand-start),
+      var(--alkheelank-brand-mid),
+      var(--alkheelank-brand-end)
+    );
+  }
+  .bg-brand-gradient-2 {
+    background-image: linear-gradient(
+      to right,
+      var(--alkheelank-brand-start),
+      var(--alkheelank-brand-mid)
+    );
+  }
+  .bg-brand-gradient-br {
+    background-image: linear-gradient(
+      to bottom right,
+      var(--alkheelank-brand-start),
+      var(--alkheelank-brand-mid),
+      var(--alkheelank-brand-end)
+    );
+  }
+  .bg-brand-gradient-soft-x {
+    background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--alkheelank-brand-start) 22%, transparent),
+      color-mix(in srgb, var(--alkheelank-brand-mid) 16%, transparent),
+      color-mix(in srgb, var(--alkheelank-brand-end) 22%, transparent)
+    );
+  }
+  .bg-brand-gradient-soft-br {
+    background-image: linear-gradient(
+      to bottom right,
+      color-mix(in srgb, var(--alkheelank-brand-start) 22%, transparent),
+      color-mix(in srgb, var(--alkheelank-brand-mid) 16%, transparent),
+      color-mix(in srgb, var(--alkheelank-brand-end) 12%, transparent)
+    );
+  }
+  .bg-brand-gradient-highlight {
+    background-image: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--alkheelank-brand-start) 40%, transparent),
+      color-mix(in srgb, var(--alkheelank-brand-mid) 40%, transparent)
+    );
+  }
+}
+
 html,
 body {
   overflow-x: hidden;
@@ -19,24 +76,28 @@ body {
   }
 }
 
-:root,
 [data-theme="blue"] {
   color-scheme: light;
-  --alkheelank-ink-900: #1e3a8a;
-  --alkheelank-ink-800: #1e40af;
-  --alkheelank-ink-700: #1d4ed8;
-  --alkheelank-ink-600: #2563eb;
-  --alkheelank-ink-500: #3b82f6;
+  --alkheelank-ink-900: #0f172a;
+  --alkheelank-ink-800: #1e293b;
+  --alkheelank-ink-700: #1e3a8a;
+  --alkheelank-ink-600: #1d4ed8;
+  --alkheelank-ink-500: #2563eb;
   --alkheelank-surface: #dbeafe;
   --alkheelank-surface-elevated: #ffffff;
   --alkheelank-surface-muted: #bfdbfe;
   --alkheelank-paper: #ffffff;
-  --alkheelank-text-primary: #1e3a8a;
-  --alkheelank-muted: #64748b;
+  --alkheelank-text-primary: #0f172a;
+  --alkheelank-muted: #475569;
+  --alkheelank-text-gradient-from: #1e3a8a;
+  --alkheelank-text-gradient-via: #2563eb;
+  --alkheelank-text-gradient-to: #1d4ed8;
+  --alkheelank-brand-label: #1d4ed8;
+  --alkheelank-brand-label-strong: #1e3a8a;
   --alkheelank-rgb-surface: 219, 234, 254;
   --alkheelank-rgb-surface-elevated: 255, 255, 255;
   --alkheelank-rgb-surface-muted: 191, 219, 254;
-  --alkheelank-rgb-text: 30, 58, 138;
+  --alkheelank-rgb-text: 15, 23, 42;
   --alkheelank-rgb-tint: 30, 58, 138;
   --alkheelank-border-subtle: rgba(var(--alkheelank-rgb-tint), 0.22);
   --alkheelank-brand-start: #60a5fa;
@@ -48,7 +109,7 @@ body {
   --alkheelank-rgb-brand-mid: 59, 130, 246;
   --alkheelank-rgb-brand-end: 37, 99, 235;
   --alkheelank-rgb-accent: 59, 130, 246;
-  --alkheelank-rgb-muted: 100, 116, 139;
+  --alkheelank-rgb-muted: 71, 85, 105;
   --alkheelank-glow-a: rgba(147, 197, 253, 0.35);
   --alkheelank-glow-b: rgba(var(--alkheelank-rgb-accent), 0.25);
   --alkheelank-glow-c: rgba(var(--alkheelank-rgb-accent), 0.12);
@@ -67,21 +128,26 @@ body {
 
 [data-theme="classic"] {
   color-scheme: dark;
-  --alkheelank-ink-900: #ede6dc;
-  --alkheelank-ink-800: #e0d8cc;
-  --alkheelank-ink-700: #d4cbc0;
-  --alkheelank-ink-600: #c4b5a6;
-  --alkheelank-ink-500: #a89888;
+  --alkheelank-ink-900: #f5f0e8;
+  --alkheelank-ink-800: #ede6dc;
+  --alkheelank-ink-700: #e0d8cc;
+  --alkheelank-ink-600: #d4cbc0;
+  --alkheelank-ink-500: #c4b5a6;
   --alkheelank-surface: #1a1814;
   --alkheelank-surface-elevated: #242019;
   --alkheelank-surface-muted: #2e2922;
   --alkheelank-paper: #faf6f0;
-  --alkheelank-text-primary: #ede6dc;
-  --alkheelank-muted: #c4b5a6;
+  --alkheelank-text-primary: #f5f0e8;
+  --alkheelank-muted: #d4cbc0;
+  --alkheelank-text-gradient-from: #fcd34d;
+  --alkheelank-text-gradient-via: #fb923c;
+  --alkheelank-text-gradient-to: #fb7185;
+  --alkheelank-brand-label: #fbbf24;
+  --alkheelank-brand-label-strong: #fdba74;
   --alkheelank-rgb-surface: 26, 24, 20;
   --alkheelank-rgb-surface-elevated: 36, 32, 25;
   --alkheelank-rgb-surface-muted: 46, 41, 34;
-  --alkheelank-rgb-text: 237, 232, 224;
+  --alkheelank-rgb-text: 245, 240, 232;
   --alkheelank-rgb-tint: 255, 255, 255;
   --alkheelank-border-subtle: rgba(var(--alkheelank-rgb-tint), 0.12);
   --alkheelank-brand-start: #d97706;
@@ -93,7 +159,7 @@ body {
   --alkheelank-rgb-brand-start: 217, 119, 6;
   --alkheelank-rgb-brand-mid: 234, 88, 12;
   --alkheelank-rgb-brand-end: 225, 29, 72;
-  --alkheelank-rgb-muted: 196, 181, 166;
+  --alkheelank-rgb-muted: 212, 203, 192;
   --alkheelank-glow-a: rgba(217, 119, 6, 0.22);
   --alkheelank-glow-b: rgba(234, 88, 12, 0.14);
   --alkheelank-glow-c: rgba(225, 29, 72, 0.08);
@@ -163,7 +229,20 @@ button:focus-visible {
 
 @layer components {
   .alkheelank-gradient-text {
-    @apply bg-gradient-to-r from-brand-start via-brand-mid to-brand-end bg-clip-text text-transparent;
+    color: var(--alkheelank-text-primary);
+    background-image: linear-gradient(
+      90deg,
+      var(--alkheelank-text-gradient-from),
+      var(--alkheelank-text-gradient-via),
+      var(--alkheelank-text-gradient-to)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .alkheelank-heading {
+    @apply font-display font-bold leading-tight;
+    color: var(--alkheelank-text-primary);
   }
   .alkheelank-card {
     @apply rounded-3xl ring-1 ring-edge;
@@ -171,8 +250,11 @@ button:focus-visible {
     box-shadow: var(--alkheelank-shadow-card);
   }
   .alkheelank-input {
-    @apply w-full rounded-2xl px-5 py-4 text-center text-base font-semibold tracking-wide text-ink-900 placeholder:text-muted ring-2 ring-edge focus:ring-brand-mid focus:outline-none transition sm:text-2xl;
+    @apply w-full rounded-2xl px-5 py-4 text-center text-base font-semibold tracking-wide text-ink-900 placeholder:text-muted ring-2 ring-edge focus:outline-none transition sm:text-2xl;
     background: var(--alkheelank-surface-elevated);
+  }
+  .alkheelank-input:focus {
+    --tw-ring-color: var(--alkheelank-brand-mid);
   }
   .alkheelank-btn {
     @apply min-h-12 rounded-2xl px-6 py-4 text-base font-bold transition active:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 sm:text-lg;
@@ -200,10 +282,16 @@ button:focus-visible {
     padding-right: max(0px, env(safe-area-inset-right, 0px));
   }
   .alkheelank-btn-primary {
-    @apply alkheelank-btn bg-gradient-to-r from-brand-start via-brand-mid to-brand-end text-white shadow-glow hover:brightness-110 focus-visible:ring-2 focus-visible:ring-brand-mid;
+    @apply alkheelank-btn text-white shadow-glow hover:brightness-110 focus-visible:ring-2 focus-visible:ring-brand-mid;
+    background-image: linear-gradient(
+      to right,
+      var(--alkheelank-brand-start),
+      var(--alkheelank-brand-mid),
+      var(--alkheelank-brand-end)
+    );
   }
   .alkheelank-btn-ghost {
-    @apply alkheelank-btn text-ink-900 ring-1 ring-edge focus-visible:ring-2 focus-visible:ring-brand-mid/40;
+    @apply alkheelank-btn text-ink-900 ring-1 ring-edge focus-visible:ring-2 focus-visible:ring-brand-mid;
     background: var(--alkheelank-surface-muted);
   }
   .alkheelank-btn-ghost:hover {
@@ -221,13 +309,13 @@ button:focus-visible {
   .alkheelank-label {
     @apply text-xs font-bold uppercase tracking-widest text-muted;
   }
-  .alkheelank-heading {
-    @apply font-display font-bold leading-tight;
-  }
   .alkheelank-theme-btn {
-    @apply alkheelank-touch-target fixed z-40 h-12 w-12 rounded-xl bg-surface-elevated text-ink-900 ring-1 ring-edge shadow-card backdrop-blur transition hover:bg-surface-muted;
-    top: max(1rem, env(safe-area-inset-top, 0px));
+    @apply alkheelank-touch-target fixed z-[60] h-12 w-12 rounded-xl bg-surface-elevated text-ink-900 ring-1 ring-edge shadow-card backdrop-blur transition hover:bg-surface-muted;
+    bottom: max(1rem, env(safe-area-inset-bottom, 0px));
     right: max(1rem, env(safe-area-inset-right, 0px));
+  }
+  .host-end-fab {
+    bottom: max(calc(1rem + 3.25rem), calc(env(safe-area-inset-bottom, 0px) + 3.25rem));
   }
 }
 
@@ -475,7 +563,7 @@ button:focus-visible {
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--alkheelank-brand-mid);
+  color: var(--alkheelank-brand-label);
   background: rgba(var(--alkheelank-rgb-accent), 0.12);
   border: 1px solid rgba(var(--alkheelank-rgb-accent), 0.25);
 }
@@ -1473,18 +1561,19 @@ button:focus-visible {
 }
 
 .alkheelank-wait-shimmer {
-  background: linear-gradient(
+  color: var(--alkheelank-text-primary);
+  background-image: linear-gradient(
     105deg,
-    var(--alkheelank-brand-start) 0%,
-    var(--alkheelank-brand-start) 38%,
+    var(--alkheelank-text-gradient-from) 0%,
+    var(--alkheelank-text-gradient-from) 38%,
     var(--alkheelank-paper) 50%,
-    var(--alkheelank-brand-start) 62%,
-    var(--alkheelank-brand-start) 100%
+    var(--alkheelank-text-gradient-from) 62%,
+    var(--alkheelank-text-gradient-from) 100%
   );
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
+  -webkit-text-fill-color: transparent;
   animation: alkheelank-wait-shimmer 2.4s ease-in-out infinite;
 }
 
@@ -1577,6 +1666,7 @@ button:focus-visible {
   font-size: clamp(1.5rem, 3.5vw, 1.875rem);
   font-weight: 700;
   line-height: 1.1;
+  color: var(--alkheelank-text-primary);
 }
 
 .pregame-main {
@@ -2484,17 +2574,16 @@ button:focus-visible {
   line-height: 1;
   letter-spacing: 0.06em;
   white-space: nowrap;
-  /* Explicit brand gradient — do not rely on @layer utility (can lose cascade). */
-  background: linear-gradient(
+  color: var(--alkheelank-text-primary);
+  background-image: linear-gradient(
     90deg,
-    var(--alkheelank-brand-start),
-    var(--alkheelank-brand-mid),
-    var(--alkheelank-brand-end)
+    var(--alkheelank-text-gradient-from),
+    var(--alkheelank-text-gradient-via),
+    var(--alkheelank-text-gradient-to)
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: transparent;
 }
 
 .lobby-header-card__qr {
@@ -2963,4 +3052,13 @@ button:focus-visible {
   .lobby-players {
     max-height: clamp(4rem, 18dvh, 7rem);
   }
+}
+
+/* Accent labels — darker on blue, brighter on classic (not button fills) */
+[data-theme] .text-brand-mid {
+  color: var(--alkheelank-brand-label);
+}
+
+[data-theme] .text-brand-end {
+  color: var(--alkheelank-brand-label-strong);
 }

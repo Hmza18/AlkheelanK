@@ -74,7 +74,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
     >
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-brand-start via-brand-mid to-brand-end" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-brand-gradient" />
 
 
 
@@ -92,7 +92,7 @@ export default function Recap({ recap, title, standings = [] }) {
 
       {recap?.winner && (
 
-        <div className="mt-5 flex items-center gap-4 rounded-3xl bg-gradient-to-r from-brand-start/25 to-brand-end/25 p-4 ring-1 ring-edge">
+        <div className="mt-5 flex items-center gap-4 rounded-3xl bg-brand-gradient-soft-x p-4 ring-1 ring-edge">
 
           <div className="relative">
 

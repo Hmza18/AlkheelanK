@@ -45,7 +45,7 @@ export default function FamilyWelcomePopup() {
             transition={{ type: "spring", stiffness: 340, damping: 28 }}
           >
             {/* Heart icon */}
-            <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-brand-start via-brand-mid to-brand-end text-3xl shadow-glow">
+            <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-brand-gradient-br text-3xl shadow-glow">
               🏠
             </div>
 

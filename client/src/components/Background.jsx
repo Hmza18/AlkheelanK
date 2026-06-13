@@ -10,7 +10,10 @@ const FLOATERS = [
 
 export default function Background() {
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-surface">
+    <div
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      style={{ background: "var(--alkheelank-surface)" }}
+    >
       <div
         className="absolute -left-40 -top-40 h-96 w-96 rounded-full blur-3xl"
         style={{ background: "var(--alkheelank-glow-a)" }}

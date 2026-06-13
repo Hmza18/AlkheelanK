@@ -114,7 +114,7 @@ export default function Auth() {
                 setNotice(null);
               }}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold capitalize transition ${
-                mode === m ? "bg-gradient-to-r from-brand-start to-brand-mid text-white" : "text-muted"
+                mode === m ? "bg-brand-gradient-2 text-white" : "text-muted"
               }`}
             >
               {m === "login" ? "Log in" : "Sign up"}
@@ -186,7 +186,7 @@ export default function Auth() {
       >
         Continue as guest →
       </button>
-      <p className="mt-2 text-center text-xs text-muted/70">
+      <p className="mt-2 text-center text-xs text-muted">
         Guests can run a one-off game, but saving quizzes needs an account.
       </p>
       <button onClick={() => navigate("/")} className="mt-4 text-sm text-muted hover:text-ink-900">

@@ -10,12 +10,17 @@ export function ThemeProvider({ children }) {
     applyTheme(themeId);
   }, [themeId]);
 
+  const setTheme = (id) => {
+    applyTheme(id);
+    setThemeId(id);
+  };
+
   const value = useMemo(
     () => ({
       themeId,
       theme: THEMES[themeId],
-      setTheme: setThemeId,
-      toggleTheme: () => setThemeId((id) => otherTheme(id)),
+      setTheme,
+      toggleTheme: () => setTheme(otherTheme(themeId)),
     }),
     [themeId],
   );

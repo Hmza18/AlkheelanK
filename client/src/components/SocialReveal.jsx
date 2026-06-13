@@ -113,7 +113,7 @@ function CorrectNames({ players, show, reduced }) {
           className="flex flex-col items-center gap-0.5"
         >
           <Avatar config={p.character} size={44} ring />
-          <span className="max-w-[4rem] truncate text-[10px] font-bold text-ink-900/90">{p.nick}</span>
+          <span className="max-w-[4rem] truncate text-[10px] font-bold text-ink-900">{p.nick}</span>
         </motion.div>
       ))}
       {overflow > 0 && (

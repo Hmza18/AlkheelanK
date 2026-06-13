@@ -94,7 +94,7 @@ export default function Landing() {
           <button onClick={() => navigate("/host")} className="alkheelank-btn-ghost w-full text-lg">
             {user ? "🖥️ Go to your dashboard" : "🖥️ Host a game"}
           </button>
-          <p className="mt-2 text-center text-xs text-muted/70">
+          <p className="mt-2 text-center text-xs text-muted">
             {user ? "Pick up where you left off." : "Sign in to save quizzes — or host as a guest."}
           </p>
         </motion.div>

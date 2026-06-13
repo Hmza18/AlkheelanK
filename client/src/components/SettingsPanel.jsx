@@ -201,7 +201,7 @@ export default function SettingsPanel({
                 </section>
               )}
 
-              <p className="mt-auto pt-6 text-xs text-muted/70">
+              <p className="mt-auto pt-6 text-xs text-muted">
                 Saved on this device — your ears will thank you next time.
               </p>
             </motion.div>
@@ -218,7 +218,7 @@ function Toggle({ on, onChange }) {
       type="button"
       onClick={() => onChange(!on)}
       className={`relative inline-flex h-8 min-h-touch w-14 shrink-0 items-center rounded-full transition ${
-        on ? "bg-gradient-to-r from-brand-start to-brand-mid" : "bg-surface-muted"
+        on ? "bg-brand-gradient-2" : "bg-surface-muted"
       }`}
       aria-pressed={on}
     >

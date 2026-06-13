@@ -2,7 +2,7 @@ import { HAMZA_INSTAGRAM_URL } from "../lib/credits.js";
 
 export default function BuiltByHamza({ className = "" }) {
   return (
-    <p className={`text-center text-sm font-semibold text-muted/80 ${className}`.trim()}>
+    <p className={`text-center text-sm font-semibold text-muted ${className}`.trim()}>
       Built by{" "}
       <a
         href={HAMZA_INSTAGRAM_URL}

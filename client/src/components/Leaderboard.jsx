@@ -24,7 +24,7 @@ export default function Leaderboard({ entries = [], highlightId = null, max = 8 
               transition={{ type: "spring", stiffness: 500, damping: 40 }}
               className={`flex items-center gap-4 rounded-2xl px-4 py-3 text-xl font-bold ring-1 landscapePhone:gap-2 landscapePhone:px-3 landscapePhone:py-2 landscapePhone:text-base ${
                 mine
-                  ? "bg-gradient-to-r from-brand-start/40 to-brand-mid/40 ring-brand-mid"
+                  ? "bg-brand-gradient-highlight ring-brand-mid"
                   : "bg-surface-elevated ring-edge"
               }`}
             >

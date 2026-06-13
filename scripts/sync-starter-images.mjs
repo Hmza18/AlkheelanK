@@ -37,3 +37,7 @@ const count = fs
   .readdirSync(DESTS[0], { recursive: true })
   .filter((f) => String(f).endsWith(".webp")).length;
 console.log(`Synced ${count} starter image(s) → client/src/assets + client/public`);
+if (count < 52) {
+  console.error(`Expected at least 52 starter images, found ${count}. Run npm run fetch-starter-images.`);
+  process.exit(1);
+}

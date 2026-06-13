@@ -179,7 +179,10 @@ export default function HostGame({ launch, onExit }) {
       setPhase("countdown");
     };
     const onQuestion = (q) => {
-      setQuestion(q);
+      setQuestion({
+        ...q,
+        image: q.image ? starterImageStoragePath(q.image) ?? q.image : q.image,
+      });
       setDoubleWarning(null);
       setReveal(null);
       setStandings(null);

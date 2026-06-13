@@ -1,6 +1,9 @@
-/** Starter quiz photos — bundled via Vite (see starterImageAssets.js). */
+/** Starter quiz photos — embedded in the JS bundle (see starterImageAssets.js). */
 
-import { bundledStarterImageUrl } from "../data/starterImageAssets.js";
+import {
+  bundledStarterImageUrl,
+  starterQuestionImages,
+} from "../data/starterImageAssets.js";
 
 /** Match /starter-images/quiz/file.webp anywhere in a URL string. */
 const STARTER_PATH_RE = /\/starter-images\/([^\s?#]+\.webp)/i;
@@ -11,12 +14,11 @@ export function starterImageRelPath(url) {
   const s = String(url).trim();
   const m = s.match(STARTER_PATH_RE);
   if (m) return m[1];
-  // Bare key from the API, e.g. house-party/0.webp
   if (/^[\w-]+\/[\w.-]+\.webp$/i.test(s)) return s;
   return null;
 }
 
-/** Stable path stored in the DB / sent to the game server. */
+/** Stable token stored in the DB / sent to the game server. */
 export function starterImageStoragePath(url) {
   if (!url) return null;
   const rel = starterImageRelPath(url);
@@ -24,24 +26,31 @@ export function starterImageStoragePath(url) {
   return url;
 }
 
-/** Resolved src for <img> — prefers Vite-bundled /assets/ URLs. */
+/** Resolved src for <img> — bundled /assets/ URL when available. */
 export function starterImageSrc(url) {
   if (!url) return null;
-  const rel = starterImageRelPath(url);
-  if (rel) {
-    const bundled = bundledStarterImageUrl(rel);
-    if (bundled) return bundled;
-    return `/starter-images/${rel}`;
-  }
-  return url;
+  const cleaned = String(url).split("?")[0];
+  const rel = starterImageRelPath(cleaned);
+  if (rel) return bundledStarterImageUrl(rel) ?? null;
+  if (/^\/assets\//i.test(cleaned)) return cleaned;
+  return cleaned;
 }
 
-/** Cover photo for a starter template card. */
 export function starterCoverSrc(quizId) {
-  return starterImageSrc(`${quizId}/cover.webp`);
+  return bundledStarterImageUrl(`${quizId}/cover.webp`);
 }
 
-/** Normalize question images to stable /starter-images/ paths (never hashed /assets/). */
+/** Attach every starter question photo by template id + index. */
+export function applyStarterTemplateImages(starterId, questions) {
+  if (!Array.isArray(questions)) return questions;
+  return questions.map((q, i) => {
+    const src = bundledStarterImageUrl(`${starterId}/${i}.webp`);
+    if (!src) return { ...q, image: null };
+    return { ...q, image: `/starter-images/${starterId}/${i}.webp` };
+  });
+}
+
+/** Normalize stored paths (never save inline or /assets/ hashes). */
 export function normalizeStarterQuestions(questions) {
   if (!Array.isArray(questions)) return questions;
   return questions.map((q) => {

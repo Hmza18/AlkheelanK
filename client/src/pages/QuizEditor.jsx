@@ -16,7 +16,7 @@ import QuestionScreen from "../components/QuestionScreen.jsx";
 import { TimerStrip } from "../components/Timer.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import { normalizeStarterQuestions, starterImageSrc } from "../lib/starterImages.js";
-import { prepareStarterQuestionsForEditor } from "../lib/repairStarterImages.js";
+import { prepareStarterQuestionsForEditor } from "../lib/starterTemplate.js";
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 const MAX_QUESTIONS = 30;
@@ -1519,10 +1519,15 @@ function ImagePicker({ image, onChange }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
   const fileRef = useRef(null);
+  const displaySrc = starterImageSrc(image);
   // image search:
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null); // null = no search yet
   const [searching, setSearching] = useState(false);
+
+  useEffect(() => {
+    setErr(null);
+  }, [image, displaySrc]);
 
   const search = async () => {
     const q = query.trim();
@@ -1584,12 +1589,18 @@ function ImagePicker({ image, onChange }) {
   if (image) {
     return (
       <div className="mt-3 flex items-center gap-3">
-        <img
-          src={starterImageSrc(image)}
-          alt="Question"
-          className="h-20 w-20 rounded-xl object-cover ring-1 ring-edge"
-          onError={() => setErr("Image failed to load — check the URL.")}
-        />
+        {displaySrc ? (
+          <img
+            src={displaySrc}
+            alt="Question"
+            className="h-20 w-20 rounded-xl object-cover ring-1 ring-edge"
+            onError={() => setErr("Image failed to load — check the URL.")}
+          />
+        ) : (
+          <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-surface-muted text-xs font-semibold text-muted ring-1 ring-edge">
+            Unavailable
+          </div>
+        )}
         <div className="flex flex-col gap-1">
           <span className="text-sm font-semibold text-ink-900">Image attached</span>
           <button

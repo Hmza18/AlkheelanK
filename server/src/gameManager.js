@@ -210,7 +210,15 @@ export function createGame(hostSocketId, quiz, settings) {
   return game;
 }
 
-export const getGame = (pin) => games.get(String(pin || "").trim());
+function normalizePin(pin) {
+  const digits = String(pin ?? "").replace(/\D/g, "").slice(0, 6);
+  return digits.length === 6 ? digits : null;
+}
+
+export const getGame = (pin) => {
+  const key = normalizePin(pin);
+  return key ? games.get(key) : null;
+};
 export function getGameByHost(hostSocketId) {
   for (const game of games.values()) if (game.hostSocketId === hostSocketId) return game;
   return null;

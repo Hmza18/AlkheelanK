@@ -5,7 +5,7 @@ import Shape from "../components/Shape.jsx";
 import { ANSWERS } from "../lib/answers.js";
 import { useAuth } from "../lib/auth.jsx";
 import BuiltByHamza from "../components/BuiltByHamza.jsx";
-import { formatPinInput } from "../lib/pin.js";
+import { formatPinInput, isCompletePin, sanitizePin } from "../lib/pin.js";
 
 const container = {
   hidden: {},
@@ -30,8 +30,9 @@ export default function Landing() {
 
   const goPlay = (e) => {
     e.preventDefault();
-    const clean = pin.replace(/\D/g, "").slice(0, 6);
-    navigate(`/play${clean ? `?pin=${clean}` : ""}`);
+    const clean = sanitizePin(pin);
+    if (!isCompletePin(clean)) return;
+    navigate(`/join?pin=${clean}`);
   };
 
   return (
@@ -77,7 +78,7 @@ export default function Landing() {
               placeholder="Game PIN"
               maxLength={7}
               value={formatPinInput(pin)}
-              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) => setPin(sanitizePin(e.target.value))}
               autoFocus
             />
             <button type="submit" className="alkheelank-btn-primary mt-4 w-full text-xl">

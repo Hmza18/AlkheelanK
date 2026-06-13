@@ -5,6 +5,7 @@ import Shape from "../components/Shape.jsx";
 import { ANSWERS } from "../lib/answers.js";
 import { useAuth } from "../lib/auth.jsx";
 import BuiltByHamza from "../components/BuiltByHamza.jsx";
+import { copy } from "../lib/copy.js";
 import { formatPinInput, isCompletePin, sanitizePin } from "../lib/pin.js";
 
 const container = {
@@ -27,11 +28,16 @@ export default function Landing() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState(null);
 
   const goPlay = (e) => {
     e.preventDefault();
     const clean = sanitizePin(pin);
-    if (!isCompletePin(clean)) return;
+    if (!isCompletePin(clean)) {
+      setPinError(copy.player.pinStep);
+      return;
+    }
+    setPinError(null);
     navigate(`/join?pin=${clean}`);
   };
 
@@ -67,20 +73,27 @@ export default function Landing() {
 
         {/* Primary actions */}
         <motion.div variants={item} className="mt-10 w-full max-w-md">
-          <form onSubmit={goPlay} className="alkheelank-card p-6">
+          <form onSubmit={goPlay} noValidate className="alkheelank-card p-6">
             <label className="mb-2 block text-sm font-semibold uppercase tracking-widest text-muted">
               Join a game
             </label>
             <input
               className="alkheelank-input pin-display"
               inputMode="numeric"
-              pattern="[0-9]*"
               placeholder="Game PIN"
               maxLength={7}
               value={formatPinInput(pin)}
-              onChange={(e) => setPin(sanitizePin(e.target.value))}
+              onChange={(e) => {
+                setPin(sanitizePin(e.target.value));
+                if (pinError) setPinError(null);
+              }}
               autoFocus
             />
+            {pinError && (
+              <p className="mt-3 rounded-xl bg-tile-triangle/20 px-4 py-2 text-center font-semibold text-tile-triangle">
+                {pinError}
+              </p>
+            )}
             <button type="submit" className="alkheelank-btn-primary mt-4 w-full text-xl">
               Join a game →
             </button>

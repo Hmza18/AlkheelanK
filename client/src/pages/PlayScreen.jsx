@@ -610,6 +610,7 @@ function JoinPin({ pin, setPin, goProfile, error }) {
           e.preventDefault();
           goProfile();
         }}
+        noValidate
         className="alkheelank-card mt-10 flex flex-col gap-4 p-6 landscapePhone:mt-4 landscapePhone:gap-3 landscapePhone:p-4"
       >
         <label className="alkheelank-label text-center">{copy.lobby.pinLabel}</label>

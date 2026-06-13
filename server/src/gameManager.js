@@ -425,7 +425,6 @@ export function buildPublicQuestion(game, { includeImage = false } = {}) {
     doublePoints: !!q.doublePoints,
     points: q.points || (q.doublePoints ? "double" : "standard"),
     hasHint: !!q.hint,
-    hint: q.hint || null, // revealed client-side at a score penalty
     mode: game.settings.mode,
     teams: game.teams,
   };

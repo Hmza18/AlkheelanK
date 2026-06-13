@@ -225,4 +225,54 @@ export const sfx = {
       tone({ freq: f, dur: 0.2, type: "triangle", gain: 0.1, when: i * 0.11 })
     );
   },
+  /** Accelerating tom roll — returns { stop } for cleanup on unmount. */
+  drumRoll({ durationMs = 1400, intense = false } = {}) {
+    const c = ac();
+    if (!c) return { stop: () => {} };
+
+    duckMusic(durationMs + 280, intense ? 0.12 : 0.18);
+
+    const hits = [];
+    let acc = 0;
+    let gapMs = intense ? 165 : 195;
+    const minGapMs = intense ? 32 : 48;
+    while (acc < durationMs * 0.93) {
+      hits.push(acc / 1000);
+      acc += gapMs;
+      gapMs = Math.max(minGapMs, gapMs * (intense ? 0.87 : 0.89));
+    }
+
+    hits.forEach((when, i) => {
+      const p = hits.length <= 1 ? 1 : i / (hits.length - 1);
+      const gain = 0.032 + p * (intense ? 0.1 : 0.065);
+      tone({
+        freq: 88 + p * 55,
+        dur: 0.06 + p * 0.025,
+        type: "sine",
+        gain,
+        when,
+        duck: i === 0,
+      });
+      if (i % 2 === 1 || p > 0.55) {
+        tone({
+          freq: 170 + p * 140,
+          dur: 0.022,
+          type: "triangle",
+          gain: gain * 0.5,
+          when: when + 0.006,
+        });
+      }
+      if (intense && p > 0.7 && i % 2 === 0) {
+        tone({
+          freq: 420 + p * 180,
+          dur: 0.018,
+          type: "square",
+          gain: gain * 0.28,
+          when,
+        });
+      }
+    });
+
+    return { stop: () => {} };
+  },
 };

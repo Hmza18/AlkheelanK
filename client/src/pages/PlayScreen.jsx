@@ -51,6 +51,8 @@ export default function PlayScreen() {
   const [hostConnected, setHostConnected] = useState(true);
   const [selfConnected, setSelfConnected] = useState(true);
   const [showReconnectBanner, setShowReconnectBanner] = useState(false);
+  const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
   const joinInfoRef = useRef(null);
   const pinRef = useRef(pin);
   const teamIdRef = useRef(teamId);
@@ -321,6 +323,61 @@ export default function PlayScreen() {
     }
   };
 
+  const openAvatarEditor = () => {
+    setAvatar(me?.character || DEFAULT_AVATAR);
+    setAvatarEditorOpen(true);
+    setError(null);
+  };
+
+  const saveAvatar = (e) => {
+    e.preventDefault();
+    setSavingAvatar(true);
+    setError(null);
+    socket.emit("player:updateCharacter", { character: avatar }, (res) => {
+      setSavingAvatar(false);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      const nextCharacter = res?.character || avatar;
+      setMe((m) => (m ? { ...m, character: nextCharacter } : m));
+      if (joinInfoRef.current) {
+        const session = { ...joinInfoRef.current, character: nextCharacter };
+        joinInfoRef.current = session;
+        savePlayerSession(session);
+      }
+      setAvatarEditorOpen(false);
+      sfx.confirm?.();
+    });
+  };
+
+  const canEditLook = !!me && phase !== "join" && phase !== "ended";
+  const playerChrome = (
+    <>
+      <SettingsPanel
+        corner="bottom-left"
+        triggerClassName="settings-fab--player"
+        onEditLook={canEditLook ? openAvatarEditor : null}
+      />
+      {avatarEditorOpen && (
+        <div className="fixed inset-0 z-[60] overflow-y-auto bg-surface">
+          <AvatarPicker
+            editMode
+            avatar={avatar}
+            setAvatar={setAvatar}
+            onDone={saveAvatar}
+            onCancel={() => {
+              setAvatarEditorOpen(false);
+              setError(null);
+            }}
+            joining={savingAvatar}
+            error={error}
+          />
+        </div>
+      )}
+    </>
+  );
+
   // One submit path for every question type. `payload` is the wire shape the
   // server grades: { index } for mc/tf, { indices } for ms, { text } for type,
   // { order } for puzzle. `selected` flips non-null to lock the UI; for mc/tf we
@@ -332,7 +389,7 @@ export default function PlayScreen() {
     socket.emit("player:answer", payload);
   };
 
-  const settingsFab = <SettingsPanel corner="bottom-left" triggerClassName="settings-fab--player" />;
+  const settingsFab = playerChrome;
   // Shown mid-game whenever this phone's own connection drops (joined players only).
   const connectionBanner = me ? <PlayerConnectionBanner connected={selfConnected} /> : null;
 
@@ -373,6 +430,13 @@ export default function PlayScreen() {
         <CenterCard>
           <PlayerReconnectBanner show={showReconnectBanner} />
           <Avatar config={me?.character} size={80} ring />
+          <button
+            type="button"
+            onClick={openAvatarEditor}
+            className="mt-3 text-sm font-bold text-brand-mid underline-offset-2 hover:underline landscapePhone:mt-2 landscapePhone:text-xs"
+          >
+            ✨ {copy.player.editLookCta}
+          </button>
           <h2 className="mt-4 alkheelank-heading text-2xl landscapePhone:mt-2 landscapePhone:text-xl">{copy.player.joined}</h2>
           <p className="mt-1 text-3xl font-bold alkheelank-gradient-text landscapePhone:text-2xl">{me?.nick}</p>
           {me?.team?.name && (
@@ -469,7 +533,9 @@ export default function PlayScreen() {
   if (phase === "final") {
     const onPodium = isPodiumRank(finalRank?.rank);
     return (
-      <CenterCard>
+      <>
+        {settingsFab}
+        <CenterCard>
         <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{onPodium ? copy.player.onPodium : copy.player.final}</h2>
         {!onPodium && (
           <p className="mt-2 text-2xl font-bold alkheelank-gradient-text landscapePhone:mt-1 landscapePhone:text-xl">#{finalRank?.rank ?? "-"}</p>
@@ -479,7 +545,8 @@ export default function PlayScreen() {
         <button type="button" onClick={() => navigate("/")} className="alkheelank-btn-primary mt-6 w-full landscapePhone:mt-3">
           {copy.player.playAgain}
         </button>
-      </CenterCard>
+        </CenterCard>
+      </>
     );
   }
   return (

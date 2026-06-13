@@ -119,6 +119,8 @@ export default function AvatarPicker({
   onDone,
   joining,
   error,
+  editMode = false,
+  onCancel,
 }) {
   const [tab, setTab] = useState("character");
 
@@ -144,16 +146,22 @@ export default function AvatarPicker({
             </span>
           </div>
 
-          <input
-            className="alkheelank-input w-full"
-            placeholder="Nickname"
-            maxLength={16}
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            autoFocus
-          />
+          {!editMode && (
+            <input
+              className="alkheelank-input w-full"
+              placeholder="Nickname"
+              maxLength={16}
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              autoFocus
+            />
+          )}
 
-          {mode === "teams" && teams.length > 0 && (
+          {editMode && (
+            <p className="w-full text-center text-sm text-muted landscapePhone:text-xs">{copy.player.editLookHint}</p>
+          )}
+
+          {!editMode && mode === "teams" && teams.length > 0 && (
             <TeamPicker teams={teams} teamId={teamId} setTeamId={setTeamId} />
           )}
 
@@ -170,8 +178,20 @@ export default function AvatarPicker({
           )}
 
           <button type="submit" disabled={joining} className="alkheelank-btn-primary w-full text-xl">
-            {joining ? copy.player.joining : copy.player.profileCta}
+            {joining
+              ? editMode
+                ? copy.player.savingLook
+                : copy.player.joining
+              : editMode
+              ? copy.player.saveLook
+              : copy.player.profileCta}
           </button>
+
+          {editMode && onCancel && (
+            <button type="button" onClick={onCancel} className="alkheelank-btn-ghost w-full">
+              Cancel
+            </button>
+          )}
         </div>
       </div>
     </form>

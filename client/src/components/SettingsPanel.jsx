@@ -19,6 +19,7 @@ export default function SettingsPanel({
   onOpenChange,
   hideTrigger = false,
   hostControls = null,
+  onEditLook = null,
 }) {
   const [openInternal, setOpenInternal] = useState(false);
   const open = openControlled ?? openInternal;
@@ -134,6 +135,24 @@ export default function SettingsPanel({
                   </div>
                 </div>
               </section>
+
+              {onEditLook && (
+                <section className="mt-8 border-t border-edge pt-6">
+                  <h3 className="alkheelank-label">Your avatar</h3>
+                  <p className="mt-2 text-sm text-muted">{copy.player.editLookHint}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sfx.tap();
+                      setOpen(false);
+                      onEditLook();
+                    }}
+                    className="alkheelank-btn-primary mt-4 w-full py-3 text-base"
+                  >
+                    ✨ {copy.player.editLook}
+                  </button>
+                </section>
+              )}
 
               {hostControls && (
                 <section className="mt-8 border-t border-edge pt-6">

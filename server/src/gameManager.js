@@ -319,6 +319,16 @@ export function attachSocket(game, pid, socketId, rawCharacter) {
   game.sockets.set(socketId, pid);
   return player;
 }
+
+export function updatePlayerCharacter(game, socketId, rawCharacter) {
+  const pid = game.sockets.get(socketId);
+  if (!pid) return { error: "Not in a game." };
+  const player = game.players.get(pid);
+  if (!player) return { error: "Player not found." };
+  if (game.status === "ended") return { error: "Game is over." };
+  player.character = sanitizeAvatar(rawCharacter);
+  return { character: player.character };
+}
 export function removePlayer(game, pid) {
   const p = game.players.get(pid);
   if (p?.socketId) game.sockets.delete(p.socketId);

@@ -630,6 +630,22 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ error: err.message });
   });
 
+  socket.on("player:updateCharacter", ({ character } = {}, ack) => {
+    const game = GM.findGameBySocket(socket.id);
+    if (!game) {
+      const err = { message: "Not in a game." };
+      if (typeof ack === "function") ack({ error: err.message });
+      return;
+    }
+    const { character: updated, error } = GM.updatePlayerCharacter(game, socket.id, character);
+    if (error) {
+      if (typeof ack === "function") ack({ error });
+      return;
+    }
+    emitPlayers(game);
+    if (typeof ack === "function") ack({ character: updated });
+  });
+
   // Player revealed the "Closer Look" hint — recorded server-side so the score
   // penalty can't be dodged by hiding it again before answering.
   socket.on("player:hint", () => {

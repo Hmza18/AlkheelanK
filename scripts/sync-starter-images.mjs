@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-/** Copy server starter WebP assets into client/public for same-origin serving on Vercel. */
+/**
+ * Copy server starter WebP assets into the client for:
+ * - client/src/assets/starter-images  → Vite bundle (/assets/*.webp, always works on Vercel)
+ * - client/public/starter-images      → static fallback (/starter-images/*.webp)
+ */
 
 import fs from "fs";
 import path from "path";
@@ -8,7 +12,10 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
 const SRC = path.join(ROOT, "server/assets/starter-images");
-const DEST = path.join(ROOT, "client/public/starter-images");
+const DESTS = [
+  path.join(ROOT, "client/src/assets/starter-images"),
+  path.join(ROOT, "client/public/starter-images"),
+];
 
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
@@ -25,6 +32,8 @@ if (!fs.existsSync(SRC)) {
   process.exit(1);
 }
 
-copyDir(SRC, DEST);
-const count = fs.readdirSync(DEST, { recursive: true }).filter((f) => String(f).endsWith(".webp")).length;
-console.log(`Synced ${count} starter image(s) → client/public/starter-images/`);
+for (const dest of DESTS) copyDir(SRC, dest);
+const count = fs
+  .readdirSync(DESTS[0], { recursive: true })
+  .filter((f) => String(f).endsWith(".webp")).length;
+console.log(`Synced ${count} starter image(s) → client/src/assets + client/public`);

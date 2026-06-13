@@ -26,11 +26,6 @@ export function starterCover(emoji, accent, subtitle = "") {
   return `data:image/svg+xml,${encodeURIComponent(svg.trim())}`;
 }
 
-/** Openverse-sourced cover photo — same-origin from client/public/starter-images. */
-export function starterCoverPhoto(quizId) {
-  return `/starter-images/${quizId}/cover.webp`;
-}
-
 export function questionIllustration(emoji, accent, label) {
   const safe = String(label || "")
     .replace(/&/g, "&amp;")

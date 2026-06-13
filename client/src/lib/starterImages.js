@@ -1,4 +1,6 @@
-/** Starter quiz photos — bundled under /starter-images/ (client/public). */
+/** Starter quiz photos — bundled via Vite (see starterImageAssets.js). */
+
+import { bundledStarterImageUrl } from "../data/starterImageAssets.js";
 
 const STARTER_RE = /\/starter-images\/(.+\.webp)$/i;
 
@@ -7,14 +9,27 @@ export function starterImageRelPath(url) {
   if (!url) return null;
   const s = String(url).trim();
   const m = s.match(STARTER_RE);
-  return m ? m[1] : null;
+  if (m) return m[1];
+  // Already a bare relative key from the API, e.g. house-party/0.webp
+  if (/^[\w-]+\/[\w-]+\.webp$/i.test(s)) return s;
+  return null;
 }
 
-/** Same-origin path for display (Vite public/ or Vercel static). */
+/** Resolved src for <img> — prefers Vite-bundled /assets/ URLs. */
 export function starterImageSrc(url) {
+  if (!url) return null;
   const rel = starterImageRelPath(url);
-  if (rel) return `/starter-images/${rel}`;
-  return url || null;
+  if (rel) {
+    const bundled = bundledStarterImageUrl(rel);
+    if (bundled) return bundled;
+    return `/starter-images/${rel}`;
+  }
+  return url;
+}
+
+/** Cover photo for a starter template card. */
+export function starterCoverSrc(quizId) {
+  return starterImageSrc(`${quizId}/cover.webp`);
 }
 
 /** Rewrite question list image fields (API/DB may still have localhost URLs). */

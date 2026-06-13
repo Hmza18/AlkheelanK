@@ -1,4 +1,5 @@
-import { starterCover, starterCoverPhoto } from "./starterArt.js";
+import { starterCover } from "./starterArt.js";
+import { starterCoverSrc } from "../lib/starterImages.js";
 
 /** Bundled in the client — starter cards render instantly (no server fetch). */
 export const STARTER_SUMMARIES = [
@@ -9,7 +10,7 @@ export const STARTER_SUMMARIES = [
     emoji: "🎉",
     category: "Mixed",
     questionCount: 9,
-    coverImage: starterCoverPhoto("house-party"),
+    coverImage: starterCoverSrc("house-party"),
     coverFallback: starterCover("🎉", "#3b82f6", "Mixed trivia"),
   },
   {
@@ -19,7 +20,7 @@ export const STARTER_SUMMARIES = [
     emoji: "🎬",
     category: "Movies",
     questionCount: 5,
-    coverImage: starterCoverPhoto("movie-night"),
+    coverImage: starterCoverSrc("movie-night"),
     coverFallback: starterCover("🎬", "#f43f5e", "Movies"),
   },
   {
@@ -29,7 +30,7 @@ export const STARTER_SUMMARIES = [
     emoji: "🧠",
     category: "General",
     questionCount: 8,
-    coverImage: starterCoverPhoto("general-knowledge"),
+    coverImage: starterCoverSrc("general-knowledge"),
     coverFallback: starterCover("🧠", "#3b82f6", "General"),
   },
   {
@@ -39,7 +40,7 @@ export const STARTER_SUMMARIES = [
     emoji: "🧸",
     category: "Kids",
     questionCount: 8,
-    coverImage: starterCoverPhoto("kids-corner"),
+    coverImage: starterCoverSrc("kids-corner"),
     coverFallback: starterCover("🧸", "#f59e0b", "Kids"),
   },
   {
@@ -49,7 +50,7 @@ export const STARTER_SUMMARIES = [
     emoji: "🌍",
     category: "Geography",
     questionCount: 8,
-    coverImage: starterCoverPhoto("around-the-world"),
+    coverImage: starterCoverSrc("around-the-world"),
     coverFallback: starterCover("🌍", "#10b981", "Geography"),
   },
   {
@@ -59,7 +60,7 @@ export const STARTER_SUMMARIES = [
     emoji: "🏠",
     category: "Family",
     questionCount: 8,
-    coverImage: starterCoverPhoto("family-faceoff"),
+    coverImage: starterCoverSrc("family-faceoff"),
     coverFallback: starterCover("🏠", "#1d4ed8", "Family"),
   },
 ];

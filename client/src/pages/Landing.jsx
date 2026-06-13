@@ -5,8 +5,9 @@ import Shape from "../components/Shape.jsx";
 import { ANSWERS } from "../lib/answers.js";
 import { useAuth } from "../lib/auth.jsx";
 import BuiltByHamza from "../components/BuiltByHamza.jsx";
+import PinInput from "../components/PinInput.jsx";
 import { copy } from "../lib/copy.js";
-import { formatPinInput, isCompletePin, sanitizePin } from "../lib/pin.js";
+import { isCompletePin, sanitizePin } from "../lib/pin.js";
 
 const container = {
   hidden: {},
@@ -30,8 +31,7 @@ export default function Landing() {
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState(null);
 
-  const goPlay = (e) => {
-    e.preventDefault();
+  const goPlay = () => {
     const clean = sanitizePin(pin);
     if (!isCompletePin(clean)) {
       setPinError(copy.player.pinStep);
@@ -73,18 +73,14 @@ export default function Landing() {
 
         {/* Primary actions */}
         <motion.div variants={item} className="mt-10 w-full max-w-md">
-          <form onSubmit={goPlay} noValidate className="alkheelank-card p-6">
+          <div className="alkheelank-card p-6">
             <label className="mb-2 block text-sm font-semibold uppercase tracking-widest text-muted">
               Join a game
             </label>
-            <input
-              className="alkheelank-input pin-display"
-              inputMode="numeric"
-              placeholder="Game PIN"
-              maxLength={7}
-              value={formatPinInput(pin)}
-              onChange={(e) => {
-                setPin(sanitizePin(e.target.value));
+            <PinInput
+              value={pin}
+              onChange={(v) => {
+                setPin(v);
                 if (pinError) setPinError(null);
               }}
               autoFocus
@@ -94,10 +90,10 @@ export default function Landing() {
                 {pinError}
               </p>
             )}
-            <button type="submit" className="alkheelank-btn-primary mt-4 w-full text-xl">
+            <button type="button" onClick={goPlay} className="alkheelank-btn-primary mt-4 w-full text-xl">
               Join a game →
             </button>
-          </form>
+          </div>
 
           <div className="my-5 flex items-center gap-4">
             <div className="h-px flex-1 bg-surface-muted/60" />

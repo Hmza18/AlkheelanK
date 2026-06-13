@@ -261,8 +261,25 @@ export const getGame = (pin) => {
   return key ? games.get(key) : null;
 };
 export function getGameByHost(hostSocketId) {
-  for (const game of games.values()) if (game.hostSocketId === hostSocketId) return game;
-  return null;
+  let newest = null;
+  for (const game of games.values()) {
+    if (game.hostSocketId !== hostSocketId) continue;
+    if (!newest || game.createdAt > newest.createdAt) newest = game;
+  }
+  return newest;
+}
+
+/** All in-memory games owned by a host socket (newest first). */
+export function listGamesByHost(hostSocketId) {
+  return [...games.values()]
+    .filter((g) => g.hostSocketId === hostSocketId)
+    .sort((a, b) => b.createdAt - a.createdAt);
+}
+
+export function destroyGamesByHost(hostSocketId) {
+  for (const [pin, game] of games.entries()) {
+    if (game.hostSocketId === hostSocketId) destroyGame(pin);
+  }
 }
 export function findGameBySocket(socketId) {
   for (const game of games.values()) if (game.sockets.has(socketId)) return game;
@@ -575,8 +592,8 @@ export function buildAnswerLocked(game, pid) {
   if (!entry) return null;
   const limitMs = game.questionTimeLimit * 1000;
   const { timeMs } = entry;
-  const times = [...game.answers.values()].map((a) => a.timeMs).sort((a, b) => a - b);
-  const speedRank = times.indexOf(timeMs) + 1;
+  const speedRank =
+    1 + [...game.answers.values()].filter((a) => a.timeMs < timeMs).length;
   const FAST_MS = 2000;
   const lateThresholdMs = limitMs * 0.82;
 

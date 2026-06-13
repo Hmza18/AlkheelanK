@@ -35,6 +35,7 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
   const [needsSetup, setNeedsSetup] = useState(false);
   const [shareTarget, setShareTarget] = useState(null); // quiz object being shared
   const [copyingId, setCopyingId] = useState(null);     // starter id currently being copied
+  const [copyError, setCopyError] = useState(null);
 
   const refresh = useCallback(async () => {
     if (user) {
@@ -67,16 +68,29 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
   const handleCopyStarter = async (starter) => {
     if (!user) { navigate("/login"); return; }
     setCopyingId(starter.id);
+    setCopyError(null);
     try {
       const res = await fetch(`${SERVER_URL}/quizzes/${starter.id}`);
+      if (!res.ok) {
+        setCopyError("Couldn't load that starter — try again.");
+        return;
+      }
       const data = await res.json();
-      const { data: saved } = await createQuiz(user.id, {
+      if (!Array.isArray(data.questions)) {
+        setCopyError("That starter didn't load correctly — try again.");
+        return;
+      }
+      const { data: saved, error } = await createQuiz(user.id, {
         title: data.title,
         questions: applyStarterTemplateImages(starter.id, data.questions),
       });
+      if (error) {
+        setCopyError(error.message || "Couldn't save the copy — try again.");
+        return;
+      }
       if (saved) setQuizzes((qs) => [saved, ...qs]);
     } catch {
-      // non-fatal — the user can try again
+      setCopyError("Couldn't copy that starter — try again.");
     } finally {
       setCopyingId(null);
     }
@@ -211,6 +225,11 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
         <p className="mt-1 text-muted text-sm">
           Ready to play out of the box. Launch directly or copy one into your library to edit.
         </p>
+        {copyError && (
+          <p className="mt-2 text-sm font-semibold text-tile-triangle" role="alert">
+            {copyError}
+          </p>
+        )}
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {STARTER_SUMMARIES.map((q) => (
             <StarterCard

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { socket, ensureConnected, wakeServer, connectSocket, emitWithAck, formatConnectError } from "../socket.js";
 import { sfx, music } from "../lib/sound.js";
@@ -82,6 +82,11 @@ export default function HostGame({ launch, onExit }) {
   const hostTokenRef = useRef(null);
   const pinRef = useRef(null);
   const wasHostDisconnectRef = useRef(false);
+
+  const leaveGame = useCallback(() => {
+    if (pinRef.current) socket.emit("host:end");
+    onExit();
+  }, [onExit]);
 
   useEffect(() => {
     if (phase === "lobby" && settings.music) music.start();
@@ -452,12 +457,12 @@ export default function HostGame({ launch, onExit }) {
             socket.emit("host:next");
           }} />
         )}
-        {phase === "final" && final && <FinalView final={final} onHome={onExit} />}
+        {phase === "final" && final && <FinalView final={final} onHome={leaveGame} />}
         {phase === "ended" && (
           <Centered>
             <h2 className="alkheelank-heading text-4xl">{copy.ended.title}</h2>
             <p className="mt-3 text-muted">{endedReason}</p>
-            <button onClick={onExit} className="alkheelank-btn-primary mt-8">Back to dashboard</button>
+            <button onClick={leaveGame} className="alkheelank-btn-primary mt-8">Back to dashboard</button>
           </Centered>
         )}
       </PhaseShell>
@@ -491,8 +496,7 @@ export default function HostGame({ launch, onExit }) {
           destructive
           onConfirm={() => {
             setConfirmAction(null);
-            socket.emit("host:end");
-            onExit();
+            leaveGame();
           }}
           onCancel={() => setConfirmAction(null)}
         />
@@ -506,8 +510,7 @@ export default function HostGame({ launch, onExit }) {
           destructive
           onConfirm={() => {
             setConfirmAction(null);
-            socket.emit("host:end");
-            onExit();
+            leaveGame();
           }}
           onCancel={() => setConfirmAction(null)}
         />

@@ -1,9 +1,6 @@
 /** Starter quiz photos — embedded in the JS bundle (see starterImageAssets.js). */
 
-import {
-  bundledStarterImageUrl,
-  starterQuestionImages,
-} from "../data/starterImageAssets.js";
+import { bundledStarterImageUrl } from "../data/starterImageAssets.js";
 
 /** Match /starter-images/quiz/file.webp anywhere in a URL string. */
 const STARTER_PATH_RE = /\/starter-images\/([^\s?#]+\.webp)/i;
@@ -31,23 +28,23 @@ export function starterImageSrc(url) {
   if (!url) return null;
   const cleaned = String(url).split("?")[0];
   const rel = starterImageRelPath(cleaned);
-  if (rel) return bundledStarterImageUrl(rel) ?? null;
+  if (rel) return bundledStarterImageUrl(rel) ?? `/starter-images/${rel}`;
   if (/^\/assets\//i.test(cleaned)) return cleaned;
   return cleaned;
 }
 
 export function starterCoverSrc(quizId) {
-  return bundledStarterImageUrl(`${quizId}/cover.webp`);
+  const rel = `${quizId}/cover.webp`;
+  return bundledStarterImageUrl(rel) ?? `/starter-images/${rel}`;
 }
 
 /** Attach every starter question photo by template id + index. */
 export function applyStarterTemplateImages(starterId, questions) {
   if (!Array.isArray(questions)) return questions;
-  return questions.map((q, i) => {
-    const src = bundledStarterImageUrl(`${starterId}/${i}.webp`);
-    if (!src) return { ...q, image: null };
-    return { ...q, image: `/starter-images/${starterId}/${i}.webp` };
-  });
+  return questions.map((q, i) => ({
+    ...q,
+    image: `/starter-images/${starterId}/${i}.webp`,
+  }));
 }
 
 /** Normalize stored paths (never save inline or /assets/ hashes). */

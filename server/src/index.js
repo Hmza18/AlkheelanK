@@ -80,7 +80,10 @@ function httpClientKey(req) {
 
 const app = express();
 app.use(cors({ origin: corsOrigin }));
-app.use(express.json({ limit: "32kb" }));
+app.use((req, res, next) => {
+  const limit = req.path === "/ingest-quiz" ? "64kb" : "32kb";
+  express.json({ limit })(req, res, next);
+});
 
 app.use(
   "/starter-images",
@@ -132,7 +135,7 @@ app.post("/generate-quiz", async (req, res) => {
 
 // AI quiz ingestion from a pasted document / PDF text. Larger body limit than
 // the default (documents are bigger than a topic string).
-app.post("/ingest-quiz", express.json({ limit: "64kb" }), async (req, res) => {
+app.post("/ingest-quiz", async (req, res) => {
   if (!isAiConfigured()) {
     return res.status(503).json({ error: "AI generation isn't set up on this server." });
   }
@@ -192,6 +195,7 @@ function emitPlayers(game) {
 // be re-synced.
 function closeQuestion(game) {
   if (game.status !== "question") return;
+  if (!game.hostConnected) return;
   if (game.timer) {
     clearTimeout(game.timer);
     game.timer = null;
@@ -383,6 +387,10 @@ io.on("connection", (socket) => {
       socket.emit("host:error", { message });
       if (typeof ack === "function") ack({ error: message });
       return;
+    }
+    for (const stale of GM.listGamesByHost(socket.id)) {
+      io.to(gameRoom(stale.pin)).emit("game:ended", { reason: "Host ended the game." });
+      GM.destroyGame(stale.pin);
     }
     const game = GM.createGame(socket.id, chosen, settings);
     socket.join(gameRoom(game.pin));

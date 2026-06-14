@@ -8,6 +8,7 @@ import QuizEditor from "./QuizEditor.jsx";
 import HostGame from "./HostGame.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import { clearHostSession, loadHostSession } from "../lib/hostSession.js";
+import { connectSocket, emitWithAck, socket } from "../socket.js";
 
 // Auth-gated host orchestrator. Switches between the dashboard, the quiz editor,
 // and the live game without remounting the whole tree.
@@ -93,7 +94,21 @@ export default function Host() {
             setLaunch({ reconnect: true });
             setView("game");
           }}
-          onCancel={() => {
+          onCancel={async () => {
+            const saved = loadHostSession();
+            if (saved?.pin && saved?.hostToken) {
+              try {
+                await connectSocket();
+                await emitWithAck(
+                  "host:reconnect",
+                  { pin: saved.pin, hostToken: saved.hostToken },
+                  15_000,
+                );
+                socket.emit("host:end");
+              } catch {
+                // Game may already be gone — still clear local session.
+              }
+            }
             clearHostSession();
             setView("dashboard");
           }}

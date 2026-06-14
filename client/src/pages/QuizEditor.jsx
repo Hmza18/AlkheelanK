@@ -181,7 +181,13 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   const duplicateQuestion = (i) =>
     setQuestions((qs) => {
       if (qs.length >= MAX_QUESTIONS) return qs;
-      const copy = { ...qs[i], answers: [...(qs[i].answers || [])] };
+      const src = qs[i];
+      const copy = {
+        ...src,
+        answers: [...(src.answers || [])],
+        correct: Array.isArray(src.correct) ? [...src.correct] : src.correct,
+        accept: Array.isArray(src.accept) ? [...src.accept] : src.accept,
+      };
       setSelectedIndex(i + 1);
       return [...qs.slice(0, i + 1), copy, ...qs.slice(i + 1)];
     });

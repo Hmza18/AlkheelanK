@@ -82,11 +82,24 @@ export default function HostGame({ launch, onExit }) {
   const hostTokenRef = useRef(null);
   const pinRef = useRef(null);
   const wasHostDisconnectRef = useRef(false);
+  const endedCleanlyRef = useRef(false);
 
   const leaveGame = useCallback(() => {
-    if (pinRef.current) socket.emit("host:end");
+    if (pinRef.current && !endedCleanlyRef.current) {
+      endedCleanlyRef.current = true;
+      socket.emit("host:end");
+    }
     onExit();
   }, [onExit]);
+
+  useEffect(() => {
+    return () => {
+      if (pinRef.current && !endedCleanlyRef.current) {
+        endedCleanlyRef.current = true;
+        socket.emit("host:end");
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (phase === "lobby" && settings.music) music.start();

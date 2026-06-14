@@ -238,6 +238,11 @@ export default function PlayScreen() {
       setPhase((p) => (p === "question" ? "answered" : p));
       sfx.lock();
     };
+    const onAnswerRejected = () => {
+      setSelected(null);
+      setWaitContext(null);
+      setPhase("question");
+    };
     const onReveal = (r) => setReveal(r);
     const onPlayers = (list) => setPlayers(list || []);
     const onResult = (r) => {
@@ -295,6 +300,7 @@ export default function PlayScreen() {
     socket.on("game:countdown", onCountdown);
     socket.on("game:doublePointsWarning", onDoublePointsWarning);
     socket.on("player:answerLocked", onLocked);
+    socket.on("player:answerRejected", onAnswerRejected);
     socket.on("player:result", onResult);
     socket.on("game:standings", onStandings);
     socket.on("game:paused", onPaused);
@@ -317,6 +323,7 @@ export default function PlayScreen() {
       socket.off("game:countdown", onCountdown);
       socket.off("game:doublePointsWarning", onDoublePointsWarning);
       socket.off("player:answerLocked", onLocked);
+      socket.off("player:answerRejected", onAnswerRejected);
       socket.off("player:result", onResult);
       socket.off("game:standings", onStandings);
       socket.off("game:paused", onPaused);

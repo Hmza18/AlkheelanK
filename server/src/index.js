@@ -195,7 +195,8 @@ function emitPlayers(game) {
 // be re-synced.
 function closeQuestion(game) {
   if (game.status !== "question") return;
-  if (!game.hostConnected) return;
+  // Hold the reveal until everyone has answered, unless the host is back.
+  if (!game.hostConnected && !GM.allAnswered(game)) return;
   if (game.timer) {
     clearTimeout(game.timer);
     game.timer = null;
@@ -430,6 +431,9 @@ io.on("connection", (socket) => {
       if (startedAt) {
         io.to(gameRoom(game.pin)).emit("game:resumed", { startedAt });
       }
+    }
+    if (game.status === "question" && GM.allAnswered(game)) {
+      closeQuestion(game);
     }
     // Timed beats are held while the host is away (see disconnect handler) —
     // restart them now so the game never advances into a hostless question.
@@ -686,6 +690,8 @@ io.on("connection", (socket) => {
       if (res.ignored === "already_answered" && player) {
         const locked = GM.buildAnswerLocked(game, player.pid);
         if (locked) socket.emit("player:answerLocked", locked);
+      } else {
+        socket.emit("player:answerRejected", { reason: res.ignored });
       }
       return;
     }

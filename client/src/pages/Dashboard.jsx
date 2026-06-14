@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { STARTER_SUMMARIES } from "../data/starterSummaries.js";
 import { applyStarterTemplateImages, starterCoverSrc } from "../lib/starterImages.js";

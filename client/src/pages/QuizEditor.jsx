@@ -312,6 +312,8 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
             canDuplicate={!atQuestionCap}
             canMoveUp={selectedIndex > 0}
             canMoveDown={selectedIndex < questions.length - 1}
+            atQuestionCap={atQuestionCap}
+            onAdd={addQuestion}
             userId={userId}
             onChange={(patch) => update(selectedIndex, patch)}
             onAnswer={(ai, v) => updateAnswer(selectedIndex, ai, v)}
@@ -430,6 +432,15 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
             Q{selectedIndex + 1} of {questions.length}
           </span>
           <div className="flex flex-1 items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={addQuestion}
+              disabled={atQuestionCap}
+              className="min-h-touch rounded-xl bg-brand-mid/10 px-4 py-2.5 text-sm font-bold text-brand-mid ring-1 ring-brand-mid/30 hover:bg-brand-mid/15 disabled:cursor-not-allowed disabled:opacity-40"
+              title={atQuestionCap ? `Quiz is at the ${MAX_QUESTIONS}-question limit` : "Add a new question"}
+            >
+              + Add question
+            </button>
             {userId && (
               <button
                 onClick={() => setBankOpen(true)}
@@ -518,10 +529,10 @@ function QuestionSidebar({ questions, selectedIndex, onSelect, onAdd, atQuestion
           type="button"
           onClick={onAdd}
           disabled={atQuestionCap}
-          className="flex min-h-[3.25rem] min-w-[3.25rem] shrink-0 items-center justify-center rounded-xl border border-dashed border-brand-mid/40 bg-brand-mid/5 text-xl font-bold text-brand-mid disabled:opacity-40"
+          className="flex min-h-[3.25rem] shrink-0 items-center justify-center gap-1 rounded-xl border border-dashed border-brand-mid/40 bg-brand-mid/5 px-3 text-sm font-bold text-brand-mid disabled:opacity-40"
           title="Add question"
         >
-          +
+          + Add
         </button>
       </div>
       <aside className="hidden w-56 shrink-0 lg:block">
@@ -552,6 +563,8 @@ function QuestionEditor({
   canDuplicate,
   canMoveUp,
   canMoveDown,
+  atQuestionCap,
+  onAdd,
   userId,
   onChange,
   onAnswer,
@@ -652,6 +665,15 @@ function QuestionEditor({
               ↓
             </button>
           </div>
+          <button
+            type="button"
+            onClick={onAdd}
+            disabled={atQuestionCap}
+            title={atQuestionCap ? `Quiz is at the ${MAX_QUESTIONS}-question limit` : "Add a new question"}
+            className="min-h-touch rounded-lg px-3 py-2 text-sm font-bold text-brand-mid hover:bg-brand-mid/10 disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            + Add
+          </button>
           <button
             type="button"
             onClick={onDuplicate}

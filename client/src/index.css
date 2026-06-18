@@ -1523,6 +1523,281 @@ button:focus-visible {
   }
 }
 
+/* Mobile phone landscape — height-led quiz composition.
+   This exact breakpoint is the global escape hatch for short horizontal phones:
+   the image keeps its intrinsic ratio, media wrappers stop imposing a fixed box,
+   and the answer dock is compact enough to stay fully visible without scrolling. */
+@media (max-width: 932px) and (orientation: landscape) {
+  .question-screen {
+    --qs-pad-top: max(0.1875rem, env(safe-area-inset-top, 0px));
+    --qs-pad-bottom: max(0.1875rem, env(safe-area-inset-bottom, 0px));
+    --qs-pad-x: max(0.375rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    --qs-dock-h: clamp(4rem, 22svh, 5.75rem);
+    gap: 0;
+    height: 100svh;
+    max-height: 100svh;
+    padding: var(--qs-pad-top) var(--qs-pad-x) var(--qs-pad-bottom);
+    overflow: hidden;
+  }
+
+  .question-screen--player {
+    --qs-pad-bottom: max(0.1875rem, env(safe-area-inset-bottom, 0px));
+    max-width: none;
+  }
+
+  .question-screen--host {
+    --qs-dock-h: clamp(4.125rem, 21svh, 5.5rem);
+    height: 100svh;
+    max-height: 100svh;
+  }
+
+  .question-screen--host.alkheelank-screen-host {
+    padding:
+      max(0.1875rem, env(safe-area-inset-top, 0px))
+      max(0.375rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))
+      max(0.1875rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .question-screen__body {
+    min-height: 0;
+    gap: 0.125rem;
+    overflow: hidden;
+  }
+
+  .question-screen--host .question-screen__body {
+    flex: 1 1 auto;
+    gap: 0.125rem;
+  }
+
+  .question-screen__meta,
+  .question-screen--host .host-meta {
+    gap: 0.25rem;
+    font-size: 0.6875rem;
+    line-height: 1.1;
+  }
+
+  .question-screen--host .host-meta__index,
+  .question-screen--host .host-meta__answered,
+  .question-screen--host .host-meta__chip {
+    padding: 0.1rem 0.4rem;
+  }
+
+  .question-screen--host .host-meta__index-now {
+    font-size: 0.75rem;
+  }
+
+  .question-screen--host .host-meta__answered {
+    font-size: 0.625rem;
+  }
+
+  .question-screen--host .host-answer-progress {
+    height: 2px;
+    margin-top: 0.0625rem;
+  }
+
+  .question-screen__prompt {
+    margin-top: 0.0625rem;
+    border-radius: 0.5625rem;
+    padding: 0.25rem 0.5625rem;
+    font-size: clamp(0.75rem, 2.65svh, 0.9375rem);
+    line-height: 1.12;
+    -webkit-line-clamp: 2;
+  }
+
+  .question-screen--host .question-screen__prompt {
+    margin-top: 0;
+    padding: 0.25rem 0.625rem;
+    font-size: clamp(1rem, 4.6svh, 1.35rem);
+    line-height: 1.1;
+    -webkit-line-clamp: 2;
+  }
+
+  .question-screen__stage {
+    min-height: 0;
+    max-height: none;
+    margin-top: 0.0625rem;
+    gap: clamp(0.25rem, 1.4vw, 0.625rem);
+    overflow: visible;
+  }
+
+  .question-screen--host .question-screen__stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    margin-top: 0.0625rem;
+  }
+
+  .question-screen--host .question-screen__stage-side.question-screen__timer {
+    display: flex;
+    flex: 0 0 clamp(2.5rem, 8.5vw, 3.25rem);
+    width: clamp(2.5rem, 8.5vw, 3.25rem);
+  }
+
+  .question-screen--host .question-screen__stage-info {
+    display: none;
+  }
+
+  .question-screen__media,
+  .question-screen__media-frame,
+  .question-screen .question-screen__stage .question-screen__media,
+  .question-screen .question-screen__stage .question-screen__media-frame {
+    align-self: center;
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    width: 100%;
+    flex: 0 1 auto;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .question-screen__media-frame::before {
+    display: none;
+  }
+
+  .question-screen .question-screen__media .question-screen__img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 35vh;
+    object-fit: contain;
+    margin-inline: auto;
+    border-radius: 0.625rem;
+    box-shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.45);
+  }
+
+  .question-screen__dock {
+    margin-top: 0.125rem;
+    height: var(--qs-dock-h);
+    max-height: var(--qs-dock-h);
+    min-height: 0;
+    flex-shrink: 0;
+  }
+
+  .question-screen__answers {
+    height: 100%;
+    min-height: 0;
+    gap: 0.25rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .question-screen--tf .question-screen__answers {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .question-screen__answers .answer-tile:not(.answer-tile--kahoot) {
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    gap: 0.3125rem !important;
+    padding: 0.25rem 0.4375rem !important;
+    border-radius: 0.5rem !important;
+    font-size: clamp(0.6875rem, 2svh, 0.8125rem) !important;
+    box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.22) !important;
+    overflow: hidden !important;
+  }
+
+  .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__icon {
+    width: 1.125rem !important;
+    height: 1.125rem !important;
+    font-size: 1rem !important;
+  }
+
+  .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__icon svg {
+    width: 1.125rem !important;
+    height: 1.125rem !important;
+  }
+
+  .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__label {
+    font-size: clamp(0.6875rem, 2svh, 0.8125rem) !important;
+    line-height: 1.12 !important;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .question-screen--host .question-screen__answers .answer-tile:not(.answer-tile--kahoot) {
+    padding: 0.3125rem 0.5rem !important;
+    font-size: clamp(0.75rem, 2.35svh, 0.875rem) !important;
+  }
+
+  .question-screen--host .question-screen__answers .answer-tile:not(.answer-tile--kahoot) .answer-tile__label {
+    font-size: clamp(0.75rem, 2.35svh, 0.875rem) !important;
+    line-height: 1.14 !important;
+  }
+
+  .question-screen__timer-strip {
+    display: block;
+  }
+
+  .question-screen__timer-compact {
+    display: block;
+  }
+
+  .question-screen__timer-full {
+    display: none;
+  }
+
+  .question-screen--kahoot.question-screen--player {
+    grid-template-rows: 4px auto minmax(0, 1fr) var(--qs-dock-h);
+    row-gap: 0.125rem;
+    height: 100svh;
+    max-height: 100svh;
+    padding: 0;
+    padding-bottom: max(0px, env(safe-area-inset-bottom, 0px));
+    background: transparent;
+  }
+
+  .question-screen--kahoot .question-screen__prompt {
+    padding: max(0.3125rem, calc(env(safe-area-inset-top, 0px) + 0.1875rem))
+             max(0.5rem, env(safe-area-inset-right, 0px))
+             0.3125rem
+             max(0.5rem, env(safe-area-inset-left, 0px));
+    font-size: clamp(0.75rem, 2.45svh, 0.875rem);
+    background: rgba(26, 24, 20, 0.9);
+  }
+
+  .question-screen--kahoot .question-screen__stage {
+    padding: 0.125rem max(0.375rem, env(safe-area-inset-right, 0px))
+             0.0625rem max(0.375rem, env(safe-area-inset-left, 0px));
+  }
+
+  .question-screen--kahoot .question-screen__media,
+  .question-screen--kahoot .question-screen__media-frame {
+    height: auto;
+    max-height: none;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .question-screen--kahoot .question-screen__img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 35vh;
+    object-fit: contain;
+    border-radius: 0.5rem;
+  }
+
+  .question-screen--kahoot .question-screen__dock {
+    padding: 0.1875rem max(0.375rem, env(safe-area-inset-right, 0px))
+             0.1875rem max(0.375rem, env(safe-area-inset-left, 0px));
+  }
+
+  .question-screen--kahoot .question-screen__answers {
+    gap: 0.25rem;
+  }
+
+  .question-screen--kahoot .answer-tile--kahoot .answer-tile__label {
+    padding: 0.25rem 0.375rem;
+    font-size: clamp(0.625rem, 1.85svh, 0.75rem);
+    line-height: 1.1;
+    -webkit-line-clamp: 2;
+  }
+}
+
 /* iPhone SE / very short phone landscape — tighter rows, smaller dock */
 @media (orientation: landscape) and (max-height: 23.5rem) {
   .question-screen--kahoot.question-screen--player {

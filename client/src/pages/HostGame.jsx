@@ -27,6 +27,14 @@ import { questionIntro } from "../lib/motion.js";
 import { saveHostSession, loadHostSession, clearHostSession } from "../lib/hostSession.js";
 import { tileStyle } from "../lib/answers.js";
 
+// Reveal stage 0 = "let the host screen auto-play the social reveal
+// (bars → highlight moment → winner avatars), paced by the show-pace setting".
+// A manual "skip reveal" bumps the server stage to 1/2; we restore that as a
+// pinned stage so a reconnecting host doesn't replay past a skip the room saw.
+function revealStageOverride(serverStage) {
+  return serverStage > 0 ? revealStageName(serverStage) : null;
+}
+
 function statusToPhase(status, state) {
   const map = {
     lobby: "lobby",
@@ -148,7 +156,7 @@ export default function HostGame({ launch, onExit }) {
       if (state.question) setQuestion(state.question);
       if (state.reveal) {
         setReveal(state.reveal);
-        setRevealStage(revealStageName(state.reveal.revealStage ?? 0));
+        setRevealStage(revealStageOverride(state.reveal.revealStage ?? 0));
       }
       if (state.standings) setStandings(state.standings);
       if (state.final) setFinal(state.final);
@@ -190,7 +198,9 @@ export default function HostGame({ launch, onExit }) {
     const onAnswerCount = (c) => setAnswerCount(c);
     const onReveal = (r) => {
       setReveal(r);
-      setRevealStage("bars");
+      // null lets SocialReveal auto-play its bars → highlight → winners
+      // choreography. The server only pins a stage when the host skips ahead.
+      setRevealStage(null);
       setPaused(false);
       setPhase("reveal");
       sfx.reveal();
@@ -319,7 +329,7 @@ export default function HostGame({ launch, onExit }) {
           if (state.question) setQuestion(state.question);
           if (state.reveal) {
             setReveal(state.reveal);
-            setRevealStage(revealStageName(state.reveal.revealStage ?? 0));
+            setRevealStage(revealStageOverride(state.reveal.revealStage ?? 0));
           }
           if (state.standings) setStandings(state.standings);
           if (state.final) setFinal(state.final);
@@ -519,6 +529,12 @@ function Centered({ children }) {
 
 function QuestionView({ question, image, answerCount, paused }) {
   const isTF = question.type === "tf";
+  // A player who already answered can disconnect mid-question: the server keeps
+  // their answer (answered) but `total` drops to the connected count, so the raw
+  // numbers can read "3 / 2". Clamp so the badge + progress bar never overshoot.
+  const total = answerCount.total;
+  const answered = total > 0 ? Math.min(answerCount.answered, total) : answerCount.answered;
+  const answeredPct = total > 0 ? Math.min(100, Math.round((answered / total) * 100)) : 0;
   useEffect(() => {
     if (!question?.startedAt || paused) return;
     const timer = setInterval(() => {
@@ -547,27 +563,27 @@ function QuestionView({ question, image, answerCount, paused }) {
           {isTF && <span className="host-meta__chip">True / False</span>}
           <span className="host-meta__answered">
             <span className="host-meta__pulse" aria-hidden />
-            <span className="host-meta__answered-count">{answerCount.answered}</span>
-            {answerCount.total > 0 && (
-              <span className="host-meta__answered-total">/ {answerCount.total}</span>
+            <span className="host-meta__answered-count">{answered}</span>
+            {total > 0 && (
+              <span className="host-meta__answered-total">/ {total}</span>
             )}
             <span className="host-meta__answered-label">answered</span>
           </span>
         </div>
       }
       progress={
-        answerCount.total > 0 ? (
+        total > 0 ? (
           <div
             className="host-answer-progress"
             role="progressbar"
             aria-label="Players answered"
             aria-valuemin={0}
-            aria-valuemax={answerCount.total}
-            aria-valuenow={answerCount.answered}
+            aria-valuemax={total}
+            aria-valuenow={answered}
           >
             <div
               className="host-answer-progress__fill"
-              style={{ width: `${Math.round((answerCount.answered / answerCount.total) * 100)}%` }}
+              style={{ width: `${answeredPct}%` }}
             />
           </div>
         ) : null

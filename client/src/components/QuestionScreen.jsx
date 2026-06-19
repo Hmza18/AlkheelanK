@@ -2,10 +2,13 @@ import { motion } from "framer-motion";
 import { motionSafe, questionIntro, spring, useReducedMotion } from "../lib/motion.js";
 
 /**
- * Kahoot-style question layout:
+ * Global quiz question layout:
  *   top   — countdown strip, question bar
- *   stage — large photo (center)
+ *   stage — responsive media (plus host timer when available)
  *   dock  — full-width answer grid (2×2, or 1×2 for true/false)
+ *
+ * Keep quiz media routed through this reusable frame so every host/player quiz
+ * inherits the mobile-landscape no-crop, no-letterbox sizing in index.css.
  */
 export default function QuestionScreen({
   variant = "player",
@@ -60,7 +63,7 @@ export default function QuestionScreen({
     : {};
 
   return (
-    <div className={`${rootClass} ${className}`.trim()} data-question-key={questionKey}>
+    <div className={`${rootClass} ${className}`.trim()} data-question-key={questionKey} data-quiz-layout="question">
       {timerStrip}
       <div className="question-screen__body">
         {header ? <div className="question-screen__header">{header}</div> : null}

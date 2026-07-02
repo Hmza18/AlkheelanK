@@ -26,12 +26,13 @@ export const THEMES = {
 
 /** @returns {ThemeId} */
 export function readStoredTheme() {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   const raw =
     readStorage(THEME_STORAGE_KEY, { legacyKey: LEGACY_THEME_KEY }) ??
     localStorage.getItem(LEGACY_THEME_KEY);
+  if (raw === "light" || raw === "blue") return "light";
   if (raw === "dark" || raw === "classic") return "dark";
-  return "light";
+  return "dark";
 }
 
 /** @param {ThemeId} id */

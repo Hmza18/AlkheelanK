@@ -14,7 +14,7 @@ const LOFI = {
   vinylGain: 0.016,
 };
 
-const defaults = { master: 0.7, music: true, sfx: true, muted: false };
+const defaults = { master: 0.7, music: true, sfx: true, muted: true };
 
 function loadStore() {
   if (typeof localStorage === "undefined") return { ...defaults };
@@ -81,7 +81,7 @@ function ensureLobbyAudio() {
   if (!lobbyAudio) {
     lobbyAudio = new Audio(LOBBY_MUSIC_SRC);
     lobbyAudio.loop = true;
-    lobbyAudio.preload = "auto";
+    lobbyAudio.preload = "none";
     lobbyAudio.playbackRate = LOFI.playbackRate;
     lobbyAudio.volume = 1;
   }
@@ -104,6 +104,7 @@ function ensureLobbyGraph() {
   const c = ac();
   const el = ensureLobbyAudio();
   if (!c || !el || lobbySource) return;
+  if (store.muted || !store.music) return;
 
   lobbySource = c.createMediaElementSource(el);
 
@@ -264,9 +265,11 @@ function tone({
 export const music = {
   start() {
     if (!store.music || store.muted) return;
-    ensureLobbyGraph();
     const el = ensureLobbyAudio();
     if (!el) return;
+    el.preload = "auto";
+    ensureLobbyGraph();
+    if (!lobbySource) return;
     el.playbackRate = lofiPlaybackRate();
     applyLobbyVolume();
     const playAttempt = el.play();
@@ -390,9 +393,9 @@ export const sfx = {
 /** Unlock the audio engine on first user gesture (browser autoplay policy). */
 export function primeAudio() {
   ac();
-  ensureLobbyGraph();
-  const el = ensureLobbyAudio();
-  if (el && lobbyMusicDesired && store.music && !store.muted && el.paused) {
+  if (store.muted || !store.music) return;
+  if (lobbyMusicDesired) {
+    ensureLobbyGraph();
     syncLobbyMusic();
   }
 }

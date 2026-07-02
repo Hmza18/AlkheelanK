@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { socket, ensureConnected, wakeServer, connectSocket, emitWithAck, formatConnectError } from "../socket.js";
-import { sfx, music } from "../lib/sound.js";
+import { sfx, music, setLobbyMusicActive } from "../lib/sound.js";
 import Recap from "../components/Recap.jsx";
 import { logGame } from "../lib/db.js";
 import { useAuth } from "../lib/auth.jsx";
@@ -44,7 +44,6 @@ function statusToPhase(status, state) {
 const DEFAULT_SETTINGS = {
   mode: "solo",
   teamPreset: "kidsAdults",
-  music: true,
   randomizeQuestions: false,
   randomizeAnswers: false,
   speedScoring: true,
@@ -102,10 +101,13 @@ export default function HostGame({ launch, onExit }) {
   }, []);
 
   useEffect(() => {
-    if (phase === "lobby" && settings.music) music.start();
-    else music.stop();
-    return () => music.stop();
-  }, [phase, settings.music]);
+    if (phase === "lobby") {
+      setLobbyMusicActive(true);
+      return () => setLobbyMusicActive(false);
+    }
+    setLobbyMusicActive(false);
+    music.stop();
+  }, [phase]);
 
   useEffect(() => {
     wakeServer();
@@ -502,9 +504,9 @@ export default function HostGame({ launch, onExit }) {
 
       {confirmAction === "closeLobby" && (
         <ConfirmModal
-          title="Close lobby?"
+          title={`${copy.lobby.leaveLobby}?`}
           message="Close this lobby for everyone? Players will be disconnected."
-          confirmLabel="Close lobby"
+          confirmLabel={copy.lobby.leaveLobby}
           cancelLabel="Keep open"
           destructive
           onConfirm={() => {
@@ -516,9 +518,9 @@ export default function HostGame({ launch, onExit }) {
       )}
       {confirmAction === "endGame" && (
         <ConfirmModal
-          title="End game?"
+          title={`${copy.host.endConfirm}?`}
           message="End this game for everyone? This cannot be undone."
-          confirmLabel="End game"
+          confirmLabel={copy.host.endConfirm}
           cancelLabel="Keep playing"
           destructive
           onConfirm={() => {
@@ -650,8 +652,7 @@ function QuestionView({ question, image, answerCount, paused }) {
               type={question.type === "ms" || question.type === "puzzle" ? "mc" : question.type}
               text={a.text}
               disabled
-              big
-              compact
+              kahoot
               staggerIndex={i}
               entranceDelay={questionIntro.tiles}
             />
@@ -719,9 +720,12 @@ function FinalView({ final, onHome }) {
     return (
       <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-5xl flex-col items-center justify-center py-10 landscapePhone:py-4">
         <Recap recap={final.recap} title={final.title} standings={final.standings} />
-        <p className="mt-4 text-center text-sm text-muted">📸 {copy.final.recapHint}</p>
+        <p className="mt-4 text-center text-sm text-muted">{copy.final.recapHint}</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <button onClick={() => setView("podium")} className="alkheelank-btn-ghost px-8">← Podium</button>
+          <button onClick={() => { setShowList(true); setView("podium"); }} className="alkheelank-btn-ghost px-8">← Podium</button>
+          {final.questionBreakdown?.length > 0 && (
+            <button onClick={() => setView("breakdown")} className="alkheelank-btn-ghost px-8">Question breakdown</button>
+          )}
           <button onClick={onHome} className="alkheelank-btn-primary px-8">Back to dashboard</button>
         </div>
       </div>
@@ -733,9 +737,11 @@ function FinalView({ final, onHome }) {
       <h1 className="shrink-0 alkheelank-heading text-5xl alkheelank-gradient-text landscapePhone:text-2xl sm:text-7xl landscapePhone:sm:text-2xl">{copy.final.title}</h1>
       <p className="mt-2 shrink-0 text-muted landscapePhone:mt-1 landscapePhone:text-sm">{final.title}</p>
       {final.mode === "teams" && final.teamPodium?.length > 0 ? (
-        <TeamPodium teams={final.teamPodium} onComplete={() => setShowList(true)} />
+        <TeamPodium teams={final.teamPodium} onComplete={() => setView("recap")} />
       ) : (
-        <div className="mt-12 w-full shrink-0 landscapePhone:mt-3"><Podium podium={final.podium} onComplete={() => setShowList(true)} /></div>
+        <div className="mt-12 w-full shrink-0 landscapePhone:mt-3">
+          <Podium podium={final.podium} onComplete={() => setView("recap")} />
+        </div>
       )}
       <AnimatePresence>
         {showList && final.standings.length > 0 && (

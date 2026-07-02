@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 
 import Avatar from "./characters.jsx";
-
+import GlowCard from "./ui/GlowCard.jsx";
 import { copy } from "../lib/copy.js";
-
+import { BRAND } from "../lib/brand.js";
 import { spring } from "../lib/motion.js";
 
 
@@ -61,28 +61,23 @@ export default function Recap({ recap, title, standings = [] }) {
 
 
   return (
-
     <motion.div
-
       initial={{ opacity: 0, scale: 0.96, y: 16 }}
-
       animate={{ opacity: 1, scale: 1, y: 0 }}
-
       transition={spring.soft}
-
-      className="relative mx-auto w-full max-w-md overflow-hidden rounded-[2rem] bg-surface-elevated p-7 shadow-2xl ring-1 ring-edge landscapePhone:max-h-[calc(100dvh-2rem)] landscapePhone:overflow-y-auto landscapePhone:p-4 landscapePhone:rounded-3xl"
-
+      className="relative mx-auto w-full max-w-md landscapePhone:max-h-[calc(100dvh-2rem)]"
     >
-
+      <GlowCard intense className="h-full">
+        <div className="relative overflow-hidden p-7 landscapePhone:max-h-[calc(100dvh-2rem)] landscapePhone:overflow-y-auto landscapePhone:p-4">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-brand-gradient" />
 
 
 
       <div className="flex items-center justify-between">
 
-        <span className="alkheelank-heading text-xl alkheelank-gradient-text">Alkheeloot</span>
+        <span className="alkheelank-heading text-xl text-ink-900">{BRAND.name}</span>
 
-        <span className="alkheelank-label rounded-full bg-surface-muted px-3 py-1 normal-case">Party recap</span>
+        <span className="alkheelank-label rounded-full bg-surface-muted px-3 py-1 normal-case">Session recap</span>
 
       </div>
 
@@ -221,13 +216,11 @@ export default function Recap({ recap, title, standings = [] }) {
         </span>
 
         <span className="font-semibold" aria-hidden>▲ ◆ ● ■</span>
-
       </div>
-
+        </div>
+      </GlowCard>
     </motion.div>
-
   );
-
 }
 
 

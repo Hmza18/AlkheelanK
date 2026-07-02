@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { copy } from "../lib/copy.js";
-import { getAudioSettings, setAudioSettings, sfx } from "../lib/sound.js";
+import { getAudioSettings, setAudioSettings, primeAudio, sfx, subscribeAudio } from "../lib/sound.js";
+import ThemeToggle from "./ThemeToggle.jsx";
 
 const PACING_OPTIONS = [
   { id: "quick", label: copy.host.pacing.quick, hint: copy.host.pacing.quickHint },
@@ -26,12 +27,17 @@ export default function SettingsPanel({
   const setOpen = onOpenChange ?? setOpenInternal;
   const [s, setS] = useState(getAudioSettings());
 
-  // Keep local UI in sync if settings change elsewhere.
+  useEffect(() => subscribeAudio(setS), []);
+
   useEffect(() => {
-    if (open) setS(getAudioSettings());
+    if (open) {
+      primeAudio();
+      setS(getAudioSettings());
+    }
   }, [open]);
 
   const update = (patch) => {
+    primeAudio();
     const next = { ...s, ...patch };
     setS(next);
     setAudioSettings(patch);
@@ -58,7 +64,10 @@ export default function SettingsPanel({
       {!hideTrigger && (
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            primeAudio();
+            setOpen(true);
+          }}
           title="Settings"
           className={`${positionClass} z-40 alkheelank-touch-target h-12 w-12 shrink-0 rounded-xl bg-surface-elevated/95 text-xl ring-1 ring-edge shadow-card backdrop-blur transition hover:bg-surface-muted ${triggerClassName}`}
         >
@@ -74,32 +83,37 @@ export default function SettingsPanel({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
-              className="fixed inset-0 z-50 bg-edge-scrim backdrop-blur-sm"
+              className="k-settings-backdrop"
             />
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 32 }}
-              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col overflow-y-auto bg-surface-elevated p-6 shadow-2xl ring-1 ring-edge"
+              className="k-settings-drawer"
             >
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-2xl font-bold">Settings</h2>
+              <div className="k-settings-drawer__stripe" aria-hidden />
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="font-display text-2xl font-bold">{copy.settings.title}</h2>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="alkheelank-touch-target rounded-xl bg-surface-muted text-lg text-muted ring-1 ring-edge hover:text-ink-900"
+                  className="shrink-0 text-sm font-bold text-brand-mid transition hover:text-brand-end"
                 >
-                  ✕
+                  {copy.settings.done}
                 </button>
               </div>
 
               <section className="mt-8">
                 <h3 className="alkheelank-label">Sound & vibe</h3>
 
-                <div className="mt-4 flex items-center justify-between">
+                <div className="mt-4 flex items-center justify-between gap-4">
                   <span className="font-semibold text-ink-900">Mute everything</span>
-                  <Toggle on={!s.muted} onChange={(v) => update({ muted: !v })} />
+                  <Toggle
+                    on={s.muted}
+                    onChange={(v) => update({ muted: v })}
+                    ariaLabel={s.muted ? "Unmute all sound" : "Mute all sound"}
+                  />
                 </div>
 
                 <div className={`mt-6 ${s.muted ? "pointer-events-none opacity-40" : ""}`}>
@@ -118,21 +132,40 @@ export default function SettingsPanel({
                     className="alkheelank-range mt-2 w-full"
                   />
 
-                  <div className="mt-6 flex items-center justify-between">
-                    <span className="font-semibold text-ink-900">🎵 Lobby music</span>
-                    <Toggle on={s.music} onChange={(v) => update({ music: v })} />
+                  <div className="mt-6 flex items-center justify-between gap-4">
+                    <div>
+                      <span className="font-semibold text-ink-900">🎵 Lobby music</span>
+                      <p className="mt-0.5 text-xs text-muted">{copy.settings.lobbyMusicHint}</p>
+                    </div>
+                    <Toggle
+                      on={s.music}
+                      onChange={(v) => update({ music: v })}
+                      ariaLabel={s.music ? "Turn lobby music off" : "Turn lobby music on"}
+                    />
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between">
+                  <div className="mt-4 flex items-center justify-between gap-4">
                     <span className="font-semibold text-ink-900">🔔 Sound effects</span>
                     <Toggle
                       on={s.sfx}
                       onChange={(v) => {
                         update({ sfx: v });
-                        if (v) setTimeout(() => sfx.correct(), 30);
+                        if (v && !s.muted) setTimeout(() => sfx.correct(), 30);
                       }}
+                      ariaLabel={s.sfx ? "Turn sound effects off" : "Turn sound effects on"}
                     />
                   </div>
+                </div>
+              </section>
+
+              <section className="mt-8 border-t border-edge pt-6">
+                <h3 className="alkheelank-label">{copy.settings.appearance}</h3>
+                <div className="mt-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-ink-900">{copy.settings.themeLabel}</p>
+                    <p className="mt-0.5 text-sm text-muted">{copy.settings.themeHint}</p>
+                  </div>
+                  <ThemeToggle />
                 </div>
               </section>
 
@@ -231,7 +264,7 @@ export default function SettingsPanel({
   );
 }
 
-function Toggle({ on, onChange }) {
+function Toggle({ on, onChange, ariaLabel }) {
   return (
     <button
       type="button"
@@ -240,6 +273,7 @@ function Toggle({ on, onChange }) {
         on ? "bg-brand-gradient-2" : "bg-surface-muted"
       }`}
       aria-pressed={on}
+      aria-label={ariaLabel}
     >
       <span
         className={`absolute top-1 h-6 w-6 rounded-full bg-paper transition-all ${

@@ -1,6 +1,6 @@
-# Alkheeloot
+# Kheelan
 
-**Fast-tap trivia for your living room.** A real-time multiplayer quiz game — the host runs the big screen, everyone else plays from their phones with a 6-digit PIN. Same energy and mechanics you already know, our own look.
+**Live quizzes for any room.** Real-time multiplayer trivia — the host runs the big screen, everyone else plays from their phones with a 6-digit PIN.
 
 - ▲ ◆ ● ■ — four colored, shaped answer tiles
 - Score rewards **speed *and* correctness**

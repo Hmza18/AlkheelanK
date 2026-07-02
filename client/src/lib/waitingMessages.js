@@ -17,17 +17,15 @@ const LATE = [
 ];
 
 const GENERIC = [
-  "Locked in! 🔒",
-  "Nice pick… no peeking! 👀",
-  "Let's see how that goes…",
-  "Fingers crossed for you! 🤞",
-  "Answer's in the vault!",
-  "Holding our breath with you…",
-  "Plot twist loading… 📦",
-  "Brain cells: deployed. ☁️",
-  "The suspense is snacking on us.",
-  "Your pick is warming up on stage.",
-  "Antenna up for the reveal! 📡",
+  "Locked in.",
+  "Bold pick — let's see.",
+  "Answer's in. No take-backs.",
+  "The room is judging you (kindly).",
+  "Reveal loading…",
+  "Holding our breath.",
+  "Plot twist incoming.",
+  "Brain cells: deployed.",
+  "Antenna up for the reveal.",
   "Mystery mode: ON.",
 ];
 

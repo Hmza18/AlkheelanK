@@ -10,10 +10,23 @@ if (process.env.VERCEL && (!supabaseUrl || !supabaseKey)) {
   );
 }
 
+const gameServer = "http://127.0.0.1:3001";
+
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
     host: true,
+    proxy: {
+      "/api": { target: gameServer, changeOrigin: true },
+      "/socket.io": { target: gameServer, ws: true, changeOrigin: true },
+      "/health": { target: gameServer, changeOrigin: true },
+      "/quizzes": { target: gameServer, changeOrigin: true },
+      "/features": { target: gameServer, changeOrigin: true },
+      "/generate-quiz": { target: gameServer, changeOrigin: true },
+      "/ingest-quiz": { target: gameServer, changeOrigin: true },
+      "/image-search": { target: gameServer, changeOrigin: true },
+      "/starter-images": { target: gameServer, changeOrigin: true },
+    },
   },
 });

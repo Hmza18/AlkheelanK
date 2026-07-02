@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node ../scripts/sync-starter-images.mjs",
+    "predev": "node ../scripts/sync-starter-images.mjs && node ../scripts/sync-starter-quizzes.mjs",
     "dev": "npm run predev && vite",
-    "prebuild": "node ../scripts/sync-starter-images.mjs",
+    "prebuild": "node ../scripts/sync-starter-images.mjs && node ../scripts/sync-starter-quizzes.mjs",
     "build": "npm run prebuild && vite build",
     "preview": "vite preview"
   },

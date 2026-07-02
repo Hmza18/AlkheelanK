@@ -14,7 +14,6 @@ const TEAM_PRESET_LABELS = {
 };
 
 const TOGGLE_OPTIONS = [
-  ["music", "Lobby groove", "Soft music while the crew gathers."],
   ["speedScoring", "Speed bonus", "Quick taps earn more. Off = flat points."],
   ["randomizeQuestions", "Shuffle rounds", "Different question order each game."],
   ["randomizeAnswers", "Shuffle tiles", "Mix answer spots (True/False stays put)."],

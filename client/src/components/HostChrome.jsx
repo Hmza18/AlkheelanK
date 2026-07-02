@@ -1,5 +1,7 @@
 import { useState } from "react";
 import SettingsPanel from "./SettingsPanel.jsx";
+import { copy } from "../lib/copy.js";
+import { primeAudio } from "../lib/sound.js";
 
 const IN_GAME_PHASES = ["lobby", "question", "reveal", "standings"];
 const settingsBtnClass =
@@ -65,7 +67,10 @@ export default function HostChrome({
 
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          primeAudio();
+          setOpen(true);
+        }}
         title="Settings"
         aria-label="Settings"
         className={`fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] landscapePhone:hidden ${settingsBtnClass}`}
@@ -76,6 +81,8 @@ export default function HostChrome({
         <button
           type="button"
           onClick={onEndGame}
+          title={copy.host.endSessionTitle}
+          aria-label={copy.host.endConfirm}
           className="fixed host-end-fab right-[max(1rem,env(safe-area-inset-right))] z-40 rounded-xl bg-surface-elevated/95 px-4 py-2 text-sm font-semibold text-muted ring-1 ring-edge shadow-card backdrop-blur hover:text-ink-900 landscapePhone:hidden"
         >
           {endLabel}
@@ -89,7 +96,10 @@ export default function HostChrome({
       >
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            primeAudio();
+            setOpen(true);
+          }}
           title="Settings"
           aria-label="Settings"
           className={`pointer-events-auto relative ${settingsBtnClass}`}
@@ -100,6 +110,8 @@ export default function HostChrome({
           <button
             type="button"
             onClick={onEndGame}
+            title={copy.host.endSessionTitle}
+            aria-label={copy.host.endConfirm}
             className="pointer-events-auto h-9 shrink-0 rounded-lg bg-surface-elevated/95 px-3 text-xs font-semibold text-muted ring-1 ring-edge shadow-card backdrop-blur hover:text-ink-900"
           >
             {endLabel}

@@ -8,8 +8,8 @@ Vite bakes `VITE_*` variables in at **build time**. If they are missing on Verce
 
 | Name | Value |
 |------|--------|
-| `VITE_SUPABASE_URL` | `https://lfoydcrwkjhzanveyxjj.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | Your **Publishable** key from [Supabase → API Keys](https://supabase.com/dashboard/project/lfoydcrwkjhzanveyxjj/settings/api-keys) |
+| `VITE_SUPABASE_URL` | `https://YOUR-PROJECT-REF.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Your **Publishable** key from Supabase → Settings → API Keys |
 
 Use the **Publishable** key (`sb_publishable_...`) for this project. Copy it from the dashboard — do not use the **Secret** key (`sb_secret_...`) here.
 
@@ -38,7 +38,7 @@ A new build is required; changing env vars alone does not update an old deployme
 
 If Google sign-in sends you to **localhost** (connection refused), Supabase **Site URL** is still set to local dev.
 
-[Authentication → URL configuration](https://supabase.com/dashboard/project/lfoydcrwkjhzanveyxjj/auth/url-configuration)
+[Authentication → URL configuration](https://supabase.com/dashboard/project/_/auth/url-configuration) (open your project first)
 
 - **Site URL:** `https://www.alkheelan.xyz` (your live URL — **not** `http://localhost:5173`)
 - **Redirect URLs:**  

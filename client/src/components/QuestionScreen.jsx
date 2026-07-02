@@ -34,7 +34,7 @@ export default function QuestionScreen({
   const delay = (d) => (reduced ? 0 : d);
   const rootClass =
     variant === "host"
-      ? `question-screen question-screen--host host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}${noImageClass}`
+      ? `question-screen question-screen--host question-screen--kahoot host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}${noImageClass}`
       : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}${noImageClass}`;
 
   // Kahoot-order entrance: prompt → image → tiles (in AnswerTile) → timer.

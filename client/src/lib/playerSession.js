@@ -1,18 +1,17 @@
-const KEY = "alkheelank.player";
+import { readStorage, removeStorage, storageKey, writeStorage } from "./brand.js";
+
+const KEY = storageKey("player");
+const LEGACY_KEY = "alkheelank.player";
 
 /** Persist player identity so refresh/tab-drop can rejoin the same game. */
 export function savePlayerSession(session) {
   if (!session?.pin || !session?.pid || !session?.joinToken) return;
-  try {
-    sessionStorage.setItem(KEY, JSON.stringify(session));
-  } catch {
-    /* quota / private mode */
-  }
+  writeStorage(KEY, JSON.stringify(session), { session: true });
 }
 
 export function loadPlayerSession() {
   try {
-    const raw = sessionStorage.getItem(KEY);
+    const raw = readStorage(KEY, { legacyKey: LEGACY_KEY }) ?? sessionStorage.getItem(LEGACY_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw);
     if (!s?.pin || !s?.pid || !s?.joinToken) return null;
@@ -23,8 +22,9 @@ export function loadPlayerSession() {
 }
 
 export function clearPlayerSession() {
+  removeStorage(KEY, { session: true });
   try {
-    sessionStorage.removeItem(KEY);
+    sessionStorage.removeItem(LEGACY_KEY);
   } catch {
     /* ignore */
   }

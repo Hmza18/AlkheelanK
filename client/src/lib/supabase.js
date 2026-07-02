@@ -15,7 +15,37 @@ export const supabase = isSupabaseConfigured
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true,
+        // AuthProvider exchanges ?code= itself — leaving this on can race and
+        // leave REST calls on the anon key while React still shows a user.
+        detectSessionInUrl: false,
+        flowType: "pkce",
       },
     })
   : null;
+
+/** DB client that always sends the user's JWT (not the anon key). */
+export async function clientWithSession() {
+  if (!supabase) {
+    return { sb: null, userId: null, error: { message: "Login required." } };
+  }
+
+  let { data: { session }, error } = await supabase.auth.getSession();
+  if (error) return { sb: null, userId: null, error };
+
+  if (!session?.access_token) {
+    const refreshed = await supabase.auth.refreshSession();
+    if (refreshed.error) return { sb: null, userId: null, error: refreshed.error };
+    session = refreshed.data.session;
+  }
+
+  if (!session?.access_token || !session.user?.id) {
+    return { sb: null, userId: null, error: { message: "Login required." } };
+  }
+
+  const sb = createClient(url, anonKey, {
+    global: { headers: { Authorization: `Bearer ${session.access_token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  return { sb, userId: session.user.id, error: null };
+}

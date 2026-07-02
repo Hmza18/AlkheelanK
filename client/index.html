@@ -1,29 +1,39 @@
 <!doctype html>
-<html lang="en" data-theme="blue">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <script>
       try {
-        var saved = localStorage.getItem("alkheelank-theme");
-        if (saved === "classic" || saved === "blue") {
-          document.documentElement.setAttribute("data-theme", saved);
+        var saved = localStorage.getItem("kheelan.theme") || localStorage.getItem("alkheelank-theme");
+        if (saved === "dark" || saved === "classic") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else if (saved === "light" || saved === "blue") {
+          document.documentElement.setAttribute("data-theme", "light");
         }
       } catch (e) {}
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#dbeafe" />
+    <meta name="theme-color" content="#faf8ff" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: wss: ws:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     />
-    <title>Alkheeloot — game on</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%233b82f6'/%3E%3Ctext x='50' y='68' font-size='52' font-family='sans-serif' font-weight='900' fill='%23ffffff' text-anchor='middle'%3EA%3C/text%3E%3C/svg%3E" />
+    <title>Kheelan — live quizzes</title>
+    <meta name="description" content="Turn any room into a game show. Host on the big screen — everyone plays from their phone with a PIN." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Kheelan — live quizzes" />
+    <meta property="og:description" content="Turn any room into a game show. Host on the big screen — everyone plays from their phone." />
+    <meta property="og:url" content="https://alkheelan.xyz/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Kheelan — live quizzes" />
+    <meta name="twitter:description" content="Turn any room into a game show. Host on the big screen — everyone plays from their phone." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='25' fill='%237C3AED'/%3E%3Cg transform='translate(20 20) scale(0.6)'%3E%3Cpath d='M76 96 L80 52 L73 45 L79 37 L71 31 L77 23 L66 23 L64 8 L58 19 L54 8 L49 21 L41 25 L29 33 L17 49 L11 61 L18 67 L27 62 L31 71 L41 81 L46 96 Z M32 40 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0 Z' fill='%23ffffff' fill-rule='evenodd'/%3E%3C/g%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
   </head>

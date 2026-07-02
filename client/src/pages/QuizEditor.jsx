@@ -17,8 +17,8 @@ import { TimerStrip } from "../components/Timer.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import { normalizeStarterQuestions, starterImageSrc } from "../lib/starterImages.js";
 import { prepareStarterQuestionsForEditor } from "../lib/starterTemplate.js";
+import { serverUrl } from "../lib/serverUrl.js";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 const MAX_QUESTIONS = 30;
 const MAX_QUESTION_CHARS = 500;
 const MAX_ANSWER_CHARS = 120;
@@ -123,7 +123,7 @@ export default function QuizEditor({ initial, canSave, userId, onCancel, onSave,
   // Feature-detect AI generation so the button only shows when the server has a key.
   useEffect(() => {
     let cancelled = false;
-    fetch(`${SERVER_URL}/features`)
+    fetch(serverUrl("/features"))
       .then((r) => (r.ok ? r.json() : null))
       .then((f) => {
         if (!cancelled && f?.aiGeneration) setAiAvailable(true);
@@ -774,7 +774,7 @@ function QuestionEditor({
       )}
 
       {type === "mc" && (
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="quiz-editor-answers mt-4 grid grid-cols-2 gap-4">
           {q.answers.map((a, ai) => {
             const isCorrect = q.correct === ai;
             return (
@@ -786,7 +786,6 @@ function QuestionEditor({
                   selected={isCorrect}
                   onClick={() => onChange({ correct: ai })}
                   kahoot
-                  compact
                 />
                 <input
                   className="w-full rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand-mid"
@@ -1009,7 +1008,7 @@ function AiGeneratePanel({ onGenerated, onClose }) {
     setBusy(true);
     setErr(null);
     try {
-      const res = await fetch(`${SERVER_URL}/generate-quiz`, {
+      const res = await fetch(serverUrl("/generate-quiz"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic: topic.trim(), count, audience, language }),
@@ -1170,7 +1169,7 @@ function IngestPanel({ onGenerated, onClose }) {
     setBusy(true);
     setErr(null);
     try {
-      const res = await fetch(`${SERVER_URL}/ingest-quiz`, {
+      const res = await fetch(serverUrl("/ingest-quiz"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: text.slice(0, INGEST_MAX_CHARS), count, audience, language }),
@@ -1377,6 +1376,7 @@ function QuizPreview({ title, questions, onClose }) {
                   revealed={revealed}
                   correct={Array.isArray(q.correct) ? q.correct.includes(i) : i === q.correct}
                   onClick={() => setRevealed(true)}
+                  kahoot
                 />
               ))
             )
@@ -1563,7 +1563,7 @@ function ImagePicker({ image, onChange }) {
     setSearching(true);
     setErr(null);
     try {
-      const res = await fetch(`${SERVER_URL}/image-search?q=${encodeURIComponent(q)}`);
+      const res = await fetch(serverUrl(`/image-search?q=${encodeURIComponent(q)}`));
       const body = await res.json().catch(() => null);
       if (!res.ok) {
         setErr(body?.error || "Search failed — try again.");

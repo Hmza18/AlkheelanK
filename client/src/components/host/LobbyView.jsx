@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import Avatar from "../characters.jsx";
 import SettingsPanel from "../SettingsPanel.jsx";
 import { copy } from "../../lib/copy.js";
+import { RECOMMENDED_MAX_PLAYERS } from "../../lib/gameLimits.js";
 import { joinDisplayPath, joinQrUrl } from "../../lib/site.js";
-import { sfx, isSoundOn, setSound, subscribeAudio } from "../../lib/sound.js";
+import { sfx, isSoundOn, setSound, subscribeAudio, setLobbyMusicActive, primeAudio } from "../../lib/sound.js";
 
 // Festive scatter — squares in the four answer-shape hues + brand tones, kept
 // faint and lobby-only so the global theme is untouched.
@@ -80,9 +81,11 @@ const LockOpenIcon = () => (
     <path d="M18 8h-1V6A5 5 0 008.11 4a1 1 0 101.68 1.08A3 3 0 0115 6v2H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zm-6 9a2 2 0 110-4 2 2 0 010 4z" />
   </Icon>
 );
-const CloseIcon = () => (
-  <Icon fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-    <path d="M6 6l12 12M18 6L6 18" />
+const LeaveIcon = () => (
+  <Icon fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+    <path d="M16 17l5-5-5-5" />
+    <path d="M21 12H9" />
   </Icon>
 );
 
@@ -103,9 +106,29 @@ export default function LobbyView({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundOn());
   const [pinCopied, setPinCopied] = useState(false);
-  const hasPlayers = players.length > 0;
+  const [countPulse, setCountPulse] = useState(false);
+  const prevCountRef = useRef(players.length);
+  const playerCount = players.length;
+  const hasPlayers = playerCount > 0;
+  const overRecommendedMax = playerCount > RECOMMENDED_MAX_PLAYERS;
 
-  useEffect(() => subscribeAudio((s) => setSoundOn(!s.muted)), []);
+  useEffect(() => subscribeAudio((settings) => setSoundOn(!settings.muted)), []);
+
+  useEffect(() => {
+    setLobbyMusicActive(true);
+    return () => setLobbyMusicActive(false);
+  }, []);
+
+  useEffect(() => {
+    if (players.length > prevCountRef.current) {
+      sfx.join();
+      setCountPulse(true);
+      const t = setTimeout(() => setCountPulse(false), 500);
+      prevCountRef.current = players.length;
+      return () => clearTimeout(t);
+    }
+    prevCountRef.current = players.length;
+  }, [players.length]);
 
   useEffect(() => {
     if (!pinCopied) return;
@@ -172,8 +195,14 @@ export default function LobbyView({
             {copy.lobby.start}
           </button>
         </div>
-        <button type="button" className="lobby-close" onClick={onClose} aria-label="Close lobby">
-          <CloseIcon />
+        <button
+          type="button"
+          className="lobby-close"
+          onClick={onClose}
+          aria-label={copy.lobby.leaveLobby}
+          title={copy.lobby.leaveLobbyTitle}
+        >
+          <LeaveIcon />
         </button>
       </div>
 
@@ -209,13 +238,23 @@ export default function LobbyView({
       </div>
 
       <div className="lobby-center">
-        <span className="lobby-status-pill">
-          {lobbyLocked
-            ? copy.lobby.lockedStatus
-            : hasPlayers
-              ? `${players.length} ${players.length === 1 ? "player" : "players"} in the lobby`
-              : copy.lobby.waiting}
-        </span>
+        <div className="lobby-status">
+          <span
+            className={`lobby-status-pill ${countPulse ? "lobby-count-pulse" : ""} ${overRecommendedMax ? "lobby-status-pill--over-cap" : ""}`}
+          >
+            {lobbyLocked
+              ? copy.lobby.lockedStatus
+              : hasPlayers
+                ? copy.lobby.playerCount(playerCount)
+                : copy.lobby.waiting}
+          </span>
+          {hasPlayers && !lobbyLocked && (
+            <p className={`lobby-cap-hint ${overRecommendedMax ? "lobby-cap-hint--warn" : ""}`}>
+              {copy.lobby.recommendedMax(playerCount, RECOMMENDED_MAX_PLAYERS)}
+              {overRecommendedMax && ` · ${copy.lobby.overRecommendedMax}`}
+            </p>
+          )}
+        </div>
 
         {quizMeta && (
           <p className="lobby-quiz">
@@ -269,14 +308,19 @@ export default function LobbyView({
       </div>
 
       <div className="lobby-utilbar">
-        <span className="lobby-utilbar__count" title="Players in lobby">
+        <span
+          className={`lobby-utilbar__count ${countPulse ? "lobby-count-pulse" : ""} ${overRecommendedMax ? "lobby-utilbar__count--warn" : ""}`}
+          title={copy.lobby.recommendedMax(playerCount, RECOMMENDED_MAX_PLAYERS)}
+        >
           <PersonIcon />
-          {players.length}
+          {playerCount}
+          <span className="lobby-utilbar__count-max">/{RECOMMENDED_MAX_PLAYERS}</span>
         </span>
         <button
           type="button"
           className="lobby-utilbar__btn"
           onClick={() => {
+            primeAudio();
             sfx.tap();
             setSound(!soundOn);
           }}
@@ -287,8 +331,21 @@ export default function LobbyView({
         </button>
         <button
           type="button"
+          className="lobby-utilbar__btn lobby-utilbar__btn--leave"
+          onClick={() => {
+            sfx.tap();
+            onClose?.();
+          }}
+          aria-label={copy.lobby.leaveLobby}
+          title={copy.lobby.leaveLobbyTitle}
+        >
+          <LeaveIcon />
+        </button>
+        <button
+          type="button"
           className="lobby-utilbar__btn"
           onClick={() => {
+            primeAudio();
             sfx.tap();
             setSettingsOpen(true);
           }}

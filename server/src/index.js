@@ -1,3 +1,4 @@
+import "./loadEnv.js";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -12,6 +13,7 @@ import { getQuiz, quizSummaries, validateCustomQuiz, getStarterForCopy } from ".
 import { createRateLimiter, clientKey } from "./rateLimit.js";
 import { generateQuiz, generateFromText, isAiConfigured } from "./ai.js";
 import { searchImages } from "./imageSearch.js";
+import { mountBillingJsonRoutes, billingWebhookHandler } from "./billing/routes.js";
 
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
@@ -80,10 +82,16 @@ function httpClientKey(req) {
 
 const app = express();
 app.use(cors({ origin: corsOrigin }));
+app.post(
+  "/api/billing/webhook",
+  express.raw({ type: "application/json", limit: "256kb" }),
+  billingWebhookHandler,
+);
 app.use((req, res, next) => {
   const limit = req.path === "/ingest-quiz" ? "64kb" : "32kb";
   express.json({ limit })(req, res, next);
 });
+mountBillingJsonRoutes(app);
 
 app.use(
   "/starter-images",
@@ -94,7 +102,11 @@ app.use(
 );
 
 app.get("/", (_req, res) => {
-  res.json({ name: "Alkheeloot server", status: "ok", ...GM.stats() });
+  res.json({ name: "Kheelan server", status: "ok", ...GM.stats() });
+});
+
+app.get("/health", (_req, res) => {
+  res.json({ name: "Kheelan server", status: "ok", ...GM.stats() });
 });
 
 app.get("/quizzes", (_req, res) => {
@@ -763,7 +775,7 @@ setInterval(() => {
 }, GAME_CLEANUP_INTERVAL_MS).unref();
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Alkheeloot server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);
+  console.log(`Kheelan server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);
   if (
     process.env.NODE_ENV === "production" &&
     !process.env.STARTER_IMAGES_BASE_URL &&

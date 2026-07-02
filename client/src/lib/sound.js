@@ -1,6 +1,18 @@
-// Web Audio synth — family-friendly, optional, with music/SFX ducking.
+// Web Audio synth for SFX + HTML5 lobby track (client/public/audio/lobby-music.m4a).
 
 const STORE_KEY = "alkheelank.audio";
+const LOBBY_MUSIC_SRC = "/audio/lobby-music.m4a";
+
+/** Real-time lofi treatment on the lobby track (no re-encode needed). */
+const LOFI = {
+  playbackRate: 0.935,
+  lowpassHz: 3000,
+  warmthHz: 240,
+  warmthDb: 2.4,
+  wobbleRateHz: 0.11,
+  wobbleDepthHz: 200,
+  vinylGain: 0.016,
+};
 
 const defaults = { master: 0.7, music: true, sfx: true, muted: false };
 
@@ -21,6 +33,15 @@ let masterGain = null;
 let musicGain = null;
 let sfxGain = null;
 let duckTimer = null;
+let lobbyMusicDesired = false;
+let lobbyAudio = null;
+let lobbyDucked = false;
+let musicTension = 0;
+let lobbySource = null;
+let lobbyGainNode = null;
+let lofiFilter = null;
+let lofiWobble = null;
+let lofiVinyl = null;
 
 function ac() {
   if (typeof window === "undefined") return null;
@@ -45,13 +66,117 @@ function applyGains() {
   const t = ctx ? ctx.currentTime : 0;
   const master = store.muted ? 0 : store.master;
   masterGain.gain.setTargetAtTime(master, t, 0.02);
-  musicGain.gain.setTargetAtTime(store.music ? 1 : 0, t, 0.02);
-  sfxGain.gain.setTargetAtTime(store.sfx ? 1 : 0, t, 0.02);
+  musicGain.gain.setTargetAtTime(store.music && !store.muted ? 1 : 0, t, 0.02);
+  sfxGain.gain.setTargetAtTime(store.sfx && !store.muted ? 1 : 0, t, 0.02);
+  applyLobbyVolume();
 }
 
-/** Briefly lower music when important SFX play so reveals never fight the groove. */
+function lobbyVolume() {
+  if (store.muted || !store.music) return 0;
+  return Math.max(0, Math.min(1, store.master * 0.82));
+}
+
+function ensureLobbyAudio() {
+  if (typeof window === "undefined") return null;
+  if (!lobbyAudio) {
+    lobbyAudio = new Audio(LOBBY_MUSIC_SRC);
+    lobbyAudio.loop = true;
+    lobbyAudio.preload = "auto";
+    lobbyAudio.playbackRate = LOFI.playbackRate;
+    lobbyAudio.volume = 1;
+  }
+  return lobbyAudio;
+}
+
+function lofiPlaybackRate() {
+  return LOFI.playbackRate + musicTension * 0.05;
+}
+
+function makeNoiseBuffer(c, seconds = 2) {
+  const n = Math.floor(c.sampleRate * seconds);
+  const buf = c.createBuffer(1, n, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < n; i += 1) data[i] = Math.random() * 2 - 1;
+  return buf;
+}
+
+function ensureLobbyGraph() {
+  const c = ac();
+  const el = ensureLobbyAudio();
+  if (!c || !el || lobbySource) return;
+
+  lobbySource = c.createMediaElementSource(el);
+
+  lofiFilter = c.createBiquadFilter();
+  lofiFilter.type = "lowpass";
+  lofiFilter.frequency.value = LOFI.lowpassHz;
+  lofiFilter.Q.value = 0.65;
+
+  const warmth = c.createBiquadFilter();
+  warmth.type = "lowshelf";
+  warmth.frequency.value = LOFI.warmthHz;
+  warmth.gain.value = LOFI.warmthDb;
+
+  lobbyGainNode = c.createGain();
+  lobbyGainNode.gain.value = lobbyVolume();
+
+  lobbySource.connect(lofiFilter).connect(warmth).connect(lobbyGainNode).connect(masterGain);
+
+  const lfo = c.createOscillator();
+  const lfoDepth = c.createGain();
+  lfo.type = "sine";
+  lfo.frequency.value = LOFI.wobbleRateHz;
+  lfoDepth.gain.value = LOFI.wobbleDepthHz;
+  lfo.connect(lfoDepth).connect(lofiFilter.frequency);
+  lfo.start();
+  lofiWobble = lfo;
+
+  const noise = c.createBufferSource();
+  noise.buffer = makeNoiseBuffer(c);
+  noise.loop = true;
+  const noiseFilter = c.createBiquadFilter();
+  noiseFilter.type = "bandpass";
+  noiseFilter.frequency.value = 2800;
+  noiseFilter.Q.value = 0.35;
+  const noiseGain = c.createGain();
+  noiseGain.gain.value = LOFI.vinylGain;
+  noise.connect(noiseFilter).connect(noiseGain).connect(lobbyGainNode);
+  noise.start();
+  lofiVinyl = noise;
+}
+
+function applyLobbyVolume() {
+  if (!lobbyGainNode || lobbyDucked || !ctx) return;
+  lobbyGainNode.gain.setTargetAtTime(lobbyVolume(), ctx.currentTime, 0.03);
+}
+
+function syncLobbyMusic() {
+  const shouldPlay = lobbyMusicDesired && store.music && !store.muted;
+  if (shouldPlay) music.start();
+  else music.stop();
+}
+
+/** Host lobby calls this when entering/leaving the waiting room. */
+export function setLobbyMusicActive(active) {
+  lobbyMusicDesired = !!active;
+  syncLobbyMusic();
+}
+
+/** Briefly lower lobby track when important SFX play. */
 function duckMusic(ms = 420, depth = 0.35) {
-  if (!musicGain || !store.music || store.muted) return;
+  if (!store.music || store.muted) return;
+  if (lobbyGainNode && lobbyAudio && !lobbyAudio.paused && ctx) {
+    lobbyDucked = true;
+    const target = lobbyVolume() * depth;
+    lobbyGainNode.gain.setTargetAtTime(target, ctx.currentTime, 0.04);
+    if (duckTimer) clearTimeout(duckTimer);
+    duckTimer = setTimeout(() => {
+      lobbyDucked = false;
+      applyLobbyVolume();
+    }, ms);
+    return;
+  }
+  if (!musicGain) return;
   const c = ac();
   if (!c) return;
   const t = c.currentTime;
@@ -83,12 +208,13 @@ export function setAudioSettings(patch) {
   persist();
   ac();
   applyGains();
-  if ((!store.music || store.muted) && music.playing) music.stop();
+  syncLobbyMusic();
   listeners.forEach((fn) => fn(getAudioSettings()));
 }
 
 export function subscribeAudio(fn) {
   listeners.add(fn);
+  fn(getAudioSettings());
   return () => listeners.delete(fn);
 }
 
@@ -98,6 +224,12 @@ export function setSound(on) {
 
 export function isSoundOn() {
   return !store.muted;
+}
+
+function canPlayChannel(channel) {
+  if (store.muted) return false;
+  if (channel === "music") return store.music;
+  return store.sfx;
 }
 
 function tone({
@@ -110,6 +242,7 @@ function tone({
   channel = "sfx",
   duck = false,
 }) {
+  if (!canPlayChannel(channel)) return;
   const c = ac();
   if (!c) return;
   if (duck && channel === "sfx") duckMusic();
@@ -128,60 +261,37 @@ function tone({
   osc.stop(t0 + dur + 0.02);
 }
 
-let musicTimer = null;
-let musicTension = 0;
-
 export const music = {
   start() {
-    const c = ac();
-    if (!c || musicTimer || !store.music) return;
-    const chords = [
-      [262, 330, 392],
-      [294, 370, 440],
-      [330, 415, 494],
-      [247, 311, 392],
-    ];
-    let i = 0;
-    const play = () => {
-      const ch = chords[i % chords.length];
-      i += 1;
-      const lift = 1 + musicTension * 0.18;
-      ch.forEach((f, k) =>
-        tone({
-          freq: Math.round(f * lift),
-          dur: 1.5 - musicTension * 0.35,
-          type: "sine",
-          gain: 0.045 + musicTension * 0.018,
-          when: k * 0.04,
-          channel: "music",
-        })
-      );
-      tone({
-        freq: (ch[0] / 2) * lift,
-        dur: 1.5 - musicTension * 0.35,
-        type: "triangle",
-        gain: 0.05 + musicTension * 0.018,
-        channel: "music",
+    if (!store.music || store.muted) return;
+    ensureLobbyGraph();
+    const el = ensureLobbyAudio();
+    if (!el) return;
+    el.playbackRate = lofiPlaybackRate();
+    applyLobbyVolume();
+    const playAttempt = el.play();
+    if (playAttempt?.catch) {
+      playAttempt.catch(() => {
+        /* blocked until primeAudio() / user gesture */
       });
-    };
-    play();
-    const base = 1700;
-    musicTimer = setInterval(play, Math.max(950, Math.round(base - musicTension * 500)));
+    }
   },
   stop() {
-    if (musicTimer) {
-      clearInterval(musicTimer);
-      musicTimer = null;
+    if (lobbyAudio) {
+      lobbyAudio.pause();
+      lobbyAudio.currentTime = 0;
+      lobbyDucked = false;
+      applyLobbyVolume();
     }
   },
   get playing() {
-    return !!musicTimer;
+    return !!(lobbyAudio && !lobbyAudio.paused);
   },
   setTension(level = 0) {
     musicTension = Math.max(0, Math.min(1, Number(level) || 0));
-    if (!music.playing) return;
-    music.stop();
-    music.start();
+    if (lobbyAudio && music.playing) {
+      lobbyAudio.playbackRate = lofiPlaybackRate();
+    }
   },
 };
 
@@ -212,7 +322,7 @@ export const sfx = {
   correct: () => {
     duckMusic(480, 0.3);
     [523, 659, 784].forEach((f, i) =>
-      tone({ freq: f, dur: 0.14, type: "sine", gain: 0.1, when: i * 0.08 })
+      tone({ freq: f, dur: 0.14, type: "sine", gain: 0.1, when: i * 0.08 }),
     );
   },
   wrong: () => {
@@ -222,13 +332,13 @@ export const sfx = {
   podium: () => {
     duckMusic(600, 0.2);
     [392, 523, 659, 784].forEach((f, i) =>
-      tone({ freq: f, dur: 0.2, type: "triangle", gain: 0.1, when: i * 0.11 })
+      tone({ freq: f, dur: 0.2, type: "triangle", gain: 0.1, when: i * 0.11 }),
     );
   },
   /** Accelerating tom roll — returns { stop } for cleanup on unmount. */
   drumRoll({ durationMs = 1400, intense = false } = {}) {
     const c = ac();
-    if (!c) return { stop: () => {} };
+    if (!c || !canPlayChannel("sfx")) return { stop: () => {} };
 
     duckMusic(durationMs + 280, intense ? 0.12 : 0.18);
 
@@ -276,3 +386,13 @@ export const sfx = {
     return { stop: () => {} };
   },
 };
+
+/** Unlock the audio engine on first user gesture (browser autoplay policy). */
+export function primeAudio() {
+  ac();
+  ensureLobbyGraph();
+  const el = ensureLobbyAudio();
+  if (el && lobbyMusicDesired && store.music && !store.muted && el.paused) {
+    syncLobbyMusic();
+  }
+}

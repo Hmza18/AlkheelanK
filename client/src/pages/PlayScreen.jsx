@@ -23,6 +23,10 @@ import QuestionProgress from "../components/QuestionProgress.jsx";
 import ScrollHint from "../components/ScrollHint.jsx";
 import DoublePointsWarning from "../components/DoublePointsWarning.jsx";
 import Countdown from "../components/Countdown.jsx";
+import PlayerShareCard from "../components/PlayerShareCard.jsx";
+import GlowCard from "../components/ui/GlowCard.jsx";
+import PointsPop from "../components/ui/PointsPop.jsx";
+import confetti from "canvas-confetti";
 import { questionIntro } from "../lib/motion.js";
 
 export default function PlayScreen() {
@@ -48,6 +52,7 @@ export default function PlayScreen() {
   const [reveal, setReveal] = useState(null);
   const [standings, setStandings] = useState(null);
   const [finalRank, setFinalRank] = useState(null);
+  const [finalPayload, setFinalPayload] = useState(null);
   const [paused, setPaused] = useState(false);
   const [players, setPlayers] = useState([]);
   const [hostConnected, setHostConnected] = useState(true);
@@ -263,6 +268,7 @@ export default function PlayScreen() {
     const onFinal = (f) => {
       const myId = joinInfoRef.current?.pid;
       setFinalRank(f.standings.find((p) => p.id === myId));
+      setFinalPayload(f);
       setPhase("final");
     };
     const onEnded = () => {
@@ -428,7 +434,7 @@ export default function PlayScreen() {
   const submit = (payload) => {
     if (phase !== "question" || selected !== null || paused) return;
     setSelected(Number.isInteger(payload?.index) ? payload.index : true);
-    sfx.tap();
+    sfx.lock();
     socket.emit("player:answer", payload);
   };
 
@@ -575,21 +581,17 @@ export default function PlayScreen() {
     );
   }
   if (phase === "final") {
-    const onPodium = isPodiumRank(finalRank?.rank);
     return (
       <>
         {settingsFab}
-        <CenterCard>
-        <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{onPodium ? copy.player.onPodium : copy.player.final}</h2>
-        {!onPodium && (
-          <p className="mt-2 text-2xl font-bold alkheelank-gradient-text landscapePhone:mt-1 landscapePhone:text-xl">#{finalRank?.rank ?? "-"}</p>
-        )}
-        {onPodium && <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">{copy.player.onPodiumTeaser}</p>}
-        <p className={`${onPodium ? "mt-4" : "mt-1"} text-muted landscapePhone:mt-2 landscapePhone:text-sm`}>{(finalRank?.score ?? 0).toLocaleString()} pts total</p>
-        <button type="button" onClick={() => navigate("/")} className="alkheelank-btn-primary mt-6 w-full landscapePhone:mt-3">
-          {copy.player.playAgain}
-        </button>
-        </CenterCard>
+        <div className="alkheelank-screen-player player-phase-fill flex items-center overflow-y-auto px-5 py-8 landscapePhone:py-4">
+          <PlayerShareCard
+            me={me}
+            finalRank={finalRank}
+            recap={finalPayload?.recap}
+            quizTitle={finalPayload?.title}
+          />
+        </div>
       </>
     );
   }
@@ -686,7 +688,6 @@ function QuestionCard({ q, selected, onSubmit, onHint, paused, hintText }) {
               selected={picks.includes(i)}
               disabled={locked}
               kahoot
-              compact
             />
           ))}
         </div>
@@ -785,7 +786,6 @@ function QuestionCard({ q, selected, onSubmit, onHint, paused, hintText }) {
         staggerIndex={i}
         entranceDelay={questionIntro.tiles}
         kahoot
-        compact
       />
     ));
   }
@@ -882,8 +882,15 @@ function ResultCard({ result, q, reveal }) {
     : result?.answered
     ? copy.player.result.wrong
     : copy.player.result.timeout;
-  // Show the right answer to anyone who missed it. The reveal broadcast carries
-  // the answer key (only sent after the question closes, so no spoilers).
+  const isCorrect = !!result?.correct;
+  const isWrong = result?.answered && !result?.correct;
+
+  useEffect(() => {
+    if (isCorrect) {
+      confetti({ particleCount: 60, spread: 70, origin: { y: 0.65 } });
+    }
+  }, [isCorrect]);
+
   const showCorrect = !result?.correct && reveal?.index === q?.index;
   let correctAnswer = null;
   let correctStyle = null;
@@ -899,38 +906,75 @@ function ResultCard({ result, q, reveal }) {
       correctStyle = tileStyle(q?.type, reveal.correctIndex);
     }
   }
+
   return (
-    <CenterCard>
-      <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{title}</h2>
-      <p className="mt-2 text-2xl font-bold landscapePhone:mt-1 landscapePhone:text-xl">
-        {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
-      </p>
-      {correctAnswer && (
-        <p className="mt-3 rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge landscapePhone:mt-2">
-          <span className="text-muted">{copy.player.result.correctWas}: </span>
-          {correctStyle && <span style={{ color: correctStyle.color }}>{correctStyle.glyph}</span>} {correctAnswer}
-        </p>
-      )}
-      <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">
-        {playerRankLine(result?.rank, result?.totalPlayers)} ·{" "}
-        {(result?.totalScore ?? 0).toLocaleString()} pts total
-      </p>
-      {result?.team?.name && (
-        <p className="mt-2 text-sm font-bold landscapePhone:mt-1" style={{ color: result.team.color }}>
-          {result.team.name}
-        </p>
-      )}
-      {q?.doublePoints && (
-        <p className="mt-2 text-xs font-bold text-brand-end landscapePhone:mt-1">Double-points question</p>
-      )}
-      {q?.points === "none" && (
-        <p className="mt-2 text-xs font-bold text-muted landscapePhone:mt-1">Just for fun — no points</p>
-      )}
-      {result?.usedHint && (
-        <p className="mt-2 text-xs font-bold text-muted landscapePhone:mt-1">🔍 Closer Look used (−50%)</p>
-      )}
-      <p className="mt-4 text-muted animate-pulse landscapePhone:mt-2 landscapePhone:text-sm">{copy.player.result.watchScreen}</p>
-    </CenterCard>
+    <>
+      <motion.div
+        initial={{ opacity: isCorrect ? 0.85 : 0.55 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.55 }}
+        className={`result-flash ${isCorrect ? "result-flash--correct" : isWrong ? "result-flash--wrong" : ""}`}
+        aria-hidden
+      />
+      <div className={`alkheelank-screen-player player-phase-fill flex items-center overflow-y-auto text-center landscapePhone:py-2 ${isWrong ? "result-shake" : ""}`}>
+        <motion.div
+          initial={{ scale: 0.88, opacity: 0, y: 16 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 320, damping: 22 }}
+          className="relative mx-auto my-auto w-full max-w-md px-4"
+        >
+          {isCorrect && result?.points > 0 && (
+            <PointsPop key={result.points} points={result.points} className="top-0" />
+          )}
+          <GlowCard intense={isCorrect}>
+            <div className="relative p-8 landscapePhone:p-4">
+              <motion.h2
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                className={`alkheelank-heading text-3xl landscapePhone:text-2xl ${isCorrect ? "k-shimmer-text" : isWrong ? "text-tile-triangle" : ""}`}
+              >
+                {title}
+              </motion.h2>
+              <motion.p
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.08, type: "spring", stiffness: 380, damping: 20 }}
+                className={`mt-2 text-2xl font-bold landscapePhone:mt-1 landscapePhone:text-xl ${isCorrect ? "text-brand-mid" : ""}`}
+              >
+                {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
+              </motion.p>
+          {correctAnswer && (
+            <p className="mt-3 rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge landscapePhone:mt-2">
+              <span className="text-muted">{copy.player.result.correctWas}: </span>
+              {correctStyle && <span style={{ color: correctStyle.color }}>{correctStyle.glyph}</span>} {correctAnswer}
+            </p>
+          )}
+          <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">
+            {playerRankLine(result?.rank, result?.totalPlayers)} ·{" "}
+            {(result?.totalScore ?? 0).toLocaleString()} pts total
+          </p>
+          {result?.team?.name && (
+            <p className="mt-2 text-sm font-bold landscapePhone:mt-1" style={{ color: result.team.color }}>
+              {result.team.name}
+            </p>
+          )}
+          {q?.doublePoints && (
+            <p className="mt-2 text-xs font-bold text-brand-end landscapePhone:mt-1">Double-points question</p>
+          )}
+          {q?.points === "none" && (
+            <p className="mt-2 text-xs font-bold text-muted landscapePhone:mt-1">Just for fun — no points</p>
+          )}
+          {result?.usedHint && (
+            <p className="mt-2 text-xs font-bold text-muted landscapePhone:mt-1">🔍 Closer Look used (−50%)</p>
+          )}
+          <p className="mt-4 text-muted animate-pulse landscapePhone:mt-2 landscapePhone:text-sm">{copy.player.result.watchScreen}</p>
+          <ScrollHint />
+            </div>
+          </GlowCard>
+        </motion.div>
+      </div>
+    </>
   );
 }
 

@@ -43,16 +43,28 @@ Or manually: Authentication → Providers → Email → disable "Confirm email"
   process.exit(0);
 }
 
-const siteUrl = (process.argv[2] || serverEnv.SITE_URL || "http://localhost:5173").replace(
+const siteUrl = (process.argv[2] || serverEnv.SITE_URL || serverEnv.PRODUCTION_SITE_URL || "http://localhost:5173").replace(
   /\/$/,
   "",
 );
+const productionSite = (serverEnv.PRODUCTION_SITE_URL || "https://www.alkheelan.xyz").replace(/\/$/, "");
+
 const redirects = [
+  "http://localhost:5173/**",
   "http://localhost:5173/login",
   "http://localhost:5173/host",
+  `${productionSite}/**`,
+  `${productionSite}/login`,
+  `${productionSite}/host`,
+  "https://alkheelan.xyz/**",
+  "https://alkheelan.xyz/login",
+  "https://alkheelan.xyz/host",
+  `${siteUrl}/**`,
   `${siteUrl}/login`,
   `${siteUrl}/host`,
-].join(",");
+]
+  .filter((v, i, a) => a.indexOf(v) === i)
+  .join(",");
 
 const res = await fetch(`https://api.supabase.com/v1/projects/${ref}/config/auth`, {
   method: "PATCH",

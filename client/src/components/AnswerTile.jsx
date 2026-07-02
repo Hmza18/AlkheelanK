@@ -61,7 +61,7 @@ export default function AnswerTile({
     <span className="answer-tile__icon answer-tile__icon--glyph">{s.glyph}</span>
   ) : (
     <span className="answer-tile__icon answer-tile__icon--shape">
-      <Shape type={s.shape} size={kahoot ? 20 : compact ? 24 : big ? 38 : 30} />
+      <Shape type={s.shape} size={kahoot ? 32 : compact ? 24 : big ? 38 : 30} />
     </span>
   );
 

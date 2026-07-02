@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import ModalShell from "./ui/ModalShell.jsx";
 
 export default function ConfirmModal({
   title,
@@ -10,40 +10,38 @@ export default function ConfirmModal({
   onCancel,
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-5">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        onClick={onCancel}
-        className="absolute inset-0 bg-edge-scrim backdrop-blur-sm"
-      />
-      <motion.div
-        initial={{ scale: 0.93, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="relative z-10 w-full max-w-sm rounded-3xl bg-surface-elevated p-7 shadow-2xl ring-1 ring-edge"
-        role="alertdialog"
-        aria-labelledby="confirm-modal-title"
-        aria-describedby="confirm-modal-message"
-      >
-        <h2 id="confirm-modal-title" className="font-display text-2xl font-bold">
-          {title}
-        </h2>
-        <p id="confirm-modal-message" className="mt-2 text-muted">
-          {message}
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
-          <button
-            type="button"
-            onClick={onConfirm}
-            className={destructive ? "alkheelank-btn-primary !bg-tile-triangle" : "alkheelank-btn-primary flex-1"}
-          >
-            {confirmLabel}
-          </button>
-          <button type="button" onClick={onCancel} className="alkheelank-btn-ghost flex-1">
-            {cancelLabel}
-          </button>
-        </div>
-      </motion.div>
-    </div>
+    <ModalShell
+      onBackdropClick={onCancel}
+      role="alertdialog"
+      ariaLabelledby="confirm-modal-title"
+      ariaDescribedby="confirm-modal-message"
+      size="md"
+      zIndex={90}
+      panelClassName="k-modal-panel--left"
+    >
+      <p className="k-modal__eyebrow">Are you sure?</p>
+      <h2 id="confirm-modal-title" className="k-modal__title">
+        {title}
+      </h2>
+      <p id="confirm-modal-message" className="k-modal__body">
+        {message}
+      </p>
+      <div className="k-modal__actions k-modal__actions--row">
+        <button type="button" onClick={onCancel} className="alkheelank-btn-ghost flex-1">
+          {cancelLabel}
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          className={
+            destructive
+              ? "alkheelank-btn-primary !bg-tile-triangle flex-1"
+              : "alkheelank-btn-primary k-btn-glow flex-1"
+          }
+        >
+          {confirmLabel}
+        </button>
+      </div>
+    </ModalShell>
   );
 }

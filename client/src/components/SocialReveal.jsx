@@ -233,6 +233,14 @@ export default function SocialReveal({ question, image, reveal, onStandings, ext
   const isTF = question.type === "tf";
   const maxCount = Math.max(1, ...reveal.counts);
   const correctPlayers = reveal.correctPlayers || [];
+  // Multi-select can have several correct columns; type/puzzle don't use bars.
+  const correctSet =
+    reveal.type === "ms" && Array.isArray(reveal.correctIndices)
+      ? new Set(reveal.correctIndices)
+      : null;
+  const isCorrectIdx = (i) => (correctSet ? correctSet.has(i) : i === reveal.correctIndex);
+  const firstCorrect = correctSet ? [...correctSet][0] : reveal.correctIndex;
+  const isTextOrPuzzle = reveal.type === "type" || reveal.type === "puzzle";
 
   useEffect(() => {
     if (externalStage != null) return undefined;
@@ -275,30 +283,34 @@ export default function SocialReveal({ question, image, reveal, onStandings, ext
 
       <SocialMoment highlight={reveal.highlight} show={showMoment} />
 
-      {/* key on reveal.index so bars fully unmount+remount between questions — fixes spacing bug */}
-      <div
-        key={reveal.index}
-        className={`mt-8 w-full max-w-3xl landscapePhone:mt-3 landscapePhone:max-w-none ${
-          isTF
-            ? "grid grid-cols-2 gap-8 sm:gap-10 landscapePhone:gap-4"
-            : "grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-7 landscapePhone:gap-3"
-        }`}
-      >
-        {question.answers.map((_, i) => (
-          <RevealColumn
-            key={i}
-            index={i}
-            type={question.type}
-            count={reveal.counts[i]}
-            maxCount={maxCount}
-            isCorrect={i === reveal.correctIndex}
-            stage={stageNum}
-            correctPlayers={i === reveal.correctIndex ? correctPlayers : null}
-            timing={timing}
-            reduced={reduced}
-          />
-        ))}
-      </div>
+      {isTextOrPuzzle ? (
+        <TextPuzzleReveal key={reveal.index} reveal={reveal} correctPlayers={correctPlayers} reduced={reduced} />
+      ) : (
+        /* key on reveal.index so bars fully unmount+remount between questions — fixes spacing bug */
+        <div
+          key={reveal.index}
+          className={`mt-8 w-full max-w-3xl landscapePhone:mt-3 landscapePhone:max-w-none ${
+            isTF
+              ? "grid grid-cols-2 gap-8 sm:gap-10 landscapePhone:gap-4"
+              : "grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-7 landscapePhone:gap-3"
+          }`}
+        >
+          {question.answers.map((_, i) => (
+            <RevealColumn
+              key={i}
+              index={i}
+              type={reveal.type === "ms" ? "mc" : question.type}
+              count={reveal.counts[i]}
+              maxCount={maxCount}
+              isCorrect={isCorrectIdx(i)}
+              stage={stageNum}
+              correctPlayers={i === firstCorrect ? correctPlayers : null}
+              timing={timing}
+              reduced={reduced}
+            />
+          ))}
+        </div>
+      )}
 
       {reveal.mode === "teams" && reveal.teamStandings?.length > 0 && (
         <div className="mt-8 w-full max-w-2xl landscapePhone:mt-3">
@@ -330,6 +342,74 @@ export default function SocialReveal({ question, image, reveal, onStandings, ext
         </button>
       </div>
     </div>
+  );
+}
+
+/** Reveal body for type-answer and puzzle questions (no per-option bars). */
+function TextPuzzleReveal({ reveal, correctPlayers, reduced }) {
+  const correct = reveal.correctCount ?? 0;
+  const total = reveal.totalAnswers ?? 0;
+  const players = correctPlayers || [];
+  const visible = players.slice(0, MAX_VISIBLE_AVATARS);
+  const overflow = players.length - visible.length;
+
+  return (
+    <motion.div
+      initial={reduced ? false : { opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={motionSafe({ ...spring.soft }, reduced)}
+      className="mt-8 w-full max-w-2xl landscapePhone:mt-3 landscapePhone:max-w-none"
+    >
+      <div className="rounded-3xl bg-surface-elevated p-6 text-center shadow-tile ring-1 ring-brand-mid/30 landscapePhone:p-3">
+        <p className="alkheelank-label tracking-widest text-muted">
+          {reveal.type === "puzzle" ? "Correct order" : "Answer"}
+        </p>
+        {reveal.type === "puzzle" ? (
+          <ol className="mx-auto mt-3 max-w-md space-y-1.5 text-left landscapePhone:mt-2 landscapePhone:space-y-1">
+            {(reveal.order || []).map((text, i) => (
+              <li
+                key={i}
+                className="flex items-center gap-3 rounded-xl bg-surface-muted px-4 py-2.5 ring-1 ring-edge landscapePhone:py-1.5"
+              >
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand-mid text-sm font-extrabold text-white">
+                  {i + 1}
+                </span>
+                <span className="font-semibold text-ink-900">{text}</span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <>
+            <p className="mt-2 alkheelank-heading text-3xl alkheelank-gradient-text sm:text-4xl">
+              {reveal.answerText || "—"}
+            </p>
+            {reveal.accept?.length > 1 && (
+              <p className="mt-2 text-sm text-muted">
+                Also accepted: {reveal.accept.slice(1).join(", ")}
+              </p>
+            )}
+          </>
+        )}
+        <p className="mt-4 text-lg font-bold text-ink-900 landscapePhone:mt-2 landscapePhone:text-base">
+          {correct} of {total} got it right
+        </p>
+        {visible.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 landscapePhone:mt-2">
+            {visible.map((p) => (
+              <div key={p.id} className="flex flex-col items-center gap-0.5">
+                <Avatar config={p.character} size={40} ring />
+                <span className="max-w-[4rem] truncate text-[10px] font-bold text-ink-900">{p.nick}</span>
+              </div>
+            ))}
+            {overflow > 0 && (
+              <span className="self-center rounded-full bg-surface-muted px-3 py-2 text-sm font-extrabold text-ink-900 ring-2 ring-brand-mid/50">
+                +{overflow}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }
 

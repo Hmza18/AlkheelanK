@@ -1,4 +1,4 @@
-/** Self-contained SVG covers — no external CDN, works on Vercel instantly. */
+/** Self-contained SVG covers — fallback when server photos are unreachable. */
 export function starterCover(emoji, accent, subtitle = "") {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img">
   <defs>

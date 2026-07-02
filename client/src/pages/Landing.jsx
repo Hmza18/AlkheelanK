@@ -1,29 +1,33 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import Shape from "../components/Shape.jsx";
-import { ANSWERS } from "../lib/answers.js";
 import { useAuth } from "../lib/auth.jsx";
-import BuiltByHamza from "../components/BuiltByHamza.jsx";
+import Logo from "../components/Logo.jsx";
 import PinInput from "../components/PinInput.jsx";
+import LandingDemo from "../components/LandingDemo.jsx";
+import LandingBenefits from "../components/LandingBenefits.jsx";
+import LandingQuotes from "../components/LandingQuotes.jsx";
+import LandingPricing from "../components/LandingPricing.jsx";
+import LandingFinalCta from "../components/LandingFinalCta.jsx";
+import GlowCard from "../components/ui/GlowCard.jsx";
+import SocialProofBar from "../components/ui/SocialProofBar.jsx";
+import LandingFaq from "../components/LandingFaq.jsx";
+import AttentionPopups from "../components/AttentionPopups.jsx";
+import SettingsPanel from "../components/SettingsPanel.jsx";
+import { useTrialCheckout } from "../lib/useTrialCheckout.js";
+import { BRAND } from "../lib/brand.js";
 import { copy } from "../lib/copy.js";
 import { isCompletePin, sanitizePin } from "../lib/pin.js";
 
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
-};
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 320, damping: 26 } },
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
 };
 
-const STEPS = [
-  { shape: "triangle", color: ANSWERS[0].color, title: "Join with a PIN", body: "Open the link, type the 6-digit game PIN." },
-  { shape: "diamond", color: ANSWERS[1].color, title: "Pick your character", body: "Choose a face and make it yours." },
-  { shape: "circle", color: ANSWERS[2].color, title: "Tap to answer", body: "Faster correct answers score more." },
-  { shape: "square", color: ANSWERS[3].color, title: "Climb the leaderboard", body: "Race to the top, then the podium." },
-];
+const item = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 340, damping: 28 } },
+};
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -41,135 +45,108 @@ export default function Landing() {
     navigate(`/join?pin=${clean}`);
   };
 
-  return (
-    <div className="alkheelank-screen-fill alkheelank-safe-x alkheelank-safe-bottom relative mx-auto w-full max-w-5xl overflow-x-hidden px-5 py-10 pt-[max(2.5rem,env(safe-area-inset-top))] landscapePhone:py-4 landscapePhone:pt-[max(1rem,env(safe-area-inset-top))]">
-      <FloatingShapes />
+  const { goTrial } = useTrialCheckout(user);
 
-      {/* Hero */}
+  return (
+    <div className="alkheelank-screen-fill alkheelank-safe-x alkheelank-safe-bottom relative mx-auto w-full max-w-5xl overflow-x-hidden px-5 py-10 pt-[max(2.5rem,env(safe-area-inset-top))] landscapePhone:py-4">
+      <div className="k-hero-spotlight" aria-hidden />
+
       <motion.section
         variants={container}
         initial="hidden"
         animate="show"
-        className="relative z-10 flex flex-col items-center text-center"
+        className="relative z-10 flex flex-col items-center overflow-visible text-center"
       >
+        <motion.div variants={item} className="mb-4">
+          <span className="k-free-badge">{copy.landing.heroBadge}</span>
+        </motion.div>
+
+        <motion.div variants={item} className="mb-5">
+          <Logo size="lg" />
+        </motion.div>
+
         <motion.h1
           variants={item}
-          className="font-display text-5xl font-extrabold tracking-tight alkheelank-gradient-text sm:text-7xl"
+          className="k-shimmer-text k-hero-headline max-w-2xl px-1 font-display text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl"
         >
-          Alkheeloot
+          {copy.landing.headline}
         </motion.h1>
 
-        <motion.h2
-          variants={item}
-          className="mt-4 font-display text-3xl font-extrabold leading-tight sm:text-5xl"
-        >
-          Fast-tap trivia for
-          <br className="hidden sm:block" /> your <span className="alkheelank-gradient-text">living room</span>.
-        </motion.h2>
-
-        <motion.p variants={item} className="mt-4 max-w-md text-lg font-semibold text-muted">
-          Host it on the big screen, everyone plays from their phones. Same rush you know — our own game.
+        <motion.p variants={item} className="mt-3 max-w-xl text-base text-muted sm:text-lg">
+          {copy.landing.subhead}
         </motion.p>
 
-        {/* Primary actions */}
-        <motion.div variants={item} className="mt-10 w-full max-w-md">
-          <div className="alkheelank-card p-6">
-            <label className="mb-2 block text-sm font-semibold uppercase tracking-widest text-muted">
-              Join a game
-            </label>
-            <PinInput
-              value={pin}
-              onChange={(v) => {
-                setPin(v);
-                if (pinError) setPinError(null);
-              }}
-              autoFocus
-            />
-            {pinError && (
-              <p className="mt-3 rounded-xl bg-tile-triangle/20 px-4 py-2 text-center font-semibold text-tile-triangle">
-                {pinError}
-              </p>
-            )}
-            <button type="button" onClick={goPlay} className="alkheelank-btn-primary mt-4 w-full text-xl">
-              Join a game →
-            </button>
-          </div>
-
-          <div className="my-5 flex items-center gap-4">
-            <div className="h-px flex-1 bg-surface-muted/60" />
-            <span className="text-sm font-semibold uppercase tracking-widest text-muted">or</span>
-            <div className="h-px flex-1 bg-surface-muted/60" />
-          </div>
-
-          <button onClick={() => navigate("/host")} className="alkheelank-btn-ghost w-full text-lg">
-            {user ? "🖥️ Go to your dashboard" : "🖥️ Host a game"}
+        <motion.div variants={item} className="mt-7 overflow-visible">
+          <button
+            type="button"
+            onClick={() => goTrial()}
+            className="alkheelank-btn-primary k-btn-glow px-10 text-lg sm:px-14 sm:text-xl"
+          >
+            {copy.landing.hostCta}
           </button>
-          <p className="mt-2 text-center text-xs text-muted">
-            {user ? "Pick up where you left off." : "Sign in to save quizzes — or host as a guest."}
-          </p>
+          <p className="mt-2 text-sm font-semibold text-brand-mid">{copy.landing.hostCtaSub}</p>
+          <SocialProofBar />
+          <p className="mt-3 text-xs text-muted">{copy.landing.socialProof}</p>
         </motion.div>
+
+        <motion.div variants={item} className="mt-8 w-full max-w-lg px-1">
+          <LandingDemo />
+        </motion.div>
+
+        <motion.div variants={item} className="mt-14 flex w-full justify-center">
+          <LandingBenefits />
+        </motion.div>
+
+        <motion.div variants={item} className="mt-14 flex w-full justify-center">
+          <LandingQuotes />
+        </motion.div>
+
+        <motion.div variants={item} className="mt-14 flex w-full justify-center">
+          <LandingPricing onSubscribe={goTrial} />
+        </motion.div>
+
+        <motion.div variants={item} className="mt-10 w-full max-w-md">
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted">{copy.landing.joinTitle}</p>
+          <GlowCard>
+            <div className="p-5">
+              <PinInput
+                value={pin}
+                onChange={(v) => {
+                  setPin(v);
+                  if (pinError) setPinError(null);
+                }}
+              />
+              {pinError && (
+                <p className="mt-3 rounded-xl bg-tile-triangle/15 px-4 py-2 text-center text-sm font-semibold text-tile-triangle">
+                  {pinError}
+                </p>
+              )}
+              <button type="button" onClick={goPlay} className="alkheelank-btn-ghost mt-4 w-full">
+                {copy.landing.joinCta}
+              </button>
+            </div>
+          </GlowCard>
+        </motion.div>
+
+        <motion.div variants={item} className="mt-14 flex w-full justify-center">
+          <LandingFaq onHost={() => goTrial()} />
+        </motion.div>
+
+        <motion.div variants={item} className="mt-14 flex w-full justify-center">
+          <LandingFinalCta onHost={() => goTrial()} />
+        </motion.div>
+
+        <motion.p variants={item} className="mt-8 text-xs font-semibold uppercase tracking-widest text-muted">
+          {copy.landing.trustLine}
+        </motion.p>
       </motion.section>
 
-      {/* How it works */}
-      <motion.section
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={container}
-        className="relative z-10 mt-20"
-      >
-        <motion.h2 variants={item} className="text-center font-display text-2xl font-bold text-muted">
-          How it works
-        </motion.h2>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <motion.div
-              key={s.title}
-              variants={item}
-              className="alkheelank-card relative flex flex-col items-center p-6 text-center"
-            >
-              <span
-                className="grid h-16 w-16 place-items-center rounded-2xl"
-                style={{ backgroundColor: `${s.color}22` }}
-              >
-                <Shape type={s.shape} size={32} color={s.color} />
-              </span>
-              <span className="mt-3 text-xs font-bold uppercase tracking-widest text-muted">
-                Step {i + 1}
-              </span>
-              <h3 className="mt-1 font-display text-lg font-bold">{s.title}</h3>
-              <p className="mt-1 text-sm text-muted">{s.body}</p>
-            </motion.div>
-          ))}
-        </div>
-      </motion.section>
+      <footer className="relative z-10 mt-16 border-t border-edge pt-8 text-center text-xs text-muted">
+        <p>{BRAND.name} · {copy.landing.footer}</p>
+      </footer>
 
-      <BuiltByHamza className="relative z-10 mt-16" />
-    </div>
-  );
-}
-
-// Decorative, slowly drifting answer shapes — pure vibe, ignores pointer events.
-function FloatingShapes() {
-  const deco = [
-    { type: "triangle", color: ANSWERS[0].color, top: "12%", left: "6%", size: 46, delay: 0 },
-    { type: "diamond", color: ANSWERS[1].color, top: "22%", right: "8%", size: 54, delay: 0.6 },
-    { type: "circle", color: ANSWERS[2].color, top: "62%", left: "4%", size: 40, delay: 1.1 },
-    { type: "square", color: ANSWERS[3].color, top: "70%", right: "6%", size: 50, delay: 0.3 },
-  ];
-  return (
-    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
-      {deco.map((d, i) => (
-        <motion.div
-          key={i}
-          className="absolute opacity-20"
-          style={{ top: d.top, left: d.left, right: d.right }}
-          animate={{ y: [0, -16, 0], rotate: [0, 12, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: d.delay }}
-        >
-          <Shape type={d.type} size={d.size} color={d.color} />
-        </motion.div>
-      ))}
+      <AttentionPopups onHost={() => goTrial()} />
+      <SettingsPanel corner="bottom-left" />
     </div>
   );
 }

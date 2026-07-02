@@ -41,7 +41,7 @@ export default function QuestionPreview() {
       animateImage
       timerStrip={<TimerStrip timeLimit={q.timeLimit} startedAt={q.startedAt} />}
       answers={q.answers.map((a, i) => (
-        <AnswerTile key={i} index={i} type={q.type} text={a.text} onClick={() => {}} kahoot compact />
+        <AnswerTile key={i} index={i} type={q.type} text={a.text} onClick={() => {}} kahoot />
       ))}
     />
   );

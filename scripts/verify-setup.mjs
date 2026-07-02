@@ -38,7 +38,12 @@ if (!url || !key) {
     console.log("✗ Publishable key rejected — copy the key from Supabase → Settings → API Keys");
     ok = false;
   } else if (error) {
-    console.log("✗ Supabase API:", error.message);
+    const msg = error.message || "";
+    if (msg.includes("fetch failed") || error.cause?.code === "ENOTFOUND") {
+      console.log(`✗ Supabase unreachable — check VITE_SUPABASE_URL (${url})`);
+    } else {
+      console.log("✗ Supabase API:", msg);
+    }
     ok = false;
   } else {
     console.log("✓ Supabase API key works");

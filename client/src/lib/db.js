@@ -1,4 +1,31 @@
-import { supabase } from "./supabase.js";
+import { supabase, clientWithSession } from "./supabase.js";
+
+/** User-facing message for failed saves (RLS, expired session, etc.). */
+export function formatDbError(error) {
+  if (!error) return "Something went wrong — try again.";
+  if (isSetupError(error)) {
+    return "Database isn't set up yet — run supabase/schema.sql in the Supabase SQL editor.";
+  }
+  const code = error.code || "";
+  const msg = (error.message || String(error) || "").toLowerCase();
+  if (
+    msg.includes("failed to fetch") ||
+    msg.includes("networkerror") ||
+    msg.includes("load failed") ||
+    error?.name === "TypeError"
+  ) {
+    return "Can't reach the server. If you're saving a quiz, sign out and back in. For games, check that the game server is running.";
+  }
+  if (
+    code === "42501" ||
+    msg.includes("row-level security") ||
+    msg.includes("jwt") ||
+    code === "PGRST301"
+  ) {
+    return "Couldn't save — your session may have expired. Log out and sign in again.";
+  }
+  return error.message || "Something went wrong — try again.";
+}
 
 // Data access for saved quizzes, question bank, quiz shares, and game history.
 // Row Level Security on the server guarantees a user only ever reads/writes
@@ -35,13 +62,18 @@ export async function listQuizzes(userId) {
     .order("updated_at", { ascending: false });
 }
 
-export async function createQuiz(userId, { title, questions }) {
-  if (!supabase) return { error: { message: "Login required." } };
-  return supabase
-    .from("quizzes")
-    .insert({ user_id: userId, title, questions })
-    .select()
-    .single();
+export async function createQuiz(_userId, { title, questions }) {
+  const { sb, userId, error: authError } = await clientWithSession();
+  if (authError) return { data: null, error: authError };
+  try {
+    return await sb
+      .from("quizzes")
+      .insert({ user_id: userId, title, questions })
+      .select()
+      .single();
+  } catch (err) {
+    return { data: null, error: err };
+  }
 }
 
 export async function updateQuiz(userId, id, { title, questions }) {

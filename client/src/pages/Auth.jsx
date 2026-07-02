@@ -1,12 +1,22 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../lib/auth.jsx";
-import { consumeOAuthHashError, isOAuthCallback } from "../lib/authRedirect.js";
+import { consumeOAuthHashError, isOAuthCallback, oauthRedirectUrl } from "../lib/authRedirect.js";
+import { formatAuthError, probeSupabaseReachable } from "../lib/authErrors.js";
+import { redirectToCheckoutIfConfigured } from "../lib/billing.js";
+import { isBillingLive } from "../lib/billingMode.js";
+import {
+  clearPendingCheckoutPlan,
+  resolveCheckoutPlan,
+  setPendingCheckoutPlan,
+} from "../lib/pendingCheckout.js";
 import Logo from "../components/Logo.jsx";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const planParam = searchParams.get("plan");
   const { signIn, signUp, signInWithGoogle, configured, user, loading } = useAuth();
   const [mode, setMode] = useState("login"); // login | signup
   const [email, setEmail] = useState("");
@@ -14,7 +24,22 @@ export default function Auth() {
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [reachability, setReachability] = useState(null);
   const finishingOAuth = isOAuthCallback();
+  const checkoutPlan = resolveCheckoutPlan(planParam);
+  const checkoutStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (!configured) return;
+    let cancelled = false;
+    probeSupabaseReachable().then((result) => {
+      if (!cancelled) setReachability(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [configured]);
 
   useEffect(() => {
     const oauthErr = consumeOAuthHashError();
@@ -22,8 +47,47 @@ export default function Auth() {
   }, []);
 
   useEffect(() => {
-    if (!loading && user) navigate("/host", { replace: true });
-  }, [loading, user, navigate]);
+    if (loading || !user || checkoutStartedRef.current) return;
+
+    const plan = resolveCheckoutPlan(planParam);
+    if (!plan) {
+      navigate("/host", { replace: true });
+      return;
+    }
+
+    if (!isBillingLive) {
+      navigate("/host", { replace: true });
+      return;
+    }
+
+    checkoutStartedRef.current = true;
+    let cancelled = false;
+    setCheckoutBusy(true);
+    (async () => {
+      try {
+        const started = await redirectToCheckoutIfConfigured(plan, user);
+        if (cancelled) return;
+        if (started) {
+          clearPendingCheckoutPlan();
+          return;
+        }
+        setCheckoutBusy(false);
+        setError(
+          "Trial checkout isn't set up on this server yet. If you're testing locally, run npm run dev:server and restart the client.",
+        );
+      } catch (err) {
+        if (!cancelled) {
+          checkoutStartedRef.current = false;
+          setCheckoutBusy(false);
+          setError(err?.message || "Could not start trial checkout.");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, user, planParam, navigate]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -38,7 +102,7 @@ export default function Auth() {
     const { data, error: err } = await fn(email.trim(), password);
     setBusy(false);
     if (err) {
-      setError(err.message);
+      setError(formatAuthError(err));
       return;
     }
     if (mode === "signup" && !data?.session) {
@@ -47,6 +111,7 @@ export default function Auth() {
       setMode("login");
       return;
     }
+    if (resolveCheckoutPlan(planParam)) return;
     navigate("/host");
   };
 
@@ -54,12 +119,39 @@ export default function Auth() {
     setError(null);
     setNotice(null);
     setBusy(true);
-    const { error: err } = await signInWithGoogle();
+    const planId = resolveCheckoutPlan(planParam);
+    if (planId) setPendingCheckoutPlan(planId);
+    const plan = planId ? { plan: planId } : {};
+    const { data, error: err } = await signInWithGoogle(oauthRedirectUrl(plan));
     if (err) {
       setBusy(false);
-      setError(err.message);
+      setError(formatAuthError(err));
+      return;
     }
-    // On success the browser redirects to Google, so no further work here.
+    const url = data?.url;
+    if (url) {
+      try {
+        const probe = await fetch(url, {
+          redirect: "manual",
+          headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+        });
+        if (probe.status >= 400) {
+          const body = await probe.json().catch(() => ({}));
+          setBusy(false);
+          setError(formatAuthError({ message: body?.msg || body?.error_description || probe.statusText }));
+          return;
+        }
+      } catch {
+        // If the probe fails, still try the redirect.
+      }
+      window.location.assign(url);
+      return;
+    }
+    setBusy(false);
+    setError(
+      "Google sign-in could not start. Add this URL in Supabase → Authentication → URL configuration → Redirect URLs: " +
+        oauthRedirectUrl(),
+    );
   };
 
   return (
@@ -96,13 +188,34 @@ export default function Auth() {
         </div>
       )}
 
+      {configured && reachability && !reachability.ok && (
+        <div className="alkheelank-card mt-6 w-full p-4 text-center text-sm font-semibold text-tile-triangle">
+          {reachability.message}
+        </div>
+      )}
+
       {finishingOAuth && configured && (
         <div className="alkheelank-card mt-6 w-full p-4 text-center text-sm font-semibold text-muted">
           Finishing Google sign-in…
         </div>
       )}
 
-      <form onSubmit={submit} className="alkheelank-card mt-6 w-full p-6">
+      {checkoutBusy && user && checkoutPlan && (
+        <div className="alkheelank-card mt-6 w-full p-4 text-center text-sm font-semibold text-muted">
+          Redirecting to your free trial checkout…
+        </div>
+      )}
+
+      {checkoutPlan && !checkoutBusy && (
+        <p className="mt-4 text-center text-sm font-semibold text-brand-mid">
+          Sign in to start your Pro trial.
+        </p>
+      )}
+
+      <form
+        onSubmit={submit}
+        className={`alkheelank-card mt-6 w-full p-6 ${checkoutBusy ? "pointer-events-none opacity-40" : ""}`}
+      >
         <div className="mb-5 flex rounded-2xl bg-surface-muted p-1">
           {["login", "signup"].map((m) => (
             <button
@@ -114,7 +227,7 @@ export default function Auth() {
                 setNotice(null);
               }}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold capitalize transition ${
-                mode === m ? "bg-brand-gradient-2 text-white" : "text-muted"
+                mode === m ? "bg-brand-mid text-white" : "text-muted"
               }`}
             >
               {m === "login" ? "Log in" : "Sign up"}
@@ -125,7 +238,7 @@ export default function Auth() {
         <button
           type="button"
           onClick={google}
-          disabled={busy || !configured}
+          disabled={busy || !configured || reachability?.ok === false}
           className="flex w-full items-center justify-center gap-3 rounded-2xl bg-surface-muted px-4 py-3 font-bold text-ink-900 ring-1 ring-edge transition hover:bg-surface-elevated disabled:opacity-50"
         >
           <GoogleIcon />
@@ -138,6 +251,13 @@ export default function Auth() {
           <span className="h-px flex-1 bg-brand-start/25" />
         </div>
 
+        {mode === "signup" && (
+          <p className="mb-4 rounded-xl bg-surface-muted px-4 py-2.5 text-center text-xs text-muted">
+            New accounts work instantly with <b className="text-ink-900">Google</b>. Email sign-up needs
+            confirm email turned off in Supabase (or you may hit the 2/hour email cap).
+          </p>
+        )}
+
         <label className="mb-1 block text-sm font-semibold text-muted">Email</label>
         <input
           type="email"
@@ -146,7 +266,7 @@ export default function Auth() {
           placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          disabled={!configured}
+          disabled={!configured || reachability?.ok === false}
         />
 
         <label className="mb-1 mt-4 block text-sm font-semibold text-muted">Password</label>
@@ -157,7 +277,7 @@ export default function Auth() {
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          disabled={!configured}
+          disabled={!configured || reachability?.ok === false}
         />
 
         {error && (
@@ -173,7 +293,7 @@ export default function Auth() {
 
         <button
           type="submit"
-          disabled={busy || !configured}
+          disabled={busy || !configured || reachability?.ok === false}
           className="alkheelank-btn-primary mt-5 w-full text-lg"
         >
           {busy ? "…" : mode === "login" ? "Log in" : "Create account"}

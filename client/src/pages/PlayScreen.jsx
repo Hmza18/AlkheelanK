@@ -13,6 +13,7 @@ import { copy } from "../lib/copy.js";
 import { tileStyle } from "../lib/answers.js";
 import PinInput from "../components/PinInput.jsx";
 import { isCompletePin, sanitizePin } from "../lib/pin.js";
+import { starterImageSrc } from "../lib/starterImages.js";
 import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
@@ -22,6 +23,10 @@ import QuestionProgress from "../components/QuestionProgress.jsx";
 import ScrollHint from "../components/ScrollHint.jsx";
 import DoublePointsWarning from "../components/DoublePointsWarning.jsx";
 import Countdown from "../components/Countdown.jsx";
+import PlayerShareCard from "../components/PlayerShareCard.jsx";
+import GlowCard from "../components/ui/GlowCard.jsx";
+import PointsPop from "../components/ui/PointsPop.jsx";
+import confetti from "canvas-confetti";
 import { questionIntro } from "../lib/motion.js";
 
 export default function PlayScreen() {
@@ -47,11 +52,15 @@ export default function PlayScreen() {
   const [reveal, setReveal] = useState(null);
   const [standings, setStandings] = useState(null);
   const [finalRank, setFinalRank] = useState(null);
+  const [finalPayload, setFinalPayload] = useState(null);
   const [paused, setPaused] = useState(false);
   const [players, setPlayers] = useState([]);
   const [hostConnected, setHostConnected] = useState(true);
   const [selfConnected, setSelfConnected] = useState(true);
   const [showReconnectBanner, setShowReconnectBanner] = useState(false);
+  const [avatarEditorOpen, setAvatarEditorOpen] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [hintText, setHintText] = useState(null);
   const joinInfoRef = useRef(null);
   const pinRef = useRef(pin);
   const teamIdRef = useRef(teamId);
@@ -194,6 +203,7 @@ export default function PlayScreen() {
     const onHostStatus = ({ connected }) => {
       setHostConnected(connected !== false);
     };
+    const onHintReveal = ({ hint }) => setHintText(hint ?? null);
     const onQuestion = (q) => {
       setDoubleWarning(null);
       setQuestion(q);
@@ -203,6 +213,7 @@ export default function PlayScreen() {
       setReveal(null);
       setStandings(null);
       setPaused(!!q.paused);
+      setHintText(null);
       setPhase("question");
     };
     const onDoublePointsWarning = (warning) => {
@@ -225,10 +236,17 @@ export default function PlayScreen() {
       setPhase("countdown");
     };
     const onLocked = (payload) => {
-      setSelected(payload.answerIndex);
+      // Don't clobber a local selection already set by submit(); for ms/type/
+      // puzzle answerIndex is null, so fall back to a truthy lock marker.
+      setSelected((s) => (s == null ? payload.answerIndex ?? true : s));
       setWaitContext(payload.waitContext ?? null);
       setPhase((p) => (p === "question" ? "answered" : p));
       sfx.lock();
+    };
+    const onAnswerRejected = () => {
+      setSelected(null);
+      setWaitContext(null);
+      setPhase("question");
     };
     const onReveal = (r) => setReveal(r);
     const onPlayers = (list) => setPlayers(list || []);
@@ -250,6 +268,7 @@ export default function PlayScreen() {
     const onFinal = (f) => {
       const myId = joinInfoRef.current?.pid;
       setFinalRank(f.standings.find((p) => p.id === myId));
+      setFinalPayload(f);
       setPhase("final");
     };
     const onEnded = () => {
@@ -283,9 +302,11 @@ export default function PlayScreen() {
     socket.on("player:error", onPlayerError);
     socket.on("player:kicked", onKicked);
     socket.on("game:question", onQuestion);
+    socket.on("player:hintReveal", onHintReveal);
     socket.on("game:countdown", onCountdown);
     socket.on("game:doublePointsWarning", onDoublePointsWarning);
     socket.on("player:answerLocked", onLocked);
+    socket.on("player:answerRejected", onAnswerRejected);
     socket.on("player:result", onResult);
     socket.on("game:standings", onStandings);
     socket.on("game:paused", onPaused);
@@ -304,9 +325,11 @@ export default function PlayScreen() {
       socket.off("player:error", onPlayerError);
       socket.off("player:kicked", onKicked);
       socket.off("game:question", onQuestion);
+      socket.off("player:hintReveal", onHintReveal);
       socket.off("game:countdown", onCountdown);
       socket.off("game:doublePointsWarning", onDoublePointsWarning);
       socket.off("player:answerLocked", onLocked);
+      socket.off("player:answerRejected", onAnswerRejected);
       socket.off("player:result", onResult);
       socket.off("game:standings", onStandings);
       socket.off("game:paused", onPaused);
@@ -349,14 +372,73 @@ export default function PlayScreen() {
     }
   };
 
-  const answer = (i) => {
-    if (phase !== "question" || selected !== null || paused) return;
-    setSelected(i);
-    sfx.tap();
-    socket.emit("player:answer", { answerIndex: i });
+  const openAvatarEditor = () => {
+    setAvatar(me?.character || DEFAULT_AVATAR);
+    setAvatarEditorOpen(true);
+    setError(null);
   };
 
-  const settingsFab = <SettingsPanel corner="bottom-left" triggerClassName="settings-fab--player" />;
+  const saveAvatar = (e) => {
+    e.preventDefault();
+    setSavingAvatar(true);
+    setError(null);
+    socket.emit("player:updateCharacter", { character: avatar }, (res) => {
+      setSavingAvatar(false);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      const nextCharacter = res?.character || avatar;
+      setMe((m) => (m ? { ...m, character: nextCharacter } : m));
+      if (joinInfoRef.current) {
+        const session = { ...joinInfoRef.current, character: nextCharacter };
+        joinInfoRef.current = session;
+        savePlayerSession(session);
+      }
+      setAvatarEditorOpen(false);
+      sfx.confirm?.();
+    });
+  };
+
+  const canEditLook = !!me && phase !== "join" && phase !== "ended";
+  const playerChrome = (
+    <>
+      <SettingsPanel
+        corner="bottom-left"
+        triggerClassName="settings-fab--player"
+        onEditLook={canEditLook ? openAvatarEditor : null}
+      />
+      {avatarEditorOpen && (
+        <div className="fixed inset-0 z-[60] overflow-y-auto bg-surface">
+          <AvatarPicker
+            editMode
+            avatar={avatar}
+            setAvatar={setAvatar}
+            onDone={saveAvatar}
+            onCancel={() => {
+              setAvatarEditorOpen(false);
+              setError(null);
+            }}
+            joining={savingAvatar}
+            error={error}
+          />
+        </div>
+      )}
+    </>
+  );
+
+  // One submit path for every question type. `payload` is the wire shape the
+  // server grades: { index } for mc/tf, { indices } for ms, { text } for type,
+  // { order } for puzzle. `selected` flips non-null to lock the UI; for mc/tf we
+  // keep the numeric index so the waiting screen can echo the chosen tile.
+  const submit = (payload) => {
+    if (phase !== "question" || selected !== null || paused) return;
+    setSelected(Number.isInteger(payload?.index) ? payload.index : true);
+    sfx.lock();
+    socket.emit("player:answer", payload);
+  };
+
+  const settingsFab = playerChrome;
   // Shown mid-game whenever this phone's own connection drops (joined players only).
   const connectionBanner = me ? <PlayerConnectionBanner connected={selfConnected} /> : null;
 
@@ -397,6 +479,13 @@ export default function PlayScreen() {
         <CenterCard>
           <PlayerReconnectBanner show={showReconnectBanner} />
           <Avatar config={me?.character} size={80} ring />
+          <button
+            type="button"
+            onClick={openAvatarEditor}
+            className="mt-3 text-sm font-bold text-brand-mid underline-offset-2 hover:underline landscapePhone:mt-2 landscapePhone:text-xs"
+          >
+            ✨ {copy.player.editLookCta}
+          </button>
           <h2 className="mt-4 alkheelank-heading text-2xl landscapePhone:mt-2 landscapePhone:text-xl">{copy.player.joined}</h2>
           <p className="mt-1 text-3xl font-bold alkheelank-gradient-text landscapePhone:text-2xl">{me?.nick}</p>
           {me?.team?.name && (
@@ -446,10 +535,13 @@ export default function PlayScreen() {
         {connectionBanner}
         <HostStatusBanner connected={hostConnected} forPlayer />
         <QuestionCard
+          key={question.index}
           q={question}
           selected={selected}
-          onAnswer={answer}
+          onSubmit={submit}
+          onHint={() => socket.emit("player:hint")}
           paused={paused}
+          hintText={hintText}
         />
       </>
     );
@@ -489,19 +581,18 @@ export default function PlayScreen() {
     );
   }
   if (phase === "final") {
-    const onPodium = isPodiumRank(finalRank?.rank);
     return (
-      <CenterCard>
-        <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{onPodium ? copy.player.onPodium : copy.player.final}</h2>
-        {!onPodium && (
-          <p className="mt-2 text-2xl font-bold alkheelank-gradient-text landscapePhone:mt-1 landscapePhone:text-xl">#{finalRank?.rank ?? "-"}</p>
-        )}
-        {onPodium && <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">{copy.player.onPodiumTeaser}</p>}
-        <p className={`${onPodium ? "mt-4" : "mt-1"} text-muted landscapePhone:mt-2 landscapePhone:text-sm`}>{(finalRank?.score ?? 0).toLocaleString()} pts total</p>
-        <button type="button" onClick={() => navigate("/")} className="alkheelank-btn-primary mt-6 w-full landscapePhone:mt-3">
-          {copy.player.playAgain}
-        </button>
-      </CenterCard>
+      <>
+        {settingsFab}
+        <div className="alkheelank-screen-player player-phase-fill flex items-center overflow-y-auto px-5 py-8 landscapePhone:py-4">
+          <PlayerShareCard
+            me={me}
+            finalRank={finalRank}
+            recap={finalPayload?.recap}
+            quizTitle={finalPayload?.title}
+          />
+        </div>
+      </>
     );
   }
   return (
@@ -547,7 +638,158 @@ function JoinPin({ pin, setPin, goProfile, error }) {
   );
 }
 
-function QuestionCard({ q, selected, onAnswer, paused }) {
+const TYPE_TAGLINE = {
+  tf: "True or false?",
+  ms: "Pick all that apply",
+  type: "Type your answer",
+  puzzle: "Put them in order",
+};
+
+function QuestionCard({ q, selected, onSubmit, onHint, paused, hintText }) {
+  const type = q?.type || "mc";
+  const locked = selected !== null || paused;
+  const [hintOpen, setHintOpen] = useState(false);
+  const [picks, setPicks] = useState([]); // ms: chosen option indices
+  const [text, setText] = useState(""); // type: free text
+  const [order, setOrder] = useState(() => (q?.answers || []).map((_, i) => i)); // puzzle: presented slots
+  const noPoints = q?.points === "none";
+  const openHint = () => {
+    if (hintOpen || locked) return;
+    setHintOpen(true);
+    onHint?.();
+    sfx.tap?.();
+  };
+  const togglePick = (i) =>
+    !locked && setPicks((p) => (p.includes(i) ? p.filter((x) => x !== i) : [...p, i]));
+  const move = (pos, dir) => {
+    if (locked) return;
+    setOrder((o) => {
+      const j = pos + dir;
+      if (j < 0 || j >= o.length) return o;
+      const next = [...o];
+      [next[pos], next[j]] = [next[j], next[pos]];
+      return next;
+    });
+  };
+
+  // Type-specific input rendered in the answer dock.
+  let answersContent;
+  if (type === "ms") {
+    answersContent = (
+      <div className="flex w-full flex-col gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {q.answers.map((a, i) => (
+            <AnswerTile
+              key={i}
+              index={i}
+              type="mc"
+              text={a.text}
+              onClick={() => togglePick(i)}
+              selected={picks.includes(i)}
+              disabled={locked}
+              kahoot
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => picks.length && onSubmit({ indices: picks })}
+          disabled={locked || picks.length === 0}
+          className="alkheelank-btn-primary mt-1 w-full disabled:opacity-40"
+        >
+          Submit {picks.length > 0 ? `(${picks.length})` : ""}
+        </button>
+      </div>
+    );
+  } else if (type === "type") {
+    answersContent = (
+      <form
+        className="flex w-full flex-col gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!locked && text.trim()) onSubmit({ text: text.trim() });
+        }}
+      >
+        <input
+          className="alkheelank-input !text-left !text-lg"
+          placeholder="Type your answer…"
+          maxLength={120}
+          value={text}
+          disabled={locked}
+          autoFocus
+          onChange={(e) => setText(e.target.value)}
+        />
+        <button
+          type="submit"
+          disabled={locked || !text.trim()}
+          className="alkheelank-btn-primary w-full disabled:opacity-40"
+        >
+          Submit
+        </button>
+      </form>
+    );
+  } else if (type === "puzzle") {
+    answersContent = (
+      <div className="flex w-full flex-col gap-2">
+        {order.map((slot, pos) => (
+          <div
+            key={slot}
+            className="flex items-center gap-2 rounded-2xl bg-surface-elevated px-3 py-2.5 ring-1 ring-edge landscapePhone:py-1.5"
+          >
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand-mid/15 text-sm font-extrabold text-brand-mid">
+              {pos + 1}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-left font-semibold text-ink-900">
+              {q.answers[slot]?.text}
+            </span>
+            <button
+              type="button"
+              onClick={() => move(pos, -1)}
+              disabled={locked || pos === 0}
+              aria-label="Move up"
+              className="min-h-touch rounded-lg px-2 py-1.5 text-lg font-bold text-muted ring-1 ring-edge hover:text-ink-900 disabled:opacity-30"
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              onClick={() => move(pos, 1)}
+              disabled={locked || pos === order.length - 1}
+              aria-label="Move down"
+              className="min-h-touch rounded-lg px-2 py-1.5 text-lg font-bold text-muted ring-1 ring-edge hover:text-ink-900 disabled:opacity-30"
+            >
+              ↓
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => !locked && onSubmit({ order })}
+          disabled={locked}
+          className="alkheelank-btn-primary mt-1 w-full disabled:opacity-40"
+        >
+          Submit order
+        </button>
+      </div>
+    );
+  } else {
+    // mc / tf — classic positional tiles.
+    answersContent = q?.answers?.map((a, i) => (
+      <AnswerTile
+        key={i}
+        index={i}
+        type={type}
+        text={a.text}
+        onClick={() => onSubmit({ index: i })}
+        selected={selected === i}
+        disabled={locked}
+        staggerIndex={i}
+        entranceDelay={questionIntro.tiles}
+        kahoot
+      />
+    ));
+  }
+
   return (
     <QuestionScreen
       variant="player"
@@ -564,8 +806,13 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
                 ⚡2×
               </span>
             ) : null}
-            <span className="landscapePhone:hidden">{q?.type === "tf" ? "True or false?" : "Speed counts"}</span>
-            <span className="hidden landscapePhone:inline">{q?.type === "tf" ? "T / F" : "⚡"}</span>
+            {noPoints ? (
+              <span className="hidden shrink-0 rounded-full bg-surface-muted px-2 py-0.5 text-[0.625rem] font-extrabold text-muted ring-1 ring-edge landscapePhone:inline">
+                0×
+              </span>
+            ) : null}
+            <span className="landscapePhone:hidden">{noPoints ? "Just for fun" : TYPE_TAGLINE[type] || "Speed counts"}</span>
+            <span className="hidden landscapePhone:inline">{type === "tf" ? "T / F" : type === "ms" ? "☑" : type === "type" ? "⌨" : type === "puzzle" ? "↕" : "⚡"}</span>
           </span>
         </div>
       }
@@ -578,8 +825,32 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
         ) : null
       }
       prompt={q?.question}
-      image={q?.image}
+      image={starterImageSrc(q?.image)}
       animateImage
+      notice={
+        q?.hasHint ? (
+          <div className="mx-auto mt-2 flex shrink-0 justify-center">
+            {hintOpen ? (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-md rounded-2xl bg-brand-mid/10 px-4 py-2 text-center text-sm font-semibold text-ink-900 ring-1 ring-brand-mid/30 landscapePhone:py-1.5 landscapePhone:text-xs"
+              >
+                🔍 {hintText ?? "…"}
+              </motion.p>
+            ) : (
+              <button
+                type="button"
+                onClick={openHint}
+                disabled={selected !== null || paused}
+                className="min-h-touch rounded-full bg-surface-muted px-4 py-2 text-sm font-bold text-muted ring-1 ring-edge transition hover:text-ink-900 disabled:opacity-40 landscapePhone:py-1.5 landscapePhone:text-xs"
+              >
+                🔍 Closer Look <span className="font-normal">(−50% points)</span>
+              </button>
+            )}
+          </div>
+        ) : null
+      }
       timerStrip={
         <TimerStrip
           timeLimit={q?.timeLimit}
@@ -588,21 +859,7 @@ function QuestionCard({ q, selected, onAnswer, paused }) {
           introDelay={questionIntro.timer}
         />
       }
-      answers={q?.answers?.map((a, i) => (
-        <AnswerTile
-          key={i}
-          index={i}
-          type={q.type}
-          text={a.text}
-          onClick={() => onAnswer(i)}
-          selected={selected === i}
-          disabled={selected !== null || paused}
-          staggerIndex={i}
-          entranceDelay={questionIntro.tiles}
-          kahoot
-          compact
-        />
-      ))}
+      answers={answersContent}
       overlay={
         paused ? (
           <motion.div
@@ -625,39 +882,99 @@ function ResultCard({ result, q, reveal }) {
     : result?.answered
     ? copy.player.result.wrong
     : copy.player.result.timeout;
-  // Show the right answer to anyone who missed it. The reveal broadcast carries
-  // the correct index (only sent after the question closes, so no spoilers).
-  const correctAnswer =
-    !result?.correct && reveal?.index === q?.index && reveal?.correctIndex != null
-      ? q?.answers?.[reveal.correctIndex]?.text
-      : null;
-  const correctStyle = correctAnswer != null ? tileStyle(q?.type, reveal.correctIndex) : null;
+  const isCorrect = !!result?.correct;
+  const isWrong = result?.answered && !result?.correct;
+
+  useEffect(() => {
+    if (isCorrect) {
+      confetti({ particleCount: 60, spread: 70, origin: { y: 0.65 } });
+    }
+  }, [isCorrect]);
+
+  const showCorrect = !result?.correct && reveal?.index === q?.index;
+  let correctAnswer = null;
+  let correctStyle = null;
+  if (showCorrect) {
+    if (q?.type === "type" && reveal?.answerText) {
+      correctAnswer = reveal.answerText;
+    } else if (q?.type === "puzzle" && Array.isArray(reveal?.order)) {
+      correctAnswer = reveal.order.join(" → ");
+    } else if (q?.type === "ms" && Array.isArray(reveal?.correctIndices)) {
+      correctAnswer = reveal.correctIndices.map((i) => q?.answers?.[i]?.text).filter(Boolean).join(", ");
+    } else if (reveal?.correctIndex != null) {
+      correctAnswer = q?.answers?.[reveal.correctIndex]?.text;
+      correctStyle = tileStyle(q?.type, reveal.correctIndex);
+    }
+  }
+
   return (
-    <CenterCard>
-      <h2 className="alkheelank-heading text-3xl landscapePhone:text-2xl">{title}</h2>
-      <p className="mt-2 text-2xl font-bold landscapePhone:mt-1 landscapePhone:text-xl">
-        {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
-      </p>
-      {correctAnswer && (
-        <p className="mt-3 rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge landscapePhone:mt-2">
-          <span className="text-muted">{copy.player.result.correctWas}: </span>
-          <span style={{ color: correctStyle.color }}>{correctStyle.glyph}</span> {correctAnswer}
-        </p>
-      )}
-      <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">
-        {playerRankLine(result?.rank, result?.totalPlayers)} ·{" "}
-        {(result?.totalScore ?? 0).toLocaleString()} pts total
-      </p>
-      {result?.team?.name && (
-        <p className="mt-2 text-sm font-bold landscapePhone:mt-1" style={{ color: result.team.color }}>
-          {result.team.name}
-        </p>
-      )}
-      {q?.doublePoints && (
-        <p className="mt-2 text-xs font-bold text-brand-end landscapePhone:mt-1">Double-points question</p>
-      )}
-      <p className="mt-4 text-muted animate-pulse landscapePhone:mt-2 landscapePhone:text-sm">{copy.player.result.watchScreen}</p>
-    </CenterCard>
+    <>
+      <motion.div
+        initial={{ opacity: isCorrect ? 0.85 : 0.55 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.55 }}
+        className={`result-flash ${isCorrect ? "result-flash--correct" : isWrong ? "result-flash--wrong" : ""}`}
+        aria-hidden
+      />
+      <div className={`alkheelank-screen-player player-phase-fill flex items-center overflow-y-auto text-center landscapePhone:py-2 ${isWrong ? "result-shake" : ""}`}>
+        <motion.div
+          initial={{ scale: 0.88, opacity: 0, y: 16 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 320, damping: 22 }}
+          className="relative mx-auto my-auto w-full max-w-md px-4"
+        >
+          {isCorrect && result?.points > 0 && (
+            <PointsPop key={result.points} points={result.points} className="top-0" />
+          )}
+          <GlowCard intense={isCorrect}>
+            <div className="relative p-8 landscapePhone:p-4">
+              <motion.h2
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                className={`alkheelank-heading text-3xl landscapePhone:text-2xl ${isCorrect ? "k-shimmer-text" : isWrong ? "text-tile-triangle" : ""}`}
+              >
+                {title}
+              </motion.h2>
+              <motion.p
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.08, type: "spring", stiffness: 380, damping: 20 }}
+                className={`mt-2 text-2xl font-bold landscapePhone:mt-1 landscapePhone:text-xl ${isCorrect ? "text-brand-mid" : ""}`}
+              >
+                {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
+              </motion.p>
+          {correctAnswer && (
+            <p className="mt-3 rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge landscapePhone:mt-2">
+              <span className="text-muted">{copy.player.result.correctWas}: </span>
+              {correctStyle && <span style={{ color: correctStyle.color }}>{correctStyle.glyph}</span>} {correctAnswer}
+            </p>
+          )}
+          <p className="mt-2 text-muted landscapePhone:mt-1 landscapePhone:text-sm">
+            {playerRankLine(result?.rank, result?.totalPlayers)} ·{" "}
+            {(result?.totalScore ?? 0).toLocaleString()} pts total
+          </p>
+          {result?.team?.name && (
+            <p className="mt-2 text-sm font-bold landscapePhone:mt-1" style={{ color: result.team.color }}>
+              {result.team.name}
+            </p>
+          )}
+          {q?.doublePoints && (
+            <p className="mt-2 text-xs font-bold text-brand-end landscapePhone:mt-1">Double-points question</p>
+          )}
+          {q?.points === "none" && (
+            <p className="mt-2 text-xs font-bold text-muted landscapePhone:mt-1">Just for fun — no points</p>
+          )}
+          {result?.usedHint && (
+            <p className="mt-2 text-xs font-bold text-muted landscapePhone:mt-1">🔍 Closer Look used (−50%)</p>
+          )}
+          <p className="mt-4 text-muted animate-pulse landscapePhone:mt-2 landscapePhone:text-sm">{copy.player.result.watchScreen}</p>
+          <ScrollHint />
+            </div>
+          </GlowCard>
+        </motion.div>
+      </div>
+    </>
   );
 }
 

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { STARTER_SUMMARIES } from "../data/starterSummaries.js";
+import { STARTER_COPY_DATA } from "../data/starterCopyData.js";
+import { applyStarterTemplateImages, starterCoverSrc } from "../lib/starterImages.js";
 import { useAuth } from "../lib/auth.jsx";
 import {
   createQuiz,
@@ -11,11 +13,18 @@ import {
   listHistory,
   createQuizShare,
   isSetupError,
+  formatDbError,
 } from "../lib/db.js";
+import ModalShell from "../components/ui/ModalShell.jsx";
 import Logo from "../components/Logo.jsx";
 import SettingsPanel from "../components/SettingsPanel.jsx";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
+import { serverUrl } from "../lib/serverUrl.js";
+
+/** Full starter payload for copy — bundled so copy works without the game server. */
+function starterCopyPayload(starterId) {
+  return STARTER_COPY_DATA[starterId] ?? null;
+}
 
 const CATEGORY_COLORS = {
   Mixed: "#3b82f6",
@@ -35,6 +44,7 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
   const [needsSetup, setNeedsSetup] = useState(false);
   const [shareTarget, setShareTarget] = useState(null); // quiz object being shared
   const [copyingId, setCopyingId] = useState(null);     // starter id currently being copied
+  const [copyError, setCopyError] = useState(null);
 
   const refresh = useCallback(async () => {
     if (user) {
@@ -67,16 +77,33 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
   const handleCopyStarter = async (starter) => {
     if (!user) { navigate("/login"); return; }
     setCopyingId(starter.id);
+    setCopyError(null);
     try {
-      const res = await fetch(`${SERVER_URL}/quizzes/${starter.id}`);
-      const data = await res.json();
-      const { data: saved } = await createQuiz(user.id, {
+      let data = starterCopyPayload(starter.id);
+      if (!data?.questions) {
+        const res = await fetch(serverUrl(`/quizzes/${starter.id}`));
+        if (!res.ok) {
+          setCopyError("Couldn't load that starter — try again.");
+          return;
+        }
+        data = await res.json();
+      }
+      if (!Array.isArray(data.questions)) {
+        setCopyError("That starter didn't load correctly — try again.");
+        return;
+      }
+      const { data: saved, error } = await createQuiz(user.id, {
         title: data.title,
-        questions: data.questions,
+        questions: applyStarterTemplateImages(starter.id, data.questions),
       });
+      if (error) {
+        setCopyError(formatDbError(error));
+        return;
+      }
       if (saved) setQuizzes((qs) => [saved, ...qs]);
-    } catch {
-      // non-fatal — the user can try again
+    } catch (err) {
+      console.error("[copy-starter]", err);
+      setCopyError(formatDbError(err));
     } finally {
       setCopyingId(null);
     }
@@ -211,6 +238,11 @@ export default function Dashboard({ guest, onNew, onEdit, onLaunchSaved, onLaunc
         <p className="mt-1 text-muted text-sm">
           Ready to play out of the box. Launch directly or copy one into your library to edit.
         </p>
+        {copyError && (
+          <p className="mt-2 text-sm font-semibold text-tile-triangle" role="alert">
+            {copyError}
+          </p>
+        )}
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {STARTER_SUMMARIES.map((q) => (
             <StarterCard
@@ -331,7 +363,7 @@ function MyQuizCard({ quiz, onLaunch, onEdit, onDuplicate, onDelete, onShare }) 
         </button>
         <button
           onClick={onLaunch}
-          className="flex-1 rounded-xl bg-brand-gradient-2 py-2 text-sm font-bold text-white hover:brightness-110"
+          className="flex-1 rounded-xl bg-brand-mid py-2 text-sm font-bold text-white hover:brightness-110"
         >
           ▶ Host
         </button>
@@ -345,18 +377,24 @@ function MyQuizCard({ quiz, onLaunch, onEdit, onDuplicate, onDelete, onShare }) 
 // ---------------------------------------------------------------------------
 function StarterCard({ quiz, onLaunch, onCopy, copying, canCopy }) {
   const accent = CATEGORY_COLORS[quiz.category] || "#3b82f6";
+  const [coverSrc, setCoverSrc] = useState(quiz.coverImage);
   return (
     <div
       className="alkheelank-card flex flex-col overflow-hidden p-0"
       style={{ borderTop: `3px solid ${accent}` }}
     >
-      {quiz.coverImage && (
+      {coverSrc && (
         <div className="relative h-36 w-full shrink-0 overflow-hidden">
           <img
-            src={quiz.coverImage}
+            src={coverSrc}
             alt=""
             className="h-full w-full object-cover"
             loading="lazy"
+            onError={() => {
+              if (quiz.coverFallback && coverSrc !== quiz.coverFallback) {
+                setCoverSrc(quiz.coverFallback);
+              }
+            }}
           />
           <div
             className="absolute inset-0 bg-gradient-to-t from-surface-elevated via-surface-elevated/40 to-transparent"
@@ -437,64 +475,54 @@ function ShareModal({ quiz, userId, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-5">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-edge-scrim backdrop-blur-sm"
-      />
-      <motion.div
-        initial={{ scale: 0.93, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="relative z-10 w-full max-w-sm rounded-3xl bg-surface-elevated p-7 shadow-2xl ring-1 ring-edge"
-      >
-        <h2 className="font-display text-2xl font-bold">Share quiz</h2>
-        <p className="mt-1 text-sm text-muted">
-          Anyone with the link gets a copy — your original stays untouched.
-        </p>
-        <div className="mt-3 rounded-xl bg-surface-muted px-4 py-3 ring-1 ring-edge">
-          <p className="font-display text-lg font-bold">{quiz.title}</p>
-          <p className="text-sm text-muted">{quiz.questions?.length || 0} questions</p>
-        </div>
+    <ModalShell onBackdropClick={onClose} size="md" zIndex={90} panelClassName="k-modal-panel--left">
+      <p className="k-modal__eyebrow">Share</p>
+      <h2 className="k-modal__title">Share quiz</h2>
+      <p className="k-modal__body">Anyone with the link gets a copy — your original stays untouched.</p>
 
-        {step === "idle" && (
-          <button onClick={generate} className="alkheelank-btn-primary mt-5 w-full">
+      <div className="k-modal__callout">
+        <p className="font-display text-lg font-bold text-ink-900">{quiz.title}</p>
+        <p className="mt-1 text-sm text-muted">{quiz.questions?.length || 0} questions</p>
+      </div>
+
+      {step === "idle" && (
+        <div className="k-modal__actions">
+          <button type="button" onClick={generate} className="alkheelank-btn-primary k-btn-glow w-full">
             Generate share link
           </button>
-        )}
-        {step === "creating" && (
-          <p className="mt-5 text-center text-muted animate-pulse">Creating…</p>
-        )}
-        {step === "error" && (
-          <p className="mt-5 text-center font-semibold text-tile-triangle">{errMsg}</p>
-        )}
-        {step === "done" && code && (
-          <div className="mt-5 space-y-3">
-            <div className="flex items-center gap-3 rounded-2xl bg-surface-muted p-3 ring-1 ring-edge">
-              <code className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold text-ink-900">
-                {shareUrl}
-              </code>
-              <button
-                onClick={copyLink}
-                className="shrink-0 rounded-xl bg-brand-mid/20 px-3 py-1.5 text-xs font-bold text-brand-end hover:bg-brand-mid/40"
-              >
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-            <p className="text-center text-xs text-muted">
-              Share code: <b className="font-mono text-ink-900">{code}</b>
-            </p>
+        </div>
+      )}
+      {step === "creating" && (
+        <p className="k-modal__body text-center animate-pulse">Creating…</p>
+      )}
+      {step === "error" && (
+        <p className="k-modal__body text-center font-semibold text-tile-triangle">{errMsg}</p>
+      )}
+      {step === "done" && code && (
+        <div className="mt-5 space-y-3">
+          <div className="flex items-center gap-3 rounded-2xl bg-surface-muted p-4 ring-1 ring-edge">
+            <code className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold text-ink-900">
+              {shareUrl}
+            </code>
+            <button
+              type="button"
+              onClick={copyLink}
+              className="shrink-0 rounded-xl bg-brand-mid/20 px-4 py-2 text-sm font-bold text-brand-end hover:bg-brand-mid/40"
+            >
+              {copied ? "Copied!" : "Copy"}
+            </button>
           </div>
-        )}
+          <p className="text-center text-sm text-muted">
+            Share code: <b className="font-mono text-ink-900">{code}</b>
+          </p>
+        </div>
+      )}
 
-        <button
-          onClick={onClose}
-          className="mt-5 w-full rounded-xl bg-surface-muted py-2.5 text-sm font-semibold text-muted ring-1 ring-edge hover:text-ink-900"
-        >
+      <div className="k-modal__actions">
+        <button type="button" onClick={onClose} className="alkheelank-btn-ghost w-full">
           Close
         </button>
-      </motion.div>
-    </div>
+      </div>
+    </ModalShell>
   );
 }

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { socket, ensureConnected, wakeServer, connectSocket, emitWithAck, formatConnectError } from "../socket.js";
-import { sfx, music } from "../lib/sound.js";
+import { sfx, music, setLobbyMusicActive } from "../lib/sound.js";
 import Recap from "../components/Recap.jsx";
 import { logGame } from "../lib/db.js";
 import { useAuth } from "../lib/auth.jsx";
@@ -25,6 +25,7 @@ import Countdown from "../components/Countdown.jsx";
 import { copy } from "../lib/copy.js";
 import { questionIntro } from "../lib/motion.js";
 import { saveHostSession, loadHostSession, clearHostSession } from "../lib/hostSession.js";
+import { starterImageSrc, starterImageStoragePath } from "../lib/starterImages.js";
 import { tileStyle } from "../lib/answers.js";
 
 // Reveal stage 0 = "let the host screen auto-play the social reveal
@@ -51,7 +52,6 @@ function statusToPhase(status, state) {
 const DEFAULT_SETTINGS = {
   mode: "solo",
   teamPreset: "kidsAdults",
-  music: true,
   randomizeQuestions: false,
   randomizeAnswers: false,
   speedScoring: true,
@@ -89,12 +89,33 @@ export default function HostGame({ launch, onExit }) {
   const hostTokenRef = useRef(null);
   const pinRef = useRef(null);
   const wasHostDisconnectRef = useRef(false);
+  const endedCleanlyRef = useRef(false);
+
+  const leaveGame = useCallback(() => {
+    if (pinRef.current && !endedCleanlyRef.current) {
+      endedCleanlyRef.current = true;
+      socket.emit("host:end");
+    }
+    onExit();
+  }, [onExit]);
 
   useEffect(() => {
-    if (phase === "lobby" && settings.music) music.start();
-    else music.stop();
-    return () => music.stop();
-  }, [phase, settings.music]);
+    return () => {
+      if (pinRef.current && !endedCleanlyRef.current) {
+        endedCleanlyRef.current = true;
+        socket.emit("host:end");
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (phase === "lobby") {
+      setLobbyMusicActive(true);
+      return () => setLobbyMusicActive(false);
+    }
+    setLobbyMusicActive(false);
+    music.stop();
+  }, [phase]);
 
   useEffect(() => {
     wakeServer();
@@ -186,7 +207,10 @@ export default function HostGame({ launch, onExit }) {
       setPhase("countdown");
     };
     const onQuestion = (q) => {
-      setQuestion(q);
+      setQuestion({
+        ...q,
+        image: q.image ? starterImageStoragePath(q.image) ?? q.image : q.image,
+      });
       setDoubleWarning(null);
       setReveal(null);
       setStandings(null);
@@ -194,7 +218,8 @@ export default function HostGame({ launch, onExit }) {
       setAnswerCount((c) => ({ answered: 0, total: c.total }));
       setPhase("question");
     };
-    const onQuestionImage = ({ index, image }) => setImages((m) => ({ ...m, [index]: image }));
+    const onQuestionImage = ({ index, image }) =>
+      setImages((m) => ({ ...m, [index]: starterImageStoragePath(image) ?? image }));
     const onAnswerCount = (c) => setAnswerCount(c);
     const onReveal = (r) => {
       setReveal(r);
@@ -365,7 +390,9 @@ export default function HostGame({ launch, onExit }) {
     }
   };
 
-  const currentImage = question ? question.image ?? images[question.index] ?? null : null;
+  const currentImage = question
+    ? starterImageSrc(question.image ?? images[question.index] ?? null)
+    : null;
 
   // What's about to be launched — shown on the setup screen before the room exists.
   const launchQuizMeta =
@@ -455,12 +482,12 @@ export default function HostGame({ launch, onExit }) {
             socket.emit("host:next");
           }} />
         )}
-        {phase === "final" && final && <FinalView final={final} onHome={onExit} />}
+        {phase === "final" && final && <FinalView final={final} onHome={leaveGame} />}
         {phase === "ended" && (
           <Centered>
             <h2 className="alkheelank-heading text-4xl">{copy.ended.title}</h2>
             <p className="mt-3 text-muted">{endedReason}</p>
-            <button onClick={onExit} className="alkheelank-btn-primary mt-8">Back to dashboard</button>
+            <button onClick={leaveGame} className="alkheelank-btn-primary mt-8">Back to dashboard</button>
           </Centered>
         )}
       </PhaseShell>
@@ -487,30 +514,28 @@ export default function HostGame({ launch, onExit }) {
 
       {confirmAction === "closeLobby" && (
         <ConfirmModal
-          title="Close lobby?"
+          title={`${copy.lobby.leaveLobby}?`}
           message="Close this lobby for everyone? Players will be disconnected."
-          confirmLabel="Close lobby"
+          confirmLabel={copy.lobby.leaveLobby}
           cancelLabel="Keep open"
           destructive
           onConfirm={() => {
             setConfirmAction(null);
-            socket.emit("host:end");
-            onExit();
+            leaveGame();
           }}
           onCancel={() => setConfirmAction(null)}
         />
       )}
       {confirmAction === "endGame" && (
         <ConfirmModal
-          title="End game?"
+          title={`${copy.host.endConfirm}?`}
           message="End this game for everyone? This cannot be undone."
-          confirmLabel="End game"
+          confirmLabel={copy.host.endConfirm}
           cancelLabel="Keep playing"
           destructive
           onConfirm={() => {
             setConfirmAction(null);
-            socket.emit("host:end");
-            onExit();
+            leaveGame();
           }}
           onCancel={() => setConfirmAction(null)}
         />
@@ -527,8 +552,17 @@ function Centered({ children }) {
   );
 }
 
+const TYPE_LABEL = {
+  tf: "True / False",
+  ms: "Pick all that apply",
+  type: "Type answer",
+  puzzle: "Put in order",
+};
+
 function QuestionView({ question, image, answerCount, paused }) {
   const isTF = question.type === "tf";
+  const typeLabel = TYPE_LABEL[question.type];
+  const isType = question.type === "type";
   // A player who already answered can disconnect mid-question: the server keeps
   // their answer (answered) but `total` drops to the connected count, so the raw
   // numbers can read "3 / 2". Clamp so the badge + progress bar never overshoot.
@@ -560,7 +594,7 @@ function QuestionView({ question, image, answerCount, paused }) {
             <span className="host-meta__index-sep">/</span>
             <span className="host-meta__index-total">{question.total}</span>
           </span>
-          {isTF && <span className="host-meta__chip">True / False</span>}
+          {typeLabel && <span className="host-meta__chip">{typeLabel}</span>}
           <span className="host-meta__answered">
             <span className="host-meta__pulse" aria-hidden />
             <span className="host-meta__answered-count">{answered}</span>
@@ -593,6 +627,10 @@ function QuestionView({ question, image, answerCount, paused }) {
           <div className="mx-auto mt-2 inline-flex shrink-0 animate-pulse items-center gap-2 rounded-full bg-brand-mid/15 px-4 py-1.5 text-base font-extrabold text-brand-mid ring-1 ring-brand-mid/30">
             ⚡ {copy.reveal.doublePoints}
           </div>
+        ) : question.points === "none" ? (
+          <div className="mx-auto mt-2 inline-flex shrink-0 items-center gap-2 rounded-full bg-surface-muted px-4 py-1.5 text-base font-extrabold text-muted ring-1 ring-edge">
+            🎈 Just for fun
+          </div>
         ) : null
       }
       prompt={question.question}
@@ -616,19 +654,27 @@ function QuestionView({ question, image, answerCount, paused }) {
           introDelay={questionIntro.timer}
         />
       }
-      answers={question.answers.map((a, i) => (
-        <AnswerTile
-          key={i}
-          index={i}
-          type={question.type}
-          text={a.text}
-          disabled
-          big
-          compact
-          staggerIndex={i}
-          entranceDelay={questionIntro.tiles}
-        />
-      ))}
+      answers={
+        isType ? (
+          <div className="grid w-full place-items-center rounded-3xl bg-surface-elevated px-6 py-10 ring-1 ring-edge">
+            <span className="text-5xl">⌨️</span>
+            <p className="mt-3 alkheelank-heading text-2xl text-muted">Players type their answer on their phones</p>
+          </div>
+        ) : (
+          question.answers.map((a, i) => (
+            <AnswerTile
+              key={i}
+              index={i}
+              type={question.type === "ms" || question.type === "puzzle" ? "mc" : question.type}
+              text={a.text}
+              disabled
+              kahoot
+              staggerIndex={i}
+              entranceDelay={questionIntro.tiles}
+            />
+          ))
+        )
+      }
       notice={
         paused ? (
           <p className="mt-2 shrink-0 text-center text-lg font-bold text-warning">⏸ Round paused — use show controls to resume</p>
@@ -690,9 +736,12 @@ function FinalView({ final, onHome }) {
     return (
       <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-5xl flex-col items-center justify-center py-10 landscapePhone:py-4">
         <Recap recap={final.recap} title={final.title} standings={final.standings} />
-        <p className="mt-4 text-center text-sm text-muted">📸 {copy.final.recapHint}</p>
+        <p className="mt-4 text-center text-sm text-muted">{copy.final.recapHint}</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <button onClick={() => setView("podium")} className="alkheelank-btn-ghost px-8">← Podium</button>
+          <button onClick={() => { setShowList(true); setView("podium"); }} className="alkheelank-btn-ghost px-8">← Podium</button>
+          {final.questionBreakdown?.length > 0 && (
+            <button onClick={() => setView("breakdown")} className="alkheelank-btn-ghost px-8">Question breakdown</button>
+          )}
           <button onClick={onHome} className="alkheelank-btn-primary px-8">Back to dashboard</button>
         </div>
       </div>
@@ -704,9 +753,11 @@ function FinalView({ final, onHome }) {
       <h1 className="shrink-0 alkheelank-heading text-5xl alkheelank-gradient-text landscapePhone:text-2xl sm:text-7xl landscapePhone:sm:text-2xl">{copy.final.title}</h1>
       <p className="mt-2 shrink-0 text-muted landscapePhone:mt-1 landscapePhone:text-sm">{final.title}</p>
       {final.mode === "teams" && final.teamPodium?.length > 0 ? (
-        <TeamPodium teams={final.teamPodium} onComplete={() => setShowList(true)} />
+        <TeamPodium teams={final.teamPodium} onComplete={() => setView("recap")} />
       ) : (
-        <div className="mt-12 w-full shrink-0 landscapePhone:mt-3"><Podium podium={final.podium} onComplete={() => setShowList(true)} /></div>
+        <div className="mt-12 w-full shrink-0 landscapePhone:mt-3">
+          <Podium podium={final.podium} onComplete={() => setView("recap")} />
+        </div>
       )}
       <AnimatePresence>
         {showList && final.standings.length > 0 && (
@@ -756,31 +807,49 @@ function QuestionBreakdownView({ breakdown, onBack, onHome }) {
                 {q.correctCount} of {q.totalAnswers} answered correctly
                 {q.totalAnswers < q.totalPlayers && ` · ${q.totalPlayers - q.totalAnswers} didn't answer`}
               </p>
-              <div className="mt-3 space-y-1.5">
-                {q.answers.map((a, i) => {
-                  const s = tileStyle(q.type, i);
-                  const isCorrect = i === q.correctIndex;
-                  return (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <span className="w-5 text-center" style={{ color: s.color }}>{s.glyph}</span>
-                      <span className={`w-32 truncate sm:w-48 ${isCorrect ? "font-bold text-ink-900" : "text-muted"}`}>
-                        {a}{isCorrect && " ✓"}
-                      </span>
-                      <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-muted">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${(q.counts[i] / maxCount) * 100}%`,
-                            backgroundColor: s.color,
-                            opacity: isCorrect ? 1 : 0.45,
-                          }}
-                        />
+              {q.type === "type" ? (
+                <div className="mt-3 text-sm text-muted">
+                  Answer: <b className="text-ink-900">{(q.accept && q.accept[0]) || "—"}</b>
+                  {q.accept?.length > 1 && <span> (also: {q.accept.slice(1).join(", ")})</span>}
+                </div>
+              ) : q.type === "puzzle" ? (
+                <ol className="mt-3 space-y-1 text-sm">
+                  {q.answers.map((a, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <span className="grid h-5 w-5 place-items-center rounded bg-brand-mid/15 text-xs font-extrabold text-brand-mid">{i + 1}</span>
+                      <span className="font-semibold text-ink-900">{a}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <div className="mt-3 space-y-1.5">
+                  {q.answers.map((a, i) => {
+                    const s = tileStyle(q.type === "ms" ? "mc" : q.type, i);
+                    const isCorrect = Array.isArray(q.correctIndices)
+                      ? q.correctIndices.includes(i)
+                      : i === q.correctIndex;
+                    return (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <span className="w-5 text-center" style={{ color: s.color }}>{s.glyph}</span>
+                        <span className={`w-32 truncate sm:w-48 ${isCorrect ? "font-bold text-ink-900" : "text-muted"}`}>
+                          {a}{isCorrect && " ✓"}
+                        </span>
+                        <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-muted">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${(q.counts[i] / maxCount) * 100}%`,
+                              backgroundColor: s.color,
+                              opacity: isCorrect ? 1 : 0.45,
+                            }}
+                          />
+                        </div>
+                        <span className="w-6 text-right tabular-nums text-muted">{q.counts[i]}</span>
                       </div>
-                      <span className="w-6 text-right tabular-nums text-muted">{q.counts[i]}</span>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}

@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
+import { healthCheckUrl, serverOrigin, socketServerUrl } from "./lib/serverUrl.js";
 
-export const SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
+export const SERVER_URL = serverOrigin();
 
 function isLocalDevOrigin() {
   if (typeof window === "undefined") return false;
@@ -9,14 +10,14 @@ function isLocalDevOrigin() {
 
 function serverReachHint() {
   if (isLocalDevOrigin()) {
-    return "Start the game server with `npm run dev:server`, or set VITE_SERVER_URL in client/.env.";
+    return "Start the game server in another terminal: `npm run dev:server` (from the project root). Vite proxies to port 3001.";
   }
   return "On Render, set CORS_ORIGIN to include your site URL (e.g. https://www.alkheelan.xyz). Also confirm VITE_SERVER_URL on Vercel is https://alkheelank-server.onrender.com and redeploy.";
 }
 
 // One shared connection for the tab. We connect lazily so the landing page
 // doesn't open a socket until the user actually hosts or joins.
-export const socket = io(SERVER_URL, {
+export const socket = io(socketServerUrl(), {
   autoConnect: false,
   // Polling first — Render/Vercel proxies often reject a direct WebSocket attempt
   // before the service is fully awake. Socket.io upgrades once polling works.
@@ -52,8 +53,11 @@ export async function wakeServer() {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 60_000);
   try {
-    const res = await fetch(`${SERVER_URL}/`, { signal: ctrl.signal });
+    const res = await fetch(healthCheckUrl(), { signal: ctrl.signal });
     if (!res.ok) {
+      if (import.meta.env.DEV && (res.status === 502 || res.status === 504)) {
+        throw new Error(`Could not reach the game server. ${serverReachHint()}`);
+      }
       throw new Error(
         `Game server returned ${res.status}. Deploy alkheelank-server on Render and set VITE_SERVER_URL to its URL.`,
       );

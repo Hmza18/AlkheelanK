@@ -115,14 +115,55 @@ function loadPhotoManifest() {
 
 const PHOTO_MANIFEST = loadPhotoManifest();
 
+/** Public origin for starter photo URLs (must be https in production). */
 export function starterImagesBaseUrl() {
-  const base = process.env.STARTER_IMAGES_BASE_URL || "http://localhost:3001";
-  return base.replace(/\/$/, "");
+  const explicit = process.env.STARTER_IMAGES_BASE_URL?.trim();
+  if (explicit) {
+    const cleaned = explicit.replace(/\/$/, "");
+    const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(cleaned);
+    if (!(process.env.NODE_ENV === "production" && isLocalhost)) {
+      return cleaned;
+    }
+  }
+
+  const render = process.env.RENDER_EXTERNAL_URL?.trim();
+  if (render) return render.replace(/\/$/, "");
+
+  const port = process.env.PORT || 3001;
+  return `http://localhost:${port}`;
+}
+
+/** Relative path — preferred; client serves these from public/starter-images. */
+export function starterPhotoPath(quizId, index) {
+  return `/starter-images/${quizId}/${index}.webp`;
+}
+
+export function starterCoverPhotoPath(quizId) {
+  const coverPath = path.join(ASSETS_DIR, quizId, "cover.webp");
+  if (fs.existsSync(coverPath)) return `/starter-images/${quizId}/cover.webp`;
+  const key = `${quizId}:0`;
+  if (PHOTO_MANIFEST.has(key)) return starterPhotoPath(quizId, 0);
+  return null;
 }
 
 export function starterPhotoUrl(quizId, index) {
-  return `${starterImagesBaseUrl()}/starter-images/${quizId}/${index}.webp`;
+  return `${starterImagesBaseUrl()}${starterPhotoPath(quizId, index)}`;
 }
+
+export function starterCoverPhotoUrl(quizId) {
+  const rel = starterCoverPhotoPath(quizId);
+  return rel ? `${starterImagesBaseUrl()}${rel}` : null;
+}
+
+/** Thematic Openverse queries for starter template cover cards. */
+export const COVER_ART = {
+  "house-party": { query: "house party friends celebrating", label: "House Party Mix" },
+  "movie-night": { query: "movie theater cinema screen", label: "Movie Night" },
+  "general-knowledge": { query: "library books reading study", label: "General Knowledge" },
+  "kids-corner": { query: "children playing colorful toys", label: "Kids' Corner" },
+  "around-the-world": { query: "world map travel globe", label: "Around the World" },
+  "family-faceoff": { query: "family game night table", label: "Family Face-Off" },
+};
 
 export function questionImageFor(quizId, index, category) {
   const art = QUESTION_ART[quizId]?.[index];
@@ -130,7 +171,7 @@ export function questionImageFor(quizId, index, category) {
 
   const key = `${quizId}:${index}`;
   if (PHOTO_MANIFEST.has(key)) {
-    return starterPhotoUrl(quizId, index);
+    return starterPhotoPath(quizId, index);
   }
 
   return svgDataUri(art.emoji, ACCENTS[category] || "#d97706", art.label);

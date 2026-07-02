@@ -17,7 +17,7 @@ export async function searchImages(query) {
   let res;
   try {
     res = await fetch(`${OPENVERSE_URL}?${params}`, {
-      headers: { "User-Agent": "Alkheeloot quiz editor (https://alkheelan.xyz)" },
+      headers: { "User-Agent": "Kheelan quiz editor (https://alkheelan.xyz)" },
       signal: AbortSignal.timeout(10_000),
     });
   } catch {

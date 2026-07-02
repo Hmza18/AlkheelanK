@@ -1,11 +1,16 @@
 /** Where Supabase sends the browser after Google (or other OAuth) sign-in. */
-export function oauthRedirectUrl() {
-  // Always use the URL the user is actually on (fixes prod when Supabase Site URL was localhost).
+export function oauthRedirectUrl(extraParams = {}) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(extraParams)) {
+    if (value != null && value !== "") params.set(key, String(value));
+  }
+  const qs = params.toString();
+
   if (typeof window !== "undefined" && window.location?.origin) {
-    return `${window.location.origin}/login`;
+    return `${window.location.origin}/login${qs ? `?${qs}` : ""}`;
   }
   const base = (import.meta.env.VITE_SITE_URL || "http://localhost:5173").replace(/\/$/, "");
-  return `${base}/login`;
+  return `${base}/login${qs ? `?${qs}` : ""}`;
 }
 
 /** True while the URL still carries OAuth tokens/errors (hash or PKCE query). */

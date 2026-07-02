@@ -16,13 +16,41 @@ export function AuthProvider({ children }) {
       return;
     }
     let active = true;
-    supabase.auth.getSession().then(({ data }) => {
+
+    const boot = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      if (code) {
+        const { data: exchanged, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error && active) {
+          console.error("[auth] OAuth code exchange failed:", error.message);
+        } else if (exchanged.session) {
+          await supabase.auth.setSession(exchanged.session);
+        }
+        params.delete("code");
+        params.delete("state");
+        const qs = params.toString();
+        window.history.replaceState(null, "", window.location.pathname + (qs ? `?${qs}` : ""));
+      }
+
+      let { data } = await supabase.auth.getSession();
+      if (data.session?.expires_at) {
+        const expiresMs = data.session.expires_at * 1000;
+        if (expiresMs - Date.now() < 60_000) {
+          const { data: refreshed } = await supabase.auth.refreshSession();
+          if (refreshed.session) data = refreshed;
+        }
+      }
       if (!active) return;
       setSession(data.session ?? null);
       setLoading(false);
-    });
+    };
+
+    boot();
+
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s ?? null);
+      setLoading(false);
     });
     return () => {
       active = false;
@@ -48,13 +76,14 @@ export function AuthProvider({ children }) {
         if (!supabase) return { error: { message: "Login is not configured." } };
         return supabase.auth.signInWithPassword({ email, password });
       },
-      async signInWithGoogle() {
-        if (!supabase) return { error: { message: "Login is not configured." } };
-        // Supabase redirects to Google, then back to redirectTo with a session
-        // that supabase-js picks up automatically (detectSessionInUrl).
+      async signInWithGoogle(redirectTo = oauthRedirectUrl()) {
+        if (!supabase) return { data: null, error: { message: "Login is not configured." } };
         return supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: oauthRedirectUrl() },
+          provider: "custom:google-kheelan",
+          options: {
+            redirectTo,
+            skipBrowserRedirect: true,
+          },
         });
       },
       async signOut() {

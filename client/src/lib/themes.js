@@ -1,39 +1,45 @@
-export const THEME_STORAGE_KEY = "alkheelank-theme";
+import { BRAND, readStorage } from "./brand.js";
 
-/** @typedef {"blue" | "classic"} ThemeId */
+export const THEME_STORAGE_KEY = `${BRAND.storagePrefix}.theme`;
+const LEGACY_THEME_KEY = "alkheelank-theme";
+
+/** @typedef {"light" | "dark"} ThemeId */
 
 export const THEMES = {
-  blue: {
-    id: "blue",
-    label: "Blue",
-    shortLabel: "Blue",
-    emoji: "💙",
-    description: "White cards on a bright blue background.",
-    metaColor: "#dbeafe",
+  light: {
+    id: "light",
+    label: "Light",
+    shortLabel: "Light",
+    emoji: "☀️",
+    description: "Clean surfaces for bright rooms and projectors.",
+    metaColor: "#faf8ff",
   },
-  classic: {
-    id: "classic",
-    label: "Classic",
-    shortLabel: "Classic",
-    emoji: "🔥",
-    description: "Orange accents on the original dark charcoal look.",
-    metaColor: "#1a1814",
+  dark: {
+    id: "dark",
+    label: "Dark",
+    shortLabel: "Dark",
+    emoji: "🌙",
+    description: "Low-glare look for TVs and evening sessions.",
+    metaColor: "#0e0a1f",
   },
 };
 
 /** @returns {ThemeId} */
 export function readStoredTheme() {
-  if (typeof window === "undefined") return "blue";
-  const raw = localStorage.getItem(THEME_STORAGE_KEY);
-  return raw === "classic" ? "classic" : "blue";
+  if (typeof window === "undefined") return "light";
+  const raw =
+    readStorage(THEME_STORAGE_KEY, { legacyKey: LEGACY_THEME_KEY }) ??
+    localStorage.getItem(LEGACY_THEME_KEY);
+  if (raw === "dark" || raw === "classic") return "dark";
+  return "light";
 }
 
 /** @param {ThemeId} id */
 export function applyTheme(id) {
-  const theme = THEMES[id] ?? THEMES.blue;
+  const theme = THEMES[id] ?? THEMES.light;
   const root = document.documentElement;
   root.dataset.theme = theme.id;
-  root.style.colorScheme = theme.id === "classic" ? "dark" : "light";
+  root.style.colorScheme = theme.id === "dark" ? "dark" : "light";
 
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute("content", theme.metaColor);
@@ -41,7 +47,7 @@ export function applyTheme(id) {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme.id);
   } catch {
-    // private browsing — theme still applies for this session
+    /* private browsing */
   }
 }
 
@@ -52,5 +58,5 @@ export function persistTheme(id) {
 
 /** @param {ThemeId} current */
 export function otherTheme(current) {
-  return current === "blue" ? "classic" : "blue";
+  return current === "light" ? "dark" : "light";
 }

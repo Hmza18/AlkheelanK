@@ -16,6 +16,9 @@ import { securePin, secureToken } from "./crypto.js";
 
 const games = new Map();
 const MAX_NICK_LEN = 16;
+// Revealing a question's "Closer Look" hint keeps only this fraction of the
+// points a correct answer would otherwise earn.
+const HINT_PENALTY = 0.5;
 
 export const TEAM_PRESETS = {
   kidsAdults: [
@@ -94,6 +97,31 @@ function shuffle(arr) {
   return a;
 }
 
+// Type-answer matching: forgiving but not sloppy. Lowercases, strips accents and
+// most punctuation, and collapses whitespace so "St. Tropez" ≈ "st tropez".
+function normalizeText(str) {
+  return String(str ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// A shuffled presentation order for a puzzle question that is guaranteed not to
+// already be the correct (identity) order when there's more than one option.
+function puzzlePresentation(n) {
+  if (n <= 1) return [0];
+  let order;
+  do {
+    order = shuffle(Array.from({ length: n }, (_, i) => i));
+  } while (order.every((v, i) => v === i));
+  return order;
+}
+
+const arraysEqual = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+
 export function isNickAllowed(nick) {
   const norm = normalizeForFilter(nick);
   if (!norm) return true;
@@ -134,17 +162,29 @@ function resolveTeams(settings) {
 }
 
 function applySettings(quiz, settings) {
-  let questions = quiz.questions.map((q) => ({ ...q, answers: [...q.answers], doublePoints: !!q.doublePoints }));
+  let questions = quiz.questions.map((q) => ({
+    ...q,
+    answers: [...q.answers],
+    correct: Array.isArray(q.correct) ? [...q.correct] : q.correct,
+    doublePoints: !!q.doublePoints,
+  }));
   if (settings.randomizeQuestions) questions = shuffle(questions);
   if (settings.randomizeAnswers) {
     questions = questions.map((q) => {
-      if (q.type === "tf") return q;
+      // tf has fixed tiles; puzzle shuffles its presentation at play time; type
+      // has no positional answers to shuffle.
+      if (q.type === "tf" || q.type === "puzzle" || q.type === "type") return q;
       const order = shuffle(q.answers.map((_, i) => i));
-      return {
-        ...q,
-        answers: order.map((i) => q.answers[i]),
-        correct: order.indexOf(q.correct),
-      };
+      const answers = order.map((i) => q.answers[i]);
+      if (q.type === "ms") {
+        const correctSet = new Set(q.correct);
+        const correct = [];
+        order.forEach((origIdx, pos) => {
+          if (correctSet.has(origIdx)) correct.push(pos);
+        });
+        return { ...q, answers, correct };
+      }
+      return { ...q, answers, correct: order.indexOf(q.correct) };
     });
   }
   return { ...quiz, questions };
@@ -192,6 +232,7 @@ export function createGame(hostSocketId, quiz, settings) {
     answers: new Map(),
     questionStartedAt: null,
     questionTimeLimit: null,
+    hintsUsed: new Set(), // pids who revealed the current question's hint
     paused: false,
     pausedRemaining: 0,
     timer: null,
@@ -220,8 +261,25 @@ export const getGame = (pin) => {
   return key ? games.get(key) : null;
 };
 export function getGameByHost(hostSocketId) {
-  for (const game of games.values()) if (game.hostSocketId === hostSocketId) return game;
-  return null;
+  let newest = null;
+  for (const game of games.values()) {
+    if (game.hostSocketId !== hostSocketId) continue;
+    if (!newest || game.createdAt > newest.createdAt) newest = game;
+  }
+  return newest;
+}
+
+/** All in-memory games owned by a host socket (newest first). */
+export function listGamesByHost(hostSocketId) {
+  return [...games.values()]
+    .filter((g) => g.hostSocketId === hostSocketId)
+    .sort((a, b) => b.createdAt - a.createdAt);
+}
+
+export function destroyGamesByHost(hostSocketId) {
+  for (const [pin, game] of games.entries()) {
+    if (game.hostSocketId === hostSocketId) destroyGame(pin);
+  }
 }
 export function findGameBySocket(socketId) {
   for (const game of games.values()) if (game.sockets.has(socketId)) return game;
@@ -286,6 +344,16 @@ export function attachSocket(game, pid, socketId, rawCharacter) {
   game.sockets.set(socketId, pid);
   return player;
 }
+
+export function updatePlayerCharacter(game, socketId, rawCharacter) {
+  const pid = game.sockets.get(socketId);
+  if (!pid) return { error: "Not in a game." };
+  const player = game.players.get(pid);
+  if (!player) return { error: "Player not found." };
+  if (game.status === "ended") return { error: "Game is over." };
+  player.character = sanitizeAvatar(rawCharacter);
+  return { character: player.character };
+}
 export function removePlayer(game, pid) {
   const p = game.players.get(pid);
   if (p?.socketId) game.sockets.delete(p.socketId);
@@ -336,17 +404,27 @@ export function playerList(game) {
 export const currentQuestion = (game) => game.quiz.questions[game.currentIndex];
 export function buildPublicQuestion(game, { includeImage = false } = {}) {
   const q = currentQuestion(game);
+  // Answers shown to players, by type:
+  //   puzzle — the scrambled presentation order (never the correct order)
+  //   type   — none (free-text input)
+  //   else   — the options as stored
+  let answerTexts;
+  if (q.type === "puzzle") answerTexts = (q.present || q.answers.map((_, i) => i)).map((i) => q.answers[i]);
+  else if (q.type === "type") answerTexts = [];
+  else answerTexts = q.answers;
   const payload = {
     index: game.currentIndex,
     total: game.quiz.questions.length,
     type: q.type || "mc",
     question: q.question,
-    answers: q.answers.map((text) => ({ text })),
+    answers: answerTexts.map((text) => ({ text })),
     timeLimit: q.timeLimit,
     startedAt: game.questionStartedAt,
     hasImage: !!q.image,
     paused: game.paused,
     doublePoints: !!q.doublePoints,
+    points: q.points || (q.doublePoints ? "double" : "standard"),
+    hasHint: !!q.hint,
     mode: game.settings.mode,
     teams: game.teams,
   };
@@ -370,45 +448,141 @@ export function startNextQuestion(game, introMs = 0) {
   game.currentIndex = next;
   game.status = "question";
   game.answers = new Map();
+  game.hintsUsed = new Set();
   game.paused = false;
   game.pausedRemaining = 0;
   for (const p of game.players.values()) p.answered = false;
   const q = currentQuestion(game);
+  // Puzzle: pick the scrambled order players will sort. Stored on the live
+  // question clone so the public payload and scoring share one source of truth.
+  if (q.type === "puzzle") q.present = puzzlePresentation(q.answers.length);
   game.questionTimeLimit = q.timeLimit;
   game.questionStartedAt = Date.now() + introMs;
   return q;
 }
-export function recordAnswer(game, socketId, answerIndex) {
+// Grade a submitted answer against a question, independent of timing/scoring.
+// Returns { correct, fraction, entry } or { ignored } for a malformed payload.
+// `fraction` (0..1) is the share of credit earned — 1 for all-or-nothing types,
+// proportional for puzzle ordering. `entry` holds the type-specific selection
+// stored on the answer (index / indices / text / order).
+function gradeAnswer(q, answer) {
+  const a = answer && typeof answer === "object" ? answer : {};
+  switch (q.type) {
+    case "ms": {
+      if (!Array.isArray(a.indices)) return { ignored: "bad_answer" };
+      const picked = [
+        ...new Set(
+          a.indices
+            .map(Number)
+            .filter((n) => Number.isInteger(n) && n >= 0 && n < q.answers.length),
+        ),
+      ].sort((x, y) => x - y);
+      const correct = arraysEqual(picked, q.correct);
+      return { correct, fraction: correct ? 1 : 0, entry: { indices: picked } };
+    }
+    case "type": {
+      if (typeof a.text !== "string") return { ignored: "bad_answer" };
+      const text = a.text.slice(0, 200);
+      const norm = normalizeText(text);
+      const correct = norm.length > 0 && (q.accept || []).some((v) => normalizeText(v) === norm);
+      return { correct, fraction: correct ? 1 : 0, entry: { text } };
+    }
+    case "puzzle": {
+      const n = q.answers.length;
+      const present = q.present || q.answers.map((_, i) => i);
+      if (!Array.isArray(a.order) || a.order.length !== n) return { ignored: "bad_answer" };
+      const order = a.order.map(Number);
+      const valid =
+        order.every((v) => Number.isInteger(v) && v >= 0 && v < n) &&
+        new Set(order).size === n;
+      if (!valid) return { ignored: "bad_answer" };
+      // The item placed at final position p is presentation slot order[p]; its
+      // original index is present[order[p]]. It is correct when that equals p.
+      let correctCount = 0;
+      for (let p = 0; p < n; p += 1) if (present[order[p]] === p) correctCount += 1;
+      const fraction = n > 0 ? correctCount / n : 0;
+      return { correct: correctCount === n, fraction, entry: { order, correctCount } };
+    }
+    default: {
+      // mc / tf — single positional choice.
+      const idx = a.index;
+      if (!Number.isInteger(idx) || idx < 0 || idx >= q.answers.length) {
+        return { ignored: "bad_answer" };
+      }
+      const correct = idx === q.correct;
+      return { correct, fraction: correct ? 1 : 0, entry: { index: idx } };
+    }
+  }
+}
+
+export function recordAnswer(game, socketId, answer) {
   if (game.status !== "question") return { ignored: "not_active" };
   if (game.paused) return { ignored: "paused" };
   const player = playerBySocket(game, socketId);
   if (!player) return { ignored: "not_player" };
   if (game.answers.has(player.pid)) return { ignored: "already_answered" };
   const q = currentQuestion(game);
-  if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex >= q.answers.length) return { ignored: "bad_index" };
+  const graded = gradeAnswer(q, answer);
+  if (graded.ignored) return { ignored: graded.ignored };
+  const { correct, fraction, entry } = graded;
   // Clamp: an answer during the entrance intro (startedAt in the future) counts
   // as instant, never negative.
   const elapsedMs = Math.max(0, Date.now() - game.questionStartedAt);
   if (elapsedMs > game.questionTimeLimit * 1000) return { ignored: "too_late" };
-  const correct = answerIndex === q.correct;
   let base = 0;
   let bonus = 0;
-  if (correct) {
+  if (fraction > 0) {
     if (game.settings.speedScoring) {
       const rem = Math.max(0, game.questionTimeLimit - elapsedMs / 1000);
       base = Math.round(1000 * (0.5 + 0.5 * (rem / game.questionTimeLimit)));
     } else base = 1000;
+  }
+  // Streak only rewards a fully-correct answer; a partial puzzle breaks it.
+  if (correct) {
     player.streak += 1;
     bonus = Math.min((player.streak - 1) * 100, 500);
   } else player.streak = 0;
-  const multiplier = q.doublePoints ? 2 : 1;
-  const points = (base + bonus) * multiplier;
+  const mode = q.points || (q.doublePoints ? "double" : "standard");
+  const multiplier = mode === "double" ? 2 : mode === "none" ? 0 : 1;
+  // "Closer Look" hint: revealing it before answering halves the earned points.
+  const usedHint = game.hintsUsed.has(player.pid);
+  // bonus is non-zero only when correct (fraction === 1), so scaling by fraction
+  // is safe for the partial-credit puzzle case.
+  let points = Math.round((base + bonus) * fraction) * multiplier;
+  if (usedHint && points > 0) points = Math.round(points * HINT_PENALTY);
   player.score += points;
   player.answered = true;
-  game.answers.set(player.pid, { index: answerIndex, points, base, bonus, multiplier, correct, timeMs: elapsedMs });
+  game.answers.set(player.pid, {
+    ...entry,
+    points,
+    base,
+    bonus,
+    fraction,
+    multiplier,
+    usedHint,
+    correct,
+    timeMs: elapsedMs,
+  });
   // Whole-game log for the recap (fastest finger / confident wrong, etc.).
   game.answerHistory.push({ pid: player.pid, index: game.currentIndex, correct, timeMs: elapsedMs, points });
   return { player, correct, points, bonus, answeredCount: game.answers.size, totalPlayers: connectedCount(game) };
+}
+
+/**
+ * Mark that a player revealed the current question's "Closer Look" hint. Must
+ * happen before they answer to take effect — a locked-in answer is already
+ * scored. Returns true if the usage was newly recorded.
+ */
+export function useHint(game, socketId) {
+  if (game.status !== "question") return false;
+  const player = playerBySocket(game, socketId);
+  if (!player) return false;
+  if (game.answers.has(player.pid)) return false; // already answered — no effect
+  const q = currentQuestion(game);
+  if (!q?.hint) return false;
+  if (game.hintsUsed.has(player.pid)) return false;
+  game.hintsUsed.add(player.pid);
+  return true;
 }
 
 /** Post-answer waiting UI: pace + speed rank from live answer timings. */
@@ -417,8 +591,8 @@ export function buildAnswerLocked(game, pid) {
   if (!entry) return null;
   const limitMs = game.questionTimeLimit * 1000;
   const { timeMs } = entry;
-  const times = [...game.answers.values()].map((a) => a.timeMs).sort((a, b) => a - b);
-  const speedRank = times.indexOf(timeMs) + 1;
+  const speedRank =
+    1 + [...game.answers.values()].filter((a) => a.timeMs < timeMs).length;
   const FAST_MS = 2000;
   const lateThresholdMs = limitMs * 0.82;
 
@@ -427,7 +601,7 @@ export function buildAnswerLocked(game, pid) {
   else if (timeMs >= lateThresholdMs) pace = "late";
 
   return {
-    answerIndex: entry.index,
+    answerIndex: entry.index ?? null,
     waitContext: {
       pace,
       timeMs,
@@ -487,11 +661,28 @@ export function teamStandings(game) {
     .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
     .map((t, i) => ({ ...t, rank: i + 1 }));
 }
+// Per-option pick counts for the reveal bars. Meaningful for mc/tf/ms (ms tallies
+// every selected option). type has no options; puzzle has no per-option
+// distribution — both report zeros here and surface correctness separately.
 export function answerCounts(game) {
   const q = currentQuestion(game);
   const counts = new Array(q.answers.length).fill(0);
-  for (const a of game.answers.values()) counts[a.index] += 1;
+  if (q.type === "type" || q.type === "puzzle") return counts;
+  for (const a of game.answers.values()) {
+    if (Array.isArray(a.indices)) {
+      for (const i of a.indices) if (i >= 0 && i < counts.length) counts[i] += 1;
+    } else if (Number.isInteger(a.index)) {
+      counts[a.index] += 1;
+    }
+  }
   return counts;
+}
+
+/** How many submitted answers were fully correct this question. */
+function correctAnswerCount(game) {
+  let c = 0;
+  for (const a of game.answers.values()) if (a.correct) c += 1;
+  return c;
 }
 
 /** Players who chose the correct answer — for the host social reveal (avatars on tile). */
@@ -515,16 +706,18 @@ export function revealCorrectPlayers(game) {
 export function buildReveal(game) {
   const q = currentQuestion(game);
   game.revealStage = 0;
-  return {
+  const reveal = {
     index: game.currentIndex,
     type: q.type || "mc",
-    correctIndex: q.correct,
+    correctIndex: typeof q.correct === "number" ? q.correct : null,
     counts: answerCounts(game),
     correctPlayers: revealCorrectPlayers(game),
     totalAnswers: game.answers.size,
+    correctCount: correctAnswerCount(game),
     totalPlayers: connectedCount(game),
     hasNext: game.currentIndex + 1 < game.quiz.questions.length,
     doublePoints: !!q.doublePoints,
+    points: q.points || (q.doublePoints ? "double" : "standard"),
     mode: game.settings.mode,
     teamStandings: teamStandings(game),
     pacing: game.settings.pacing,
@@ -532,6 +725,16 @@ export function buildReveal(game) {
     highlight: buildRevealHighlight(game),
     revealStage: game.revealStage,
   };
+  if (q.type === "ms") {
+    reveal.correctIndices = Array.isArray(q.correct) ? q.correct : [];
+  } else if (q.type === "type") {
+    reveal.answerText = q.accept?.[0] ?? "";
+    reveal.accept = q.accept ?? [];
+  } else if (q.type === "puzzle") {
+    reveal.order = [...q.answers]; // the correct order
+    reveal.present = q.present ? [...q.present] : q.answers.map((_, i) => i);
+  }
+  return reveal;
 }
 
 export function advanceRevealStage(game) {
@@ -571,6 +774,7 @@ export function buildPlayerResult(game, socketId) {
     correct: ans?.correct ?? false,
     points: ans?.points ?? 0,
     bonus: ans?.bonus ?? 0,
+    usedHint: ans?.usedHint ?? false,
     multiplier: ans?.multiplier ?? (q?.doublePoints ? 2 : 1),
     totalScore: me?.score ?? 0,
     rank: me?.rank ?? connectedCount(game),
@@ -594,14 +798,15 @@ export function recordRanks(game) {
 export function recordQuestionStats(game) {
   const q = currentQuestion(game);
   if (!q) return;
-  let correctCount = 0;
-  for (const a of game.answers.values()) if (a.correct) correctCount += 1;
+  const correctCount = correctAnswerCount(game);
   game.questionStats.push({
     index: game.currentIndex,
     type: q.type || "mc",
     question: q.question,
     answers: [...q.answers],
-    correctIndex: q.correct,
+    correctIndex: typeof q.correct === "number" ? q.correct : null,
+    correctIndices: Array.isArray(q.correct) ? [...q.correct] : null,
+    accept: q.type === "type" ? [...(q.accept || [])] : null,
     counts: answerCounts(game),
     correctCount,
     totalAnswers: game.answers.size,

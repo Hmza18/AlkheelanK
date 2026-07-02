@@ -1,20 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth.jsx";
 import { isOAuthCallback } from "../lib/authRedirect.js";
+import { clearPendingCheckoutPlan } from "../lib/pendingCheckout.js";
 import { createQuiz, updateQuiz } from "../lib/db.js";
 import Dashboard from "./Dashboard.jsx";
 import QuizEditor from "./QuizEditor.jsx";
 import HostGame from "./HostGame.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import { clearHostSession, loadHostSession } from "../lib/hostSession.js";
+import { connectSocket, emitWithAck, socket } from "../socket.js";
 
 // Auth-gated host orchestrator. Switches between the dashboard, the quiz editor,
 // and the live game without remounting the whole tree.
 export default function Host() {
   const { user, loading, configured } = useAuth();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const [guest] = useState(params.get("guest") === "1");
+  const checkoutSuccess = params.get("checkout") === "success";
+  const [showCheckoutWelcome, setShowCheckoutWelcome] = useState(checkoutSuccess);
   const [editing, setEditing] = useState(null); // saved quiz being edited, or null
   const [launch, setLaunch] = useState(null);
   // A saved host session means a game may still be live — ask before resuming
@@ -24,6 +28,16 @@ export default function Host() {
   // Guests are allowed without an account; if Supabase isn't configured we
   // auto-fall into guest mode so the app still works end to end.
   const allowed = Boolean(user) || guest || !configured;
+
+  useEffect(() => {
+    if (!checkoutSuccess) return;
+    clearPendingCheckoutPlan();
+    setShowCheckoutWelcome(true);
+    const next = new URLSearchParams(params);
+    next.delete("checkout");
+    next.delete("plan");
+    setParams(next, { replace: true });
+  }, [checkoutSuccess, params, setParams]);
 
   const finishingOAuth = isOAuthCallback() && configured && !user;
 
@@ -37,7 +51,7 @@ export default function Host() {
     );
   }
   if (!allowed) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/host?guest=1" replace />;
   }
 
   const goDashboard = () => {
@@ -83,6 +97,21 @@ export default function Host() {
 
   return (
     <div className="min-h-screen px-6 py-6">
+      {showCheckoutWelcome && (
+        <div className="mx-auto mb-6 max-w-3xl rounded-2xl border border-tile-square/30 bg-tile-square/15 px-5 py-4 text-center">
+          <p className="font-display text-lg font-bold text-ink-900">Pro trial started — you&apos;re in!</p>
+          <p className="mt-1 text-sm text-muted">
+            Pick a starter template or create a quiz, then launch your first live room.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowCheckoutWelcome(false)}
+            className="mt-3 text-sm font-semibold text-brand-mid hover:text-ink-900"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       {view === "resume-prompt" && (
         <ConfirmModal
           title="Resume your game?"
@@ -93,7 +122,21 @@ export default function Host() {
             setLaunch({ reconnect: true });
             setView("game");
           }}
-          onCancel={() => {
+          onCancel={async () => {
+            const saved = loadHostSession();
+            if (saved?.pin && saved?.hostToken) {
+              try {
+                await connectSocket();
+                await emitWithAck(
+                  "host:reconnect",
+                  { pin: saved.pin, hostToken: saved.hostToken },
+                  15_000,
+                );
+                socket.emit("host:end");
+              } catch {
+                // Game may already be gone — still clear local session.
+              }
+            }
             clearHostSession();
             setView("dashboard");
           }}

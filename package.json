@@ -5,9 +5,13 @@
     "setup": "node scripts/verify-setup.mjs",
     "setup:all": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
     "apply-schema": "node scripts/apply-schema.mjs",
+    "setup:google-auth": "node scripts/setup-google-auth.mjs",
+    "setup:auth": "node scripts/configure-auth.mjs",
     "apply-security": "node scripts/apply-schema.mjs --security",
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
-    "fetch-starter-images": "node scripts/fetch-starter-images.mjs"
+    "fetch-starter-images": "node scripts/fetch-starter-images.mjs",
+    "fetch-lobby-music": "node scripts/fetch-lobby-music.mjs",
+    "sync-starter-images": "node scripts/sync-starter-images.mjs"
   }
 }

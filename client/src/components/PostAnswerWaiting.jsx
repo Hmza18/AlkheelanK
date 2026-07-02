@@ -5,6 +5,7 @@ import { tileStyle } from "../lib/answers.js";
 import { pickWaitingMessage } from "../lib/waitingMessages.js";
 import { copy } from "../lib/copy.js";
 import { useReducedMotion } from "../lib/motion.js";
+import { starterImageSrc } from "../lib/starterImages.js";
 
 export default function PostAnswerWaiting({
   me,
@@ -18,7 +19,9 @@ export default function PostAnswerWaiting({
     () => pickWaitingMessage(waitContext, question?.index ?? 0),
     [waitContext, question?.index]
   );
-  const tile = selected !== null && question ? tileStyle(question.type, selected) : null;
+  // Only mc/tf have a single positional tile to echo back; ms/type/puzzle don't.
+  const tile = typeof selected === "number" && question ? tileStyle(question.type, selected) : null;
+  const imageSrc = question?.image ? starterImageSrc(question.image) : null;
 
   return (
     <div className="player-phase-fill alkheelank-screen-player relative flex flex-col items-center justify-center overflow-hidden text-center landscapePhone:py-2">
@@ -67,11 +70,11 @@ export default function PostAnswerWaiting({
               </motion.div>
             )}
 
-            {question?.image && (
+            {imageSrc && (
               <motion.img
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                src={question.image}
+                src={imageSrc}
                 alt=""
                 className="relative mx-auto mt-5 max-h-32 w-auto rounded-xl object-contain shadow-lg ring-1 ring-edge landscapePhone:mx-0 landscapePhone:mt-2 landscapePhone:max-h-14"
               />

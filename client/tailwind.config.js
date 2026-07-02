@@ -73,8 +73,8 @@ export default {
         normal: "350ms",
       },
       fontFamily: {
-        display: ['"Fredoka"', "system-ui", "sans-serif"],
-        body: ['"Inter"', "system-ui", "sans-serif"],
+        display: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"],
+        body: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"],
       },
       boxShadow: {
         tile: "0 8px 0 0 rgba(0, 0, 0, 0.25)",

@@ -1,3 +1,4 @@
+import "./loadEnv.js";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -10,8 +11,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import * as GM from "./gameManager.js";
 import { getQuiz, quizSummaries, validateCustomQuiz, getStarterForCopy } from "./quizzes.js";
 import { createRateLimiter, clientKey } from "./rateLimit.js";
-import { generateQuiz, isAiConfigured } from "./ai.js";
+import { generateQuiz, generateFromText, isAiConfigured } from "./ai.js";
 import { searchImages } from "./imageSearch.js";
+import { mountBillingJsonRoutes, billingWebhookHandler } from "./billing/routes.js";
 
 const PORT = process.env.PORT || 3001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
@@ -65,6 +67,7 @@ const limitHostCreate = createRateLimiter({ windowMs: 60_000, max: 8 });
 const limitPlayerPeek = createRateLimiter({ windowMs: 60_000, max: 40 });
 const limitPlayerJoin = createRateLimiter({ windowMs: 60_000, max: 30 });
 const limitGenerate = createRateLimiter({ windowMs: 60_000, max: 4 });
+const limitIngest = createRateLimiter({ windowMs: 60_000, max: 4 });
 const limitImageSearch = createRateLimiter({ windowMs: 60_000, max: 20 });
 
 function httpClientKey(req) {
@@ -79,7 +82,16 @@ function httpClientKey(req) {
 
 const app = express();
 app.use(cors({ origin: corsOrigin }));
-app.use(express.json({ limit: "32kb" }));
+app.post(
+  "/api/billing/webhook",
+  express.raw({ type: "application/json", limit: "256kb" }),
+  billingWebhookHandler,
+);
+app.use((req, res, next) => {
+  const limit = req.path === "/ingest-quiz" ? "64kb" : "32kb";
+  express.json({ limit })(req, res, next);
+});
+mountBillingJsonRoutes(app);
 
 app.use(
   "/starter-images",
@@ -90,7 +102,11 @@ app.use(
 );
 
 app.get("/", (_req, res) => {
-  res.json({ name: "Alkheeloot server", status: "ok", ...GM.stats() });
+  res.json({ name: "Kheelan server", status: "ok", ...GM.stats() });
+});
+
+app.get("/health", (_req, res) => {
+  res.json({ name: "Kheelan server", status: "ok", ...GM.stats() });
 });
 
 app.get("/quizzes", (_req, res) => {
@@ -126,6 +142,26 @@ app.post("/generate-quiz", async (req, res) => {
   } catch (err) {
     console.error("generate-quiz failed:", err?.message || err);
     res.status(502).json({ error: "Generation failed — try again in a moment." });
+  }
+});
+
+// AI quiz ingestion from a pasted document / PDF text. Larger body limit than
+// the default (documents are bigger than a topic string).
+app.post("/ingest-quiz", async (req, res) => {
+  if (!isAiConfigured()) {
+    return res.status(503).json({ error: "AI generation isn't set up on this server." });
+  }
+  if (!limitIngest(httpClientKey(req))) {
+    return res.status(429).json({ error: "Too many imports — wait a minute and try again." });
+  }
+  try {
+    const { text, count, audience, language } = req.body || {};
+    const result = await generateFromText({ text, count, audience, language });
+    if (result.error) return res.status(400).json({ error: result.error });
+    res.json(result.data);
+  } catch (err) {
+    console.error("ingest-quiz failed:", err?.message || err);
+    res.status(502).json({ error: "Import failed — try again in a moment." });
   }
 });
 
@@ -171,6 +207,8 @@ function emitPlayers(game) {
 // be re-synced.
 function closeQuestion(game) {
   if (game.status !== "question") return;
+  // Hold the reveal until everyone has answered, unless the host is back.
+  if (!game.hostConnected && !GM.allAnswered(game)) return;
   if (game.timer) {
     clearTimeout(game.timer);
     game.timer = null;
@@ -363,6 +401,10 @@ io.on("connection", (socket) => {
       if (typeof ack === "function") ack({ error: message });
       return;
     }
+    for (const stale of GM.listGamesByHost(socket.id)) {
+      io.to(gameRoom(stale.pin)).emit("game:ended", { reason: "Host ended the game." });
+      GM.destroyGame(stale.pin);
+    }
     const game = GM.createGame(socket.id, chosen, settings);
     socket.join(gameRoom(game.pin));
     socket.join(hostRoom(game.pin));
@@ -401,6 +443,9 @@ io.on("connection", (socket) => {
       if (startedAt) {
         io.to(gameRoom(game.pin)).emit("game:resumed", { startedAt });
       }
+    }
+    if (game.status === "question" && GM.allAnswered(game)) {
+      closeQuestion(game);
     }
     // Timed beats are held while the host is away (see disconnect handler) —
     // restart them now so the game never advances into a hostless question.
@@ -609,15 +654,56 @@ io.on("connection", (socket) => {
     if (typeof ack === "function") ack({ error: err.message });
   });
 
-  socket.on("player:answer", ({ answerIndex } = {}) => {
+  socket.on("player:updateCharacter", ({ character } = {}, ack) => {
+    const game = GM.findGameBySocket(socket.id);
+    if (!game) {
+      const err = { message: "Not in a game." };
+      if (typeof ack === "function") ack({ error: err.message });
+      return;
+    }
+    const { character: updated, error } = GM.updatePlayerCharacter(game, socket.id, character);
+    if (error) {
+      if (typeof ack === "function") ack({ error });
+      return;
+    }
+    emitPlayers(game);
+    if (typeof ack === "function") ack({ character: updated });
+  });
+
+  // Player revealed the "Closer Look" hint — recorded server-side so the score
+  // penalty can't be dodged by hiding it again before answering. The hint text
+  // is delivered only to the requesting socket AFTER the penalty is recorded,
+  // so players cannot read it from the question broadcast without paying the cost.
+  socket.on("player:hint", () => {
     const game = GM.findGameBySocket(socket.id);
     if (!game) return;
-    const res = GM.recordAnswer(game, socket.id, answerIndex);
+    const recorded = GM.useHint(game, socket.id);
+    if (recorded) {
+      const q = GM.currentQuestion(game);
+      socket.emit("player:hintReveal", { hint: q?.hint ?? null });
+    }
+  });
+
+  socket.on("player:answer", (payload = {}) => {
+    const game = GM.findGameBySocket(socket.id);
+    if (!game) return;
+    // Normalize the wire shape into the answer the grader expects. Back-compat:
+    // classic clients sent { answerIndex }; new types add indices/text/order.
+    const p = payload && typeof payload === "object" ? payload : {};
+    const answer = {
+      index: p.index ?? p.answerIndex,
+      indices: p.indices,
+      text: p.text,
+      order: p.order,
+    };
+    const res = GM.recordAnswer(game, socket.id, answer);
     const player = GM.playerBySocket(game, socket.id);
     if (res.ignored) {
       if (res.ignored === "already_answered" && player) {
         const locked = GM.buildAnswerLocked(game, player.pid);
         if (locked) socket.emit("player:answerLocked", locked);
+      } else {
+        socket.emit("player:answerRejected", { reason: res.ignored });
       }
       return;
     }
@@ -689,10 +775,14 @@ setInterval(() => {
 }, GAME_CLEANUP_INTERVAL_MS).unref();
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Alkheeloot server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);
-  if (process.env.NODE_ENV === "production" && !process.env.STARTER_IMAGES_BASE_URL) {
+  console.log(`Kheelan server listening on :${PORT}  (CORS: ${CORS_ORIGIN})`);
+  if (
+    process.env.NODE_ENV === "production" &&
+    !process.env.STARTER_IMAGES_BASE_URL &&
+    !process.env.RENDER_EXTERNAL_URL
+  ) {
     console.warn(
-      "[config] STARTER_IMAGES_BASE_URL is unset — starter quiz photos will use http://localhost:3001 and break on player devices. Set it to your public server URL in Render.",
+      "[config] Set STARTER_IMAGES_BASE_URL to your public server URL so starter quiz photos load on player devices.",
     );
   }
 });

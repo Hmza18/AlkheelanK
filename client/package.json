@@ -4,14 +4,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "predev": "node ../scripts/sync-starter-images.mjs && node ../scripts/sync-starter-quizzes.mjs",
+    "dev": "npm run predev && vite",
+    "prebuild": "node ../scripts/sync-starter-images.mjs && node ../scripts/sync-starter-quizzes.mjs",
+    "build": "npm run prebuild && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",
     "canvas-confetti": "^1.9.3",
     "framer-motion": "^11.3.19",
+    "pdfjs-dist": "^4.10.38",
     "qrcode.react": "^4.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

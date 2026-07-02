@@ -1,6 +1,18 @@
 [
   {
     "quizId": "around-the-world",
+    "cover": true,
+    "file": "around-the-world/cover.webp",
+    "query": "world map travel globe",
+    "label": "Around the World",
+    "title": "Africa",
+    "creator": "residentevil_stars2001",
+    "license": "by",
+    "sourceUrl": "https://www.flickr.com/photos/23360760@N04/2231862471",
+    "openverseUrl": "https://live.staticflickr.com/2129/2231862471_943f63b598_b.jpg"
+  },
+  {
+    "quizId": "around-the-world",
     "index": 0,
     "file": "around-the-world/0.webp",
     "query": "russia landscape snow taiga",
@@ -94,6 +106,18 @@
     "license": "by-nc-nd",
     "sourceUrl": "https://www.flickr.com/photos/40435602@N00/5389634996",
     "openverseUrl": "https://live.staticflickr.com/5057/5389634996_a2d8e4780f_b.jpg"
+  },
+  {
+    "quizId": "family-faceoff",
+    "cover": true,
+    "file": "family-faceoff/cover.webp",
+    "query": "family game night table",
+    "label": "Family Face-Off",
+    "title": "Sorry (51/365)",
+    "creator": "LifeSupercharger",
+    "license": "by",
+    "sourceUrl": "https://www.flickr.com/photos/8047705@N02/5463789169",
+    "openverseUrl": "https://live.staticflickr.com/5172/5463789169_ce0003c645_b.jpg"
   },
   {
     "quizId": "family-faceoff",
@@ -193,6 +217,18 @@
   },
   {
     "quizId": "general-knowledge",
+    "cover": true,
+    "file": "general-knowledge/cover.webp",
+    "query": "library books reading study",
+    "label": "General Knowledge",
+    "title": "Library",
+    "creator": "courgettelawn",
+    "license": "by-nc-nd",
+    "sourceUrl": "https://www.flickr.com/photos/13114254@N00/256365351",
+    "openverseUrl": "https://live.staticflickr.com/107/256365351_bd3713a301_b.jpg"
+  },
+  {
+    "quizId": "general-knowledge",
     "index": 0,
     "file": "general-knowledge/0.webp",
     "query": "clock time 24 hours",
@@ -286,6 +322,18 @@
     "license": "by-nc",
     "sourceUrl": "https://www.flickr.com/photos/50906336@N00/2896787167",
     "openverseUrl": "https://live.staticflickr.com/3110/2896787167_5ae8f96803.jpg"
+  },
+  {
+    "quizId": "house-party",
+    "cover": true,
+    "file": "house-party/cover.webp",
+    "query": "house party friends celebrating",
+    "label": "House Party Mix",
+    "title": "1960s All People's Congress (APC) Political Rally in Kabala, Sierra Leone (West Africa) 1968 --- another view",
+    "creator": "gbaku",
+    "license": "by-sa",
+    "sourceUrl": "https://www.flickr.com/photos/72105154@N00/2180650529",
+    "openverseUrl": "https://live.staticflickr.com/2243/2180650529_cc907fa5de_b.jpg"
   },
   {
     "quizId": "house-party",
@@ -397,6 +445,18 @@
   },
   {
     "quizId": "kids-corner",
+    "cover": true,
+    "file": "kids-corner/cover.webp",
+    "query": "children playing colorful toys",
+    "label": "Kids' Corner",
+    "title": "Safety in numbers...",
+    "creator": "Bernard Spragg",
+    "license": "cc0",
+    "sourceUrl": "https://www.flickr.com/photos/88123769@N02/48136037543",
+    "openverseUrl": "https://live.staticflickr.com/65535/48136037543_75fbbd950f_b.jpg"
+  },
+  {
+    "quizId": "kids-corner",
     "index": 0,
     "file": "kids-corner/0.webp",
     "query": "mixing paint blue yellow green",
@@ -490,6 +550,18 @@
     "license": "by",
     "sourceUrl": "https://www.flickr.com/photos/42931449@N07/6812481635",
     "openverseUrl": "https://live.staticflickr.com/7030/6812481635_ed463ae1fa_b.jpg"
+  },
+  {
+    "quizId": "movie-night",
+    "cover": true,
+    "file": "movie-night/cover.webp",
+    "query": "movie theater cinema screen",
+    "label": "Movie Night",
+    "title": "minha paixão",
+    "creator": "jojocake",
+    "license": "by-sa",
+    "sourceUrl": "https://www.flickr.com/photos/42128471@N00/53245733",
+    "openverseUrl": "https://live.staticflickr.com/28/53245733_657c6e6227_b.jpg"
   },
   {
     "quizId": "movie-night",

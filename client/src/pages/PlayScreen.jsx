@@ -17,6 +17,7 @@ import { starterImageSrc } from "../lib/starterImages.js";
 import { isPodiumRank, playerRankHeadline, playerRankLine, teamPodiumLabel } from "../lib/rankDisplay.js";
 import { savePlayerSession, loadPlayerSession, clearPlayerSession } from "../lib/playerSession.js";
 import SettingsPanel from "../components/SettingsPanel.jsx";
+import PhaseShell from "../components/PhaseShell.jsx";
 import { TimerStrip } from "../components/Timer.jsx";
 import QuestionScreen from "../components/QuestionScreen.jsx";
 import QuestionProgress from "../components/QuestionProgress.jsx";
@@ -254,7 +255,12 @@ export default function PlayScreen() {
       setResult(r);
       setPhase("result");
       if (r.correct) sfx.correct();
+      else if (r.answered && (r.points ?? 0) > 0) sfx.confirm(); // partial credit
       else if (r.answered) sfx.wrong();
+      try {
+        if (r.correct) navigator.vibrate?.([40, 60, 40]);
+        else if (r.answered) navigator.vibrate?.(80);
+      } catch { /* no haptics */ }
     };
     const onStandings = (s) => {
       setStandings(s);
@@ -435,6 +441,7 @@ export default function PlayScreen() {
     if (phase !== "question" || selected !== null || paused) return;
     setSelected(Number.isInteger(payload?.index) ? payload.index : true);
     sfx.lock();
+    try { navigator.vibrate?.(30); } catch { /* no haptics */ }
     socket.emit("player:answer", payload);
   };
 
@@ -442,19 +449,30 @@ export default function PlayScreen() {
   // Shown mid-game whenever this phone's own connection drops (joined players only).
   const connectionBanner = me ? <PlayerConnectionBanner connected={selfConnected} /> : null;
 
-  if (phase === "join" && step === "pin") {
+  // The countdown is a fixed full-screen takeover with its own beat animation —
+  // keep it outside the animated phase shell (a transformed ancestor would
+  // break its fixed positioning).
+  if (phase === "countdown") {
     return (
       <>
         {settingsFab}
-        <JoinPin pin={pin} setPin={setPin} goProfile={goProfile} error={error} />
+        {connectionBanner}
+        <HostStatusBanner connected={hostConnected} forPlayer />
+        <Countdown countdown={countdown} />
       </>
     );
   }
-  if (phase === "join" && step === "profile") {
-    return (
-      <>
-        {settingsFab}
-        <AvatarPicker
+
+  const showHostBanner = ["lobby", "double-warning", "question", "answered"].includes(phase);
+  const showConnectionBanner = ["lobby", "double-warning", "question", "answered", "result", "standings"].includes(phase);
+  const phaseKey = phase === "join" ? `join-${step}` : phase;
+
+  let content;
+  if (phase === "join" && step === "pin") {
+    content = <JoinPin pin={pin} setPin={setPin} goProfile={goProfile} error={error} />;
+  } else if (phase === "join") {
+    content = (
+      <AvatarPicker
         nickname={nickname}
         setNickname={setNickname}
         avatar={avatar}
@@ -467,141 +485,98 @@ export default function PlayScreen() {
         joining={joining}
         error={error}
       />
-      </>
     );
-  }
-  if (phase === "lobby") {
-    return (
-      <>
-        {settingsFab}
-        {connectionBanner}
-        <HostStatusBanner connected={hostConnected} forPlayer />
-        <CenterCard>
-          <PlayerReconnectBanner show={showReconnectBanner} />
-          <Avatar config={me?.character} size={80} ring />
-          <button
-            type="button"
-            onClick={openAvatarEditor}
-            className="mt-3 text-sm font-bold text-brand-mid underline-offset-2 hover:underline landscapePhone:mt-2 landscapePhone:text-xs"
-          >
-            ✨ {copy.player.editLookCta}
-          </button>
-          <h2 className="mt-4 alkheelank-heading text-2xl landscapePhone:mt-2 landscapePhone:text-xl">{copy.player.joined}</h2>
-          <p className="mt-1 text-3xl font-bold alkheelank-gradient-text landscapePhone:text-2xl">{me?.nick}</p>
-          {me?.team?.name && (
-            <p className="mt-2 text-sm font-bold landscapePhone:mt-1" style={{ color: me.team.color }}>
-              {me.team.name}
-            </p>
-          )}
-          {me?.quizTitle && (
-            <p className="mt-3 text-sm font-semibold text-muted landscapePhone:mt-2">
-              🎬 {me.quizTitle}
-            </p>
-          )}
-          {players.length > 0 && (
-            <p className="mt-1 text-sm text-muted landscapePhone:text-xs">
-              {copy.player.lobbyCrowd(players.length)}
-            </p>
-          )}
-          <p className="mt-6 text-muted animate-pulse landscapePhone:mt-3 landscapePhone:text-sm">{copy.player.lobbyWait}</p>
-        </CenterCard>
-      </>
+  } else if (phase === "lobby") {
+    content = (
+      <CenterCard>
+        <PlayerReconnectBanner show={showReconnectBanner} />
+        <Avatar config={me?.character} size={80} ring />
+        <button
+          type="button"
+          onClick={openAvatarEditor}
+          className="mt-3 text-sm font-bold text-brand-mid underline-offset-2 hover:underline landscapePhone:mt-2 landscapePhone:text-xs"
+        >
+          ✨ {copy.player.editLookCta}
+        </button>
+        <h2 className="mt-4 alkheelank-heading text-2xl landscapePhone:mt-2 landscapePhone:text-xl">{copy.player.joined}</h2>
+        <p className="mt-1 text-3xl font-bold alkheelank-gradient-text landscapePhone:text-2xl">{me?.nick}</p>
+        {me?.team?.name && (
+          <p className="mt-2 text-sm font-bold landscapePhone:mt-1" style={{ color: me.team.color }}>
+            {me.team.name}
+          </p>
+        )}
+        {me?.quizTitle && (
+          <p className="mt-3 text-sm font-semibold text-muted landscapePhone:mt-2">
+            🎬 {me.quizTitle}
+          </p>
+        )}
+        {players.length > 0 && (
+          <p className="mt-1 text-sm text-muted landscapePhone:text-xs">
+            {copy.player.lobbyCrowd(players.length)}
+          </p>
+        )}
+        <p className="mt-6 text-muted animate-pulse landscapePhone:mt-3 landscapePhone:text-sm">{copy.player.lobbyWait}</p>
+      </CenterCard>
     );
-  }
-  if (phase === "countdown") {
-    return (
-      <>
-        {settingsFab}
-        {connectionBanner}
-        <HostStatusBanner connected={hostConnected} forPlayer />
-        <Countdown countdown={countdown} />
-      </>
+  } else if (phase === "double-warning") {
+    content = <DoublePointsWarning warning={doubleWarning} />;
+  } else if (phase === "question" && question) {
+    content = (
+      <QuestionCard
+        key={question.index}
+        q={question}
+        selected={selected}
+        onSubmit={submit}
+        onHint={() => socket.emit("player:hint")}
+        paused={paused}
+        hintText={hintText}
+      />
     );
-  }
-  if (phase === "double-warning") {
-    return (
-      <>
-        {settingsFab}
-        {connectionBanner}
-        <HostStatusBanner connected={hostConnected} forPlayer />
-        <DoublePointsWarning warning={doubleWarning} />
-      </>
+  } else if (phase === "answered") {
+    content = (
+      <PostAnswerWaiting
+        me={me}
+        question={question}
+        selected={selected}
+        waitContext={waitContext}
+        paused={paused}
+      />
     );
-  }
-  if (phase === "question" && question) {
-    return (
-      <>
-        {settingsFab}
-        {connectionBanner}
-        <HostStatusBanner connected={hostConnected} forPlayer />
-        <QuestionCard
-          key={question.index}
-          q={question}
-          selected={selected}
-          onSubmit={submit}
-          onHint={() => socket.emit("player:hint")}
-          paused={paused}
-          hintText={hintText}
-        />
-      </>
-    );
-  }
-  if (phase === "answered") {
-    return (
-      <>
-        {settingsFab}
-        {connectionBanner}
-        <HostStatusBanner connected={hostConnected} forPlayer />
-        <PostAnswerWaiting
+  } else if (phase === "result") {
+    content = <ResultCard result={result} q={question} reveal={reveal} />;
+  } else if (phase === "standings") {
+    content = <StandingsCard standings={standings} meId={me?.id ?? me?.pid ?? joinInfoRef.current?.pid} />;
+  } else if (phase === "final") {
+    content = (
+      <div className="alkheelank-screen-player player-phase-fill flex items-center overflow-y-auto px-5 py-8 landscapePhone:py-4">
+        <PlayerShareCard
           me={me}
-          question={question}
-          selected={selected}
-          waitContext={waitContext}
-          paused={paused}
+          finalRank={finalRank}
+          recap={finalPayload?.recap}
+          quizTitle={finalPayload?.title}
         />
-      </>
+      </div>
+    );
+  } else {
+    content = (
+      <CenterCard>
+        <h2 className="alkheelank-heading text-3xl">{copy.player.gameOver}</h2>
+        <button type="button" onClick={() => navigate("/")} className="alkheelank-btn-primary mt-6 w-full">
+          {copy.player.playAgain}
+        </button>
+      </CenterCard>
     );
   }
-  if (phase === "result") {
-    return (
-      <>
-        {settingsFab}
-        {connectionBanner}
-        <ResultCard result={result} q={question} reveal={reveal} />
-      </>
-    );
-  }
-  if (phase === "standings") {
-    return (
-      <>
-        {settingsFab}
-        {connectionBanner}
-        <StandingsCard standings={standings} meId={me?.id ?? me?.pid ?? joinInfoRef.current?.pid} />
-      </>
-    );
-  }
-  if (phase === "final") {
-    return (
-      <>
-        {settingsFab}
-        <div className="alkheelank-screen-player player-phase-fill flex items-center overflow-y-auto px-5 py-8 landscapePhone:py-4">
-          <PlayerShareCard
-            me={me}
-            finalRank={finalRank}
-            recap={finalPayload?.recap}
-            quizTitle={finalPayload?.title}
-          />
-        </div>
-      </>
-    );
-  }
+
   return (
-    <CenterCard>
-      <h2 className="alkheelank-heading text-3xl">{copy.player.gameOver}</h2>
-      <button type="button" onClick={() => navigate("/")} className="alkheelank-btn-primary mt-6 w-full">
-        {copy.player.playAgain}
-      </button>
-    </CenterCard>
+    <>
+      {phase !== "ended" ? settingsFab : null}
+      {showConnectionBanner ? connectionBanner : null}
+      {showHostBanner ? <HostStatusBanner connected={hostConnected} forPlayer /> : null}
+      <PhaseShell fast phaseKey={phaseKey}>
+        {content}
+      </PhaseShell>
+    </>
   );
 }
 
@@ -877,13 +852,18 @@ function QuestionCard({ q, selected, onSubmit, onHint, paused, hintText }) {
 }
 
 function ResultCard({ result, q, reveal }) {
+  // Partial credit (puzzle ordering): not fully correct, but points were earned
+  // — celebrate the near miss instead of flashing the harsh "wrong" treatment.
+  const isPartial = !!result?.answered && !result?.correct && (result?.points ?? 0) > 0;
   const title = result?.correct
     ? copy.player.result.correct
+    : isPartial
+    ? copy.player.result.partial
     : result?.answered
     ? copy.player.result.wrong
     : copy.player.result.timeout;
   const isCorrect = !!result?.correct;
-  const isWrong = result?.answered && !result?.correct;
+  const isWrong = result?.answered && !result?.correct && !isPartial;
 
   useEffect(() => {
     if (isCorrect) {
@@ -944,6 +924,16 @@ function ResultCard({ result, q, reveal }) {
               >
                 {copy.player.result.points(result?.points ?? 0, result?.multiplier)}
               </motion.p>
+              {isCorrect && (result?.streak ?? 0) >= 2 && (
+                <motion.p
+                  initial={{ scale: 0.6, opacity: 0, y: 6 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ delay: 0.22, type: "spring", stiffness: 420, damping: 18 }}
+                  className="mx-auto mt-2 inline-flex items-center gap-1.5 rounded-full bg-brand-mid/15 px-4 py-1 text-sm font-extrabold text-brand-mid ring-1 ring-brand-mid/30 landscapePhone:mt-1 landscapePhone:text-xs"
+                >
+                  🔥 {result.streak} in a row
+                </motion.p>
+              )}
           {correctAnswer && (
             <p className="mt-3 rounded-xl bg-surface-elevated px-3 py-2 text-sm font-semibold text-ink-900 ring-1 ring-edge landscapePhone:mt-2">
               <span className="text-muted">{copy.player.result.correctWas}: </span>

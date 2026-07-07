@@ -35,7 +35,7 @@ export default function Standings({ standings = [], highlightId = null, max = 8,
   return (
     <div className={`flex flex-col ${compactLandscape ? "gap-2 landscapePhone:gap-1.5" : "gap-3"}`}>
       <AnimatePresence>
-        {rows.map((p) => {
+        {rows.map((p, i) => {
           const mine = p.id === highlightId;
           const rank = p.rank;
           return (
@@ -45,7 +45,12 @@ export default function Standings({ standings = [], highlightId = null, max = 8,
               initial={reduced ? false : { opacity: 0, y: 18, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={motionSafe({ layout: spring.bouncy }, reduced)}
+              // Stagger the entrance top-to-bottom; rank-change layout moves
+              // keep their own spring so reorders stay immediate.
+              transition={motionSafe(
+                { ...spring.default, delay: reduced ? 0 : i * 0.05, layout: spring.bouncy },
+                reduced
+              )}
               className={`flex items-center gap-4 rounded-2xl px-4 py-3 text-xl font-bold ring-1 landscapePhone:gap-2 landscapePhone:px-3 landscapePhone:py-2 landscapePhone:text-base ${
                 compactLandscape ? "landscapePhone:rounded-xl" : ""
               } ${

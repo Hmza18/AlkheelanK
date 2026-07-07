@@ -28,20 +28,25 @@ export default function QuestionScreen({
   className = "",
 }) {
   const tfClass = questionType === "tf" ? "question-screen--tf" : "";
+  // Some types render one self-contained block (checkbox grid, text form,
+  // sortable list) instead of positional tiles — stack it centered at full
+  // width rather than dropping it into one cell of the 2×2 tile grid. The host
+  // still shows tiles for ms/puzzle; only its type-answer card is a block.
+  const stackTypes = variant === "host" ? ["type"] : ["ms", "type", "puzzle"];
+  const stackClass = stackTypes.includes(questionType) ? " question-screen--stack" : "";
   const noImageClass = image ? "" : " question-screen--no-image";
   const hasStageContent = !!(image || timer || stageInfo);
   const reduced = useReducedMotion();
   const delay = (d) => (reduced ? 0 : d);
   const rootClass =
     variant === "host"
-      ? `question-screen question-screen--host question-screen--kahoot host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}${noImageClass}`
-      : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}${noImageClass}`;
+      ? `question-screen question-screen--host question-screen--kahoot host-phase-fill host-phase-fill--fit alkheelank-screen-host ${tfClass}${stackClass}${noImageClass}`
+      : `question-screen question-screen--player question-screen--kahoot player-phase-fill player-question-fill alkheelank-safe-x mx-auto w-full ${tfClass}${stackClass}${noImageClass}`;
 
   // Kahoot-order entrance: prompt → image → tiles (in AnswerTile) → timer.
   const ImageEl = animateImage ? motion.img : "img";
   const imageProps = animateImage
     ? {
-        key: `img-${questionKey ?? image}`,
         initial: { opacity: 0, scale: 0.94, y: 8 },
         animate: { opacity: 1, scale: 1, y: 0 },
         transition: { ...motionSafe(spring.soft, reduced), delay: delay(questionIntro.image) },
@@ -52,7 +57,6 @@ export default function QuestionScreen({
   const PromptEl = animatePrompt ? PromptMotion : PromptTag;
   const promptProps = animatePrompt
     ? {
-        key: questionKey ?? prompt,
         initial: { opacity: 0, y: 18, scale: 0.96 },
         animate: { opacity: 1, y: 0, scale: 1 },
         transition: { ...motionSafe(spring.soft, reduced), delay: delay(questionIntro.prompt) },
@@ -66,7 +70,7 @@ export default function QuestionScreen({
         {header ? <div className="question-screen__header">{header}</div> : null}
         {progress}
         {badge ? <div className="question-screen__badge">{badge}</div> : null}
-        <PromptEl className="question-screen__prompt" {...promptProps}>
+        <PromptEl key={questionKey ?? prompt} className="question-screen__prompt" {...promptProps}>
           {prompt}
         </PromptEl>
         {hasStageContent ? (
@@ -85,7 +89,7 @@ export default function QuestionScreen({
             {image ? (
               <div className="question-screen__media">
                 <div className="question-screen__media-frame">
-                  <ImageEl {...imageProps} src={image} alt="" className="question-screen__img" />
+                  <ImageEl key={`img-${questionKey ?? image}`} {...imageProps} src={image} alt="" className="question-screen__img" />
                 </div>
               </div>
             ) : null}

@@ -19,17 +19,20 @@ const DRUM_MS = { 2: 1100, 1: 1400, 0: 2400 }; // by place index — longest bef
 // Dramatic built-up podium. Drum roll → reveal 3rd → drum roll → 2nd → drum roll → 1st.
 // Confetti fires on 1st. `onComplete` lets the parent reveal the full ranked list once
 // the top 3 are up. Avatars render straight from each winner's stored config object.
-export default function Podium({ podium = [], sound = true, onComplete }) {
+// `instant` renders the finished podium with no drum roll and never fires
+// `onComplete` — used when the host navigates back after the reveal already played.
+export default function Podium({ podium = [], sound = true, onComplete, instant = false }) {
   const reduced = useReducedMotion();
   const sequence = [2, 1, 0].filter((i) => podium[i]);
-  const [shownCount, setShownCount] = useState(0);
-  const [announce, setAnnounce] = useState(null);
+  const [shownCount, setShownCount] = useState(instant ? sequence.length : 0);
+  const [announce, setAnnounce] = useState(instant ? 0 : null);
   const [pendingPlace, setPendingPlace] = useState(null);
 
   const shownPlaces = new Set(sequence.slice(0, shownCount));
   const drumRolling = pendingPlace !== null && !shownPlaces.has(pendingPlace);
 
   useEffect(() => {
+    if (instant) return undefined; // already revealed — skip the sequence entirely
     const timers = [];
     let cancelled = false;
 

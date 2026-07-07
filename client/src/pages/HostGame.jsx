@@ -721,6 +721,17 @@ function StandingsView({ standings, onNext }) {
 function FinalView({ final, onHome }) {
   const [showList, setShowList] = useState(false);
   const [view, setView] = useState("podium"); // podium | recap | breakdown
+  // The dramatic podium reveal should play exactly once. Afterwards, "← Podium"
+  // shows the finished podium and stays there instead of auto-advancing again.
+  const podiumPlayedRef = useRef(false);
+  const podiumDone = () => {
+    if (podiumPlayedRef.current) return;
+    podiumPlayedRef.current = true;
+    setShowList(true);
+    setView("recap");
+  };
+  const hasMoreThanPodium =
+    final.mode === "teams" ? final.standings.length > 0 : final.standings.length > 3;
 
   if (view === "breakdown") {
     return (
@@ -753,14 +764,14 @@ function FinalView({ final, onHome }) {
       <h1 className="shrink-0 alkheelank-heading text-5xl alkheelank-gradient-text landscapePhone:text-2xl sm:text-7xl landscapePhone:sm:text-2xl">{copy.final.title}</h1>
       <p className="mt-2 shrink-0 text-muted landscapePhone:mt-1 landscapePhone:text-sm">{final.title}</p>
       {final.mode === "teams" && final.teamPodium?.length > 0 ? (
-        <TeamPodium teams={final.teamPodium} onComplete={() => setView("recap")} />
+        <TeamPodium teams={final.teamPodium} instant={podiumPlayedRef.current} onComplete={podiumDone} />
       ) : (
         <div className="mt-12 w-full shrink-0 landscapePhone:mt-3">
-          <Podium podium={final.podium} onComplete={() => setView("recap")} />
+          <Podium podium={final.podium} instant={podiumPlayedRef.current} onComplete={podiumDone} />
         </div>
       )}
       <AnimatePresence>
-        {showList && final.standings.length > 0 && (
+        {showList && hasMoreThanPodium && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mt-14 w-full max-w-2xl landscapePhone:mt-4">
             <h3 className="mb-4 text-center alkheelank-heading text-2xl text-muted landscapePhone:mb-2 landscapePhone:text-lg">{final.mode === "teams" ? copy.final.topContributors : copy.final.podiumRest}</h3>
             <Leaderboard entries={final.mode === "teams" ? final.standings.slice(0, 10) : final.standings.slice(3)} max={10} />
@@ -864,11 +875,12 @@ function QuestionBreakdownView({ breakdown, onBack, onHome }) {
   );
 }
 
-function TeamPodium({ teams, onComplete }) {
+function TeamPodium({ teams, instant = false, onComplete }) {
   useEffect(() => {
+    if (instant) return undefined; // reveal already played — stay on the podium
     const t = setTimeout(() => onComplete?.(), 1800);
     return () => clearTimeout(t);
-  }, [onComplete]);
+  }, [instant, onComplete]);
   return (
     <div className="mt-10 flex w-full max-w-3xl items-end justify-center gap-4 landscapePhone:mt-3 landscapePhone:gap-2">
       {teams.map((t, i) => (

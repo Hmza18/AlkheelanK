@@ -285,13 +285,38 @@ button:focus-visible {
   .alkheelank-btn-primary {
     @apply alkheelank-btn text-white shadow-glow hover:brightness-110 focus-visible:ring-2 focus-visible:ring-brand-mid;
     background: linear-gradient(135deg, var(--alkheelank-brand-mid), var(--alkheelank-brand-end));
+    transition: transform 0.16s ease, box-shadow 0.22s ease, filter 0.16s ease;
+  }
+  .alkheelank-btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+      0 0 26px rgba(var(--alkheelank-rgb-accent), 0.4),
+      0 8px 20px rgba(0, 0, 0, 0.25);
+  }
+  .alkheelank-btn-primary:active:not(:disabled) {
+    transform: translateY(1px) scale(0.98);
+    box-shadow: 0 0 14px rgba(var(--alkheelank-rgb-accent), 0.3);
   }
   .alkheelank-btn-ghost {
     @apply alkheelank-btn text-ink-900 ring-1 ring-edge focus-visible:ring-2 focus-visible:ring-brand-mid;
     background: var(--alkheelank-surface-muted);
+    transition: transform 0.16s ease, background 0.16s ease;
   }
   .alkheelank-btn-ghost:hover {
     background: var(--alkheelank-surface-elevated);
+    transform: translateY(-1px);
+  }
+  .alkheelank-btn-ghost:active:not(:disabled) {
+    transform: translateY(1px) scale(0.98);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .alkheelank-btn-primary,
+    .alkheelank-btn-primary:hover:not(:disabled),
+    .alkheelank-btn-primary:active:not(:disabled),
+    .alkheelank-btn-ghost:hover,
+    .alkheelank-btn-ghost:active:not(:disabled) {
+      transform: none;
+    }
   }
   .alkheelank-screen-host {
     @apply alkheelank-safe-x alkheelank-safe-top alkheelank-safe-bottom mx-auto w-full max-w-6xl px-6 py-6;
@@ -1724,6 +1749,23 @@ button:focus-visible {
   grid-template-rows: minmax(4.25rem, auto);
 }
 
+/* Block-style answers (multi-select list, type-answer form, puzzle sorter):
+   one centered column instead of the 2×2 tile grid, so the block never sits
+   half-width inside a single grid cell. */
+.question-screen--stack .question-screen__answers {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 34rem;
+  margin-inline: auto;
+  overflow-y: auto;
+}
+
+.question-screen--host.question-screen--stack .question-screen__answers {
+  max-width: 44rem;
+}
+
 /* No-photo player layout: the question keeps its natural height at the top and
    the answer dock takes over all the leftover space, so the choices grow to
    fill the gap a missing photo would otherwise leave. */
@@ -1733,12 +1775,12 @@ button:focus-visible {
 
 .question-screen--player.question-screen--no-image .question-screen__answers {
   height: 100%;
-  align-content: stretch;
-  grid-template-rows: repeat(2, minmax(4.25rem, 1fr));
+  align-content: end;
+  grid-template-rows: repeat(2, minmax(4.25rem, 5.5rem));
 }
 
 .question-screen--player.question-screen--no-image.question-screen--tf .question-screen__answers {
-  grid-template-rows: minmax(4.25rem, 1fr);
+  grid-template-rows: minmax(4.25rem, 5.5rem);
 }
 
 .question-screen--player.question-screen--no-image .question-screen__answers > * {
@@ -2229,6 +2271,16 @@ button:focus-visible {
 
   .question-screen--tf .question-screen__answers {
     grid-template-rows: minmax(4.25rem, 1fr);
+  }
+
+  /* The landscape dock has a fixed small height — let rows share it instead of
+     the portrait standard-size cap, which would overflow it. */
+  .question-screen--player.question-screen--no-image .question-screen__answers {
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .question-screen--player.question-screen--no-image.question-screen--tf .question-screen__answers {
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .question-screen__answers .answer-tile--kahoot {

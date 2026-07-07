@@ -90,6 +90,7 @@ export const copy = {
     revealSoon: "Results coming up…",
     result: {
       correct: "Correct",
+      partial: "So close!",
       wrong: "Not this time",
       timeout: "Time ran out",
       points: (n, mult) =>

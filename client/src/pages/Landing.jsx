@@ -89,23 +89,7 @@ export default function Landing() {
           <p className="mt-3 text-xs text-muted">{copy.landing.socialProof}</p>
         </motion.div>
 
-        <motion.div variants={item} className="mt-8 w-full max-w-lg px-1">
-          <LandingDemo />
-        </motion.div>
-
-        <motion.div variants={item} className="mt-14 flex w-full justify-center">
-          <LandingBenefits />
-        </motion.div>
-
-        <motion.div variants={item} className="mt-14 flex w-full justify-center">
-          <LandingQuotes />
-        </motion.div>
-
-        <motion.div variants={item} className="mt-14 flex w-full justify-center">
-          <LandingPricing onSubscribe={goTrial} />
-        </motion.div>
-
-        <motion.div variants={item} className="mt-10 w-full max-w-md">
+        <motion.div variants={item} className="mt-8 w-full max-w-md">
           <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted">{copy.landing.joinTitle}</p>
           <GlowCard>
             <div className="p-5">
@@ -126,6 +110,22 @@ export default function Landing() {
               </button>
             </div>
           </GlowCard>
+        </motion.div>
+
+        <motion.div variants={item} className="mt-8 w-full max-w-lg px-1">
+          <LandingDemo />
+        </motion.div>
+
+        <motion.div variants={item} className="mt-14 flex w-full justify-center">
+          <LandingBenefits />
+        </motion.div>
+
+        <motion.div variants={item} className="mt-14 flex w-full justify-center">
+          <LandingQuotes />
+        </motion.div>
+
+        <motion.div variants={item} className="mt-14 flex w-full justify-center">
+          <LandingPricing onSubscribe={goTrial} />
         </motion.div>
 
         <motion.div variants={item} className="mt-14 flex w-full justify-center">

@@ -14,7 +14,7 @@ export function useTrialCheckout(user) {
   const [checkoutBusy, setCheckoutBusy] = useState(false);
 
   const goHostFree = useCallback(() => {
-    navigate(user ? "/host" : "/host?guest=1");
+    navigate(user ? "/host" : "/login?mode=signup");
   }, [navigate, user]);
 
   const goTrial = useCallback(async () => {

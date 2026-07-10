@@ -22,7 +22,7 @@ export default function LandingDemo() {
   const [showPoints, setShowPoints] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
-  const goHost = () => navigate(user ? "/host" : "/host?guest=1");
+  const goHost = () => navigate(user ? "/host" : "/login?mode=signup");
 
   const pick = (index) => {
     if (picked !== null) return;

@@ -18,7 +18,9 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const planParam = searchParams.get("plan");
   const { signIn, signUp, signInWithGoogle, configured, user, loading } = useAuth();
-  const [mode, setMode] = useState("login"); // login | signup
+  const [mode, setMode] = useState(
+    searchParams.get("mode") === "signup" ? "signup" : "login",
+  ); // login | signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -250,13 +252,6 @@ export default function Auth() {
           or
           <span className="h-px flex-1 bg-brand-start/25" />
         </div>
-
-        {mode === "signup" && (
-          <p className="mb-4 rounded-xl bg-surface-muted px-4 py-2.5 text-center text-xs text-muted">
-            New accounts work instantly with <b className="text-ink-900">Google</b>. Email sign-up needs
-            confirm email turned off in Supabase (or you may hit the 2/hour email cap).
-          </p>
-        )}
 
         <label className="mb-1 block text-sm font-semibold text-muted">Email</label>
         <input

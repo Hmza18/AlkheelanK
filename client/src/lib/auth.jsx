@@ -79,7 +79,7 @@ export function AuthProvider({ children }) {
       async signInWithGoogle(redirectTo = oauthRedirectUrl()) {
         if (!supabase) return { data: null, error: { message: "Login is not configured." } };
         return supabase.auth.signInWithOAuth({
-          provider: "custom:google-kheelan",
+          provider: "google",
           options: {
             redirectTo,
             skipBrowserRedirect: true,

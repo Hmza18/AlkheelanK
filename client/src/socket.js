@@ -12,15 +12,12 @@ function serverReachHint() {
   if (isLocalDevOrigin()) {
     return "Start the game server in another terminal: `npm run dev:server` (from the project root). Vite proxies to port 3001.";
   }
-  return "On Render, set CORS_ORIGIN to include your site URL (e.g. https://www.alkheelan.xyz). Also confirm VITE_SERVER_URL on Vercel is https://alkheelank-server.onrender.com and redeploy.";
+  return "The game server may still be waking up on Render (free tier). Wait 30 seconds and try again.";
 }
 
-// One shared connection for the tab. We connect lazily so the landing page
-// doesn't open a socket until the user actually hosts or joins.
+// Same-origin (Vite proxy / Vercel rewrite). Polling first — survives cold starts.
 export const socket = io(socketServerUrl(), {
   autoConnect: false,
-  // Polling first — Render/Vercel proxies often reject a direct WebSocket attempt
-  // before the service is fully awake. Socket.io upgrades once polling works.
   transports: ["polling", "websocket"],
   upgrade: true,
   rememberUpgrade: true,
@@ -50,30 +47,56 @@ export function formatConnectError(err, { timedOut = false } = {}) {
 
 /** Hit the HTTP health check so Render/similar hosts wake before the socket handshake. */
 export async function wakeServer() {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 60_000);
-  try {
-    const res = await fetch(healthCheckUrl(), { signal: ctrl.signal });
-    if (!res.ok) {
-      if (import.meta.env.DEV && (res.status === 502 || res.status === 504)) {
+  const url = healthCheckUrl();
+  const attempts = 3;
+  let lastErr;
+
+  for (let i = 0; i < attempts; i++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), i === 0 ? 45_000 : 60_000);
+    try {
+      const res = await fetch(url, {
+        signal: ctrl.signal,
+        cache: "no-store",
+        mode: "cors",
+      });
+      if (!res.ok) {
+        if (import.meta.env.DEV && (res.status === 502 || res.status === 504)) {
+          throw new Error(`Could not reach the game server. ${serverReachHint()}`);
+        }
+        // Render free tier often returns 502/503 while spinning up — retry.
+        if ((res.status === 502 || res.status === 503 || res.status === 504) && i < attempts - 1) {
+          await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+          continue;
+        }
+        throw new Error(
+          `Game server returned ${res.status}. Wait a moment and try again — free hosting can take up to a minute to wake.`,
+        );
+      }
+      return res.json();
+    } catch (err) {
+      lastErr = err;
+      if (err.name === "AbortError") {
+        if (i < attempts - 1) {
+          await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+          continue;
+        }
+        throw new Error("Game server timed out while waking up. Free hosting can take up to a minute — try again.");
+      }
+      if (err instanceof TypeError || /failed to fetch|network/i.test(err?.message || "")) {
+        if (i < attempts - 1) {
+          await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+          continue;
+        }
         throw new Error(`Could not reach the game server. ${serverReachHint()}`);
       }
-      throw new Error(
-        `Game server returned ${res.status}. Deploy alkheelank-server on Render and set VITE_SERVER_URL to its URL.`,
-      );
+      throw err;
+    } finally {
+      clearTimeout(timer);
     }
-    return res.json();
-  } catch (err) {
-    if (err.name === "AbortError") {
-      throw new Error("Game server timed out while waking up. Try again in a moment.");
-    }
-    if (err instanceof TypeError) {
-      throw new Error(`Could not reach the game server. ${serverReachHint()}`);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timer);
   }
+
+  throw lastErr || new Error(`Could not reach the game server. ${serverReachHint()}`);
 }
 
 /**

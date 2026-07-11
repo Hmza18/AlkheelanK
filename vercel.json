@@ -3,8 +3,54 @@
   "installCommand": "cd client && npm install",
   "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/index.html" }
+  "rewrites": [
+    {
+      "source": "/socket.io",
+      "destination": "https://alkheelank-server.onrender.com/socket.io"
+    },
+    {
+      "source": "/socket.io/(.*)",
+      "destination": "https://alkheelank-server.onrender.com/socket.io/$1"
+    },
+    {
+      "source": "/health",
+      "destination": "https://alkheelank-server.onrender.com/health"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://alkheelank-server.onrender.com/api/:path*"
+    },
+    {
+      "source": "/quizzes/:path*",
+      "destination": "https://alkheelank-server.onrender.com/quizzes/:path*"
+    },
+    {
+      "source": "/quizzes",
+      "destination": "https://alkheelank-server.onrender.com/quizzes"
+    },
+    {
+      "source": "/features",
+      "destination": "https://alkheelank-server.onrender.com/features"
+    },
+    {
+      "source": "/generate-quiz",
+      "destination": "https://alkheelank-server.onrender.com/generate-quiz"
+    },
+    {
+      "source": "/ingest-quiz",
+      "destination": "https://alkheelank-server.onrender.com/ingest-quiz"
+    },
+    {
+      "source": "/image-search",
+      "destination": "https://alkheelank-server.onrender.com/image-search"
+    },
+    {
+      "source": "/starter-images/:path*",
+      "destination": "https://alkheelank-server.onrender.com/starter-images/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

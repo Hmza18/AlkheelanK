@@ -10,7 +10,9 @@ const ORDER = [1, 0, 2]; // render 2nd, 1st, 3rd left→right
 const HEIGHTS = ["h-72 landscapePhone:h-24", "h-56 landscapePhone:h-20", "h-40 landscapePhone:h-16"]; // by place index (1st tallest)
 const MEDALS = ["🥇", "🥈", "🥉"];
 const PLACE_WORDS = ["First place", "Second place", "Third place"];
-const TEASERS = ["Third place…", "Second place…", "And the winner is…"];
+// Indexed by place (0 = 1st) to match PLACE_WORDS/MEDALS — the reveal order is
+// 3rd → 2nd → 1st, so the winner teaser fires last.
+const TEASERS = ["And the winner is…", "Second place…", "Third place…"];
 
 const PAUSE_AFTER_MS = 900;
 const START_DELAY_MS = 500;

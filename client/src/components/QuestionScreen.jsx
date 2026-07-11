@@ -95,6 +95,10 @@ export default function QuestionScreen({
             ) : null}
             {stageInfo ? (
               <div className="question-screen__stage-side question-screen__stage-info">{stageInfo}</div>
+            ) : timer && image ? (
+              // Counterweight for the timer rail so the photo stays optically
+              // centered (the stage sides have a fixed width on desktop).
+              <div className="question-screen__stage-side" aria-hidden />
             ) : null}
           </div>
         ) : null}

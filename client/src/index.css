@@ -2408,21 +2408,21 @@ button:focus-visible {
     background: var(--alkheelank-surface);
   }
 
-  .question-screen--kahoot .question-screen__ambient {
+  .question-screen--kahoot.question-screen--player .question-screen__ambient {
     display: none;
   }
 
-  .question-screen--kahoot .question-screen__body {
+  .question-screen--kahoot.question-screen--player .question-screen__body {
     display: contents;
   }
 
-  .question-screen--kahoot .question-screen__header,
-  .question-screen--kahoot .question-progress,
-  .question-screen--kahoot .question-screen__badge {
+  .question-screen--kahoot.question-screen--player .question-screen__header,
+  .question-screen--kahoot.question-screen--player .question-progress,
+  .question-screen--kahoot.question-screen--player .question-screen__badge {
     display: none !important;
   }
 
-  .question-screen--kahoot .question-screen__timer-strip {
+  .question-screen--kahoot.question-screen--player .question-screen__timer-strip {
     grid-area: timer;
     position: relative;
     top: auto;
@@ -2437,17 +2437,17 @@ button:focus-visible {
     background: rgba(var(--alkheelank-rgb-tint), 0.06);
   }
 
-  .question-screen--kahoot .question-screen__timer-strip__bar {
+  .question-screen--kahoot.question-screen--player .question-screen__timer-strip__bar {
     position: absolute;
     inset: 0 auto 0 0;
     height: 100%;
   }
 
-  .question-screen--kahoot .question-screen__timer-strip__secs {
+  .question-screen--kahoot.question-screen--player .question-screen__timer-strip__secs {
     display: none;
   }
 
-  .question-screen--kahoot .question-screen__prompt {
+  .question-screen--kahoot.question-screen--player .question-screen__prompt {
     grid-area: prompt;
     margin: 0;
     max-width: none;
@@ -2471,7 +2471,7 @@ button:focus-visible {
     overflow: hidden;
   }
 
-  .question-screen--kahoot .question-screen__stage {
+  .question-screen--kahoot.question-screen--player .question-screen__stage {
     grid-area: stage;
     margin: 0;
     min-height: 0;
@@ -2481,8 +2481,8 @@ button:focus-visible {
              max(0.375rem, env(safe-area-inset-left, 0px));
   }
 
-  .question-screen--kahoot .question-screen__media,
-  .question-screen--kahoot .question-screen__media-frame {
+  .question-screen--kahoot.question-screen--player .question-screen__media,
+  .question-screen--kahoot.question-screen--player .question-screen__media-frame {
     min-height: 0;
     max-height: 100%;
     height: 100%;
@@ -2494,11 +2494,11 @@ button:focus-visible {
     align-self: stretch;
   }
 
-  .question-screen--kahoot .question-screen__media-frame::before {
+  .question-screen--kahoot.question-screen--player .question-screen__media-frame::before {
     display: none;
   }
 
-  .question-screen--kahoot .question-screen__img {
+  .question-screen--kahoot.question-screen--player .question-screen__img {
     /* Fill the media-frame box completely; object-fit:contain scales the photo
        down to fit without ever cropping or clipping edges. */
     width: 100%;
@@ -2522,7 +2522,7 @@ button:focus-visible {
       "dock";
   }
 
-  .question-screen--kahoot .question-screen__dock {
+  .question-screen--kahoot.question-screen--player .question-screen__dock {
     grid-area: dock;
     margin: 0;
     min-height: 0;
@@ -2534,7 +2534,7 @@ button:focus-visible {
     pointer-events: auto;
   }
 
-  .question-screen--kahoot .question-screen__answers {
+  .question-screen--kahoot.question-screen--player .question-screen__answers {
     height: 100%;
     min-height: 0;
     gap: 0.5rem;
@@ -2542,11 +2542,11 @@ button:focus-visible {
     grid-template-rows: repeat(2, minmax(4.25rem, 1fr));
   }
 
-  .question-screen--kahoot.question-screen--tf .question-screen__answers {
+  .question-screen--kahoot.question-screen--player.question-screen--tf .question-screen__answers {
     grid-template-rows: minmax(4.25rem, 1fr);
   }
 
-  .question-screen--kahoot .answer-tile--kahoot {
+  .question-screen--kahoot.question-screen--player .answer-tile--kahoot {
     min-height: 0;
     height: 100%;
     pointer-events: auto;
@@ -2582,13 +2582,13 @@ button:focus-visible {
       "dock";
   }
 
-  .question-screen--kahoot .question-screen__prompt {
+  .question-screen--kahoot.question-screen--player .question-screen__prompt {
     font-size: 0.75rem;
     padding-top: max(0.3125rem, env(safe-area-inset-top, 0px));
     -webkit-line-clamp: 2;
   }
 
-  .question-screen--kahoot .answer-tile--kahoot .answer-tile__label {
+  .question-screen--kahoot.question-screen--player .answer-tile--kahoot .answer-tile__label {
     font-size: 1rem;
     padding: 0.5rem 0.75rem;
     -webkit-line-clamp: 2;
@@ -3339,8 +3339,10 @@ button:focus-visible {
   }
 
   .question-screen--host.host-phase-fill--fit {
-    height: calc(100dvh - 1.75rem);
-    max-height: calc(100dvh - 1.75rem);
+    /* The phase shell adds 2.25rem (pt-9) for the landscape toolbar — match it
+       exactly or the answer row's bottom edge clips past the viewport. */
+    height: calc(100dvh - 2.25rem);
+    max-height: calc(100dvh - 2.25rem);
     min-height: 0;
     overflow: hidden;
   }
@@ -3729,8 +3731,10 @@ button:focus-visible {
   gap: clamp(1.25rem, 4dvh, 2.25rem);
   width: 100%;
   max-width: 60rem;
-  /* extra clearance so the status pill doesn't crowd the PIN/QR card above */
-  padding-top: clamp(7rem, 18dvh, 11rem);
+  /* Clearance for the absolutely-positioned PIN/QR card above. Must cover the
+     card's full footprint (top offset + QR + padding) or a crowded player list
+     pushes the status pill underneath it. */
+  padding-top: calc(env(safe-area-inset-top, 0px) + 16.25rem);
 }
 
 .lobby-logo {
@@ -4020,7 +4024,8 @@ button:focus-visible {
 
   .lobby-center {
     gap: clamp(1rem, 3.6dvh, 1.75rem);
-    padding-top: clamp(6.75rem, 17dvh, 9.5rem);
+    /* Same card-footprint clearance as desktop, sized for the wrapped card. */
+    padding-top: calc(env(safe-area-inset-top, 0px) + 13.5rem);
   }
 
   .lobby-logo {
@@ -4101,13 +4106,28 @@ button:focus-visible {
     padding:
       max(0.3rem, env(safe-area-inset-top, 0px))
       max(0.4rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px))
-      max(0.3rem, env(safe-area-inset-bottom, 0px));
+      max(4.25rem, calc(env(safe-area-inset-bottom, 0px) + 3.75rem));
   }
 
   .question-screen--host {
     --qs-pad-x: max(0.35rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
     --qs-pad-top: max(0.2rem, env(safe-area-inset-top, 0px));
-    --qs-pad-bottom: max(0.2rem, env(safe-area-inset-bottom, 0px));
+    /* Clear the floating settings/end-session chrome pinned to the bottom
+       corners — without this the fabs sit on top of the answer tiles. */
+    --qs-pad-bottom: max(4.25rem, calc(env(safe-area-inset-bottom, 0px) + 3.75rem));
+  }
+
+  /* The circular timer is hidden on narrow portrait (side rails steal width),
+     so surface the thin countdown strip instead — same treatment as landscape.
+     Without this a phone-portrait host has no visible countdown at all. */
+  .question-screen--host .question-screen__timer-strip {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Player: same bottom clearance for the settings fab over the tiles. */
+  .question-screen--player {
+    --qs-pad-bottom: max(4.25rem, calc(env(safe-area-inset-bottom, 0px) + 3.75rem));
   }
 
   .question-screen--host .host-meta {
@@ -4177,6 +4197,14 @@ button:focus-visible {
     max-width: 100%;
     object-fit: contain;
     border-radius: 0.75rem;
+    /* The box is stretched to the stage and the photo letterboxed inside it —
+       a ring/shadow around the whole box would outline empty space. */
+    box-shadow: none;
+    outline: none;
+  }
+
+  .question-screen--host .question-screen__media-frame::before {
+    display: none;
   }
 
   .question-screen--host .question-screen__dock {
@@ -4217,6 +4245,11 @@ button:focus-visible {
   .lobby-header-card__qr svg {
     width: clamp(3.75rem, 12vw, 5.5rem);
     height: clamp(3.75rem, 12vw, 5.5rem);
+  }
+
+  .lobby-center {
+    /* Compact card in landscape — clear it without eating the short viewport. */
+    padding-top: calc(env(safe-area-inset-top, 0px) + 7rem);
   }
 
   .lobby-header-card__pin {

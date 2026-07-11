@@ -64,8 +64,11 @@ const QUESTION_INTRO_MS = 900;
 const HOST_GRACE_MS = 45_000;
 
 const limitHostCreate = createRateLimiter({ windowMs: 60_000, max: 8 });
-const limitPlayerPeek = createRateLimiter({ windowMs: 60_000, max: 40 });
-const limitPlayerJoin = createRateLimiter({ windowMs: 60_000, max: 30 });
+// Peek/join are keyed by IP — a full room (up to 100 players) often shares one
+// NAT/venue IP and joins (or storm-reconnects after a WiFi blip) inside a
+// single window, so these ceilings must comfortably exceed the room cap.
+const limitPlayerPeek = createRateLimiter({ windowMs: 60_000, max: 300 });
+const limitPlayerJoin = createRateLimiter({ windowMs: 60_000, max: 240 });
 const limitGenerate = createRateLimiter({ windowMs: 60_000, max: 4 });
 const limitIngest = createRateLimiter({ windowMs: 60_000, max: 4 });
 const limitImageSearch = createRateLimiter({ windowMs: 60_000, max: 20 });

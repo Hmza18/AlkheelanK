@@ -5,12 +5,8 @@
   "outputDirectory": "client/dist",
   "rewrites": [
     {
-      "source": "/socket.io",
-      "destination": "https://alkheelank-server.onrender.com/socket.io"
-    },
-    {
-      "source": "/socket.io/(.*)",
-      "destination": "https://alkheelank-server.onrender.com/socket.io/$1"
+      "source": "/socket.io/:path*",
+      "destination": "https://alkheelank-server.onrender.com/socket.io/:path*"
     },
     {
       "source": "/health",

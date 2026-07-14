@@ -490,13 +490,29 @@ export default function PlayScreen() {
     content = (
       <CenterCard>
         <PlayerReconnectBanner show={showReconnectBanner} />
-        <Avatar config={me?.character} size={80} ring />
+        {/* Tap your own character to change your look — no text link needed. */}
         <button
           type="button"
           onClick={openAvatarEditor}
-          className="mt-3 text-sm font-bold text-brand-mid underline-offset-2 hover:underline landscapePhone:mt-2 landscapePhone:text-xs"
+          aria-label={copy.player.editLookCta}
+          className="group relative mx-auto block rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand-mid"
         >
-          ✨ {copy.player.editLookCta}
+          <span className="block transition-transform duration-200 group-hover:scale-105 group-active:scale-95">
+            <Avatar config={me?.character} size={96} ring />
+          </span>
+          <span
+            className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-brand-mid text-base text-white shadow-card ring-2 ring-surface"
+            aria-hidden
+          >
+            ✏️
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={openAvatarEditor}
+          className="mt-2 text-xs font-semibold text-muted transition hover:text-brand-mid landscapePhone:mt-1"
+        >
+          {copy.player.tapToEdit}
         </button>
         <h2 className="mt-4 alkheelank-heading text-2xl landscapePhone:mt-2 landscapePhone:text-xl">{copy.player.joined}</h2>
         <p className="mt-1 text-3xl font-bold alkheelank-gradient-text landscapePhone:text-2xl">{me?.nick}</p>

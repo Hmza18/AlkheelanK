@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./lib/auth.jsx";
 import { ThemeProvider } from "./lib/theme.jsx";
 import Background from "./components/Background.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import Landing from "./pages/Landing.jsx";
 import Auth from "./pages/Auth.jsx";
 import Host from "./pages/Host.jsx";
@@ -15,6 +16,7 @@ export default function App() {
       <AuthProvider>
         <div className="relative min-h-full overflow-x-hidden font-body">
           <Background />
+        <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Auth />} />
@@ -28,6 +30,7 @@ export default function App() {
           )}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </ErrorBoundary>
         </div>
       </AuthProvider>
     </ThemeProvider>

@@ -49,15 +49,15 @@ export const TF_ANSWERS = [
     shape: "check",
     glyph: "✓",
     label: "True",
-    color: "#10b981", // emerald
-    color600: "#059669",
+    color: "#3b82f6", // blue — matches the diamond answer tile
+    color600: "#2563eb",
   },
   {
     key: "false",
     shape: "cross",
     glyph: "✕",
     label: "False",
-    color: "#f43f5e", // rose
+    color: "#f43f5e", // rose/red — matches the triangle answer tile
     color600: "#e11d48",
   },
 ];

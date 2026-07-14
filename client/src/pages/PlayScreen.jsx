@@ -228,7 +228,14 @@ export default function PlayScreen() {
       sfx.confirm?.();
     };
     const onCountdown = (c) => {
-      setCountdown({ ...c, startedAt: serverToLocal(c.startedAt) });
+      // Play the 3-2-1-GO from the moment the phone RECEIVES the event, not from
+      // the server's startedAt. On a laggy link the event arrives late, and a
+      // server-time countdown would compute "most of it already elapsed" and show
+      // only a flash of GO (or nothing) before the question. The question event is
+      // delayed by the same latency, so measuring from receipt still leaves the
+      // full window — just shortened a touch so GO always lands before the question.
+      const durationMs = Math.min(c?.durationMs ?? 3200, 2800);
+      setCountdown({ ...c, startedAt: Date.now(), durationMs });
       setSelected(null);
       setWaitContext(null);
       setResult(null);
@@ -443,6 +450,13 @@ export default function PlayScreen() {
     sfx.lock();
     try { navigator.vibrate?.(30); } catch { /* no haptics */ }
     socket.emit("player:answer", payload);
+    // Optimistic: flip to the "locked in / waiting" screen the instant they tap,
+    // instead of waiting for the server's answerLocked round-trip. On a laggy
+    // link (long-polling transport) that round-trip can be hundreds of ms, which
+    // read as a blank/frozen gap after answering. The server stays authoritative:
+    // player:answerLocked fills in the real wait context, and player:answerRejected
+    // rolls us back to the question if the answer didn't count.
+    setPhase("answered");
   };
 
   const settingsFab = playerChrome;

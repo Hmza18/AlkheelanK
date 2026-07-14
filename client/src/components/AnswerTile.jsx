@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { motion } from "framer-motion";
 import Shape from "./Shape.jsx";
 import { tileStyle } from "../lib/answers.js";
@@ -7,7 +8,7 @@ import { listStagger, spring, useReducedMotion } from "../lib/motion.js";
 // and the host screen (display only). After reveal it can dim wrong answers and
 // spotlight the correct one. `type` ("mc" | "tf") decides shape vs True/False
 // glyph styling — True/False tiles read as a big ✓ / ✕.
-export default function AnswerTile({
+function AnswerTile({
   index,
   text,
   type = "mc",
@@ -58,7 +59,9 @@ export default function AnswerTile({
   };
 
   const iconEl = isTF ? (
-    <span className="answer-tile__icon answer-tile__icon--glyph">{s.glyph}</span>
+    <span className="answer-tile__icon answer-tile__icon--glyph">
+      <span className="answer-tile__glyph-char">{s.glyph}</span>
+    </span>
   ) : (
     <span className="answer-tile__icon answer-tile__icon--shape">
       <Shape type={s.shape} size={kahoot ? 32 : compact ? 24 : big ? 38 : 30} />
@@ -81,6 +84,8 @@ export default function AnswerTile({
 
   // Player taps: keep the native button (fixes iOS touch + backdrop-filter bugs)
   // and animate a wrapper div for the entrance instead.
+  const tfAttr = isTF ? (index === 0 ? "true" : "false") : undefined;
+
   if (interactive) {
     const button = (
       <button
@@ -88,6 +93,7 @@ export default function AnswerTile({
         onClick={handleClick}
         disabled={disabled}
         className={className}
+        data-tf={tfAttr}
         style={{ "--tile-color": s.color, backgroundColor: "var(--tile-color)" }}
         aria-pressed={selected}
       >
@@ -116,6 +122,7 @@ export default function AnswerTile({
       transition={{ ...spring.snappy, delay }}
       whileTap={disabled ? undefined : { scale: 0.96 }}
       className={className}
+      data-tf={tfAttr}
       style={{ "--tile-color": s.color, backgroundColor: "var(--tile-color)" }}
       aria-pressed={selected}
     >
@@ -123,3 +130,21 @@ export default function AnswerTile({
     </motion.button>
   );
 }
+
+// Live play hammers the parents with socket-driven state (the host's answered
+// counter updates on every single answer) — don't repaint four motion-heavy
+// tiles for each one. onClick identity is ignored on purpose: callers pass
+// inline closures, but everything those closures read (lock/selection/pause
+// state) also arrives here as a prop, so any change that matters re-renders
+// anyway with the fresh closure.
+export default memo(AnswerTile, (prev, next) => {
+  const keys = new Set([...Object.keys(prev), ...Object.keys(next)]);
+  for (const k of keys) {
+    if (k === "onClick") {
+      if (typeof prev.onClick !== typeof next.onClick) return false;
+      continue;
+    }
+    if (prev[k] !== next[k]) return false;
+  }
+  return true;
+});

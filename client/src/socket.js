@@ -31,6 +31,41 @@ export function ensureConnected() {
   if (!socket.connected) socket.connect();
 }
 
+// ── Server clock sync ────────────────────────────────────────────────────────
+// Game timing (question startedAt, countdown startedAt) is stamped with the
+// SERVER clock. Clients render countdowns by comparing those stamps against
+// Date.now() — so a phone whose wall clock is off by even a few seconds shows
+// a timer visibly out of step with the host screen. We estimate the offset
+// with a few ping samples (keeping the tightest-RTT one) and shift server
+// timestamps into local-clock terms before they reach any timer.
+let serverClockOffset = 0; // serverNow - clientNow, latency-compensated
+let bestSyncRtt = Infinity;
+
+function sampleServerClock() {
+  const sentAt = Date.now();
+  socket.timeout(4000).emit("time:sync", sentAt, (err, res) => {
+    if (err || typeof res?.serverNow !== "number") return;
+    const now = Date.now();
+    const rtt = now - sentAt;
+    if (rtt <= bestSyncRtt) {
+      bestSyncRtt = rtt;
+      serverClockOffset = res.serverNow + rtt / 2 - now;
+    }
+  });
+}
+
+socket.on("connect", () => {
+  bestSyncRtt = Infinity; // the route (and maybe the clock) changed — resample
+  sampleServerClock();
+  setTimeout(sampleServerClock, 400);
+  setTimeout(sampleServerClock, 1200);
+});
+
+/** Convert a server-clock timestamp to this device's clock. */
+export function serverToLocal(ts) {
+  return typeof ts === "number" ? ts - serverClockOffset : ts;
+}
+
 export function formatConnectError(err, { timedOut = false } = {}) {
   const raw = err?.message || "";
   if (timedOut) {

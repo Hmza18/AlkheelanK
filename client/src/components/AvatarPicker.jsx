@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import Logo from "./Logo.jsx";
 import Avatar, { ACCESSORIES, ACCESSORY_VIBES, CHARACTER_VIBES, PICKER_BASES } from "./characters.jsx";
 import { copy } from "../lib/copy.js";
+import { sfx } from "../lib/sound.js";
 
 function SegmentedTabs({ tab, onTab }) {
   return (
@@ -36,9 +38,10 @@ function SegmentedTabs({ tab, onTab }) {
 
 function GridTile({ selected, onClick, label, children }) {
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
+      whileTap={{ scale: 0.9 }}
       aria-pressed={selected}
       aria-label={label}
       className={`flex aspect-square w-full items-center justify-center rounded-2xl p-2 transition ${
@@ -47,15 +50,22 @@ function GridTile({ selected, onClick, label, children }) {
           : "bg-surface-muted ring-1 ring-edge hover:ring-brand-mid/30"
       }`}
     >
-      {children}
-    </button>
+      {/* pop the artwork when it becomes the selection */}
+      <motion.span
+        className="pointer-events-none"
+        animate={selected ? { scale: [1, 1.16, 1] } : { scale: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        {children}
+      </motion.span>
+    </motion.button>
   );
 }
 
 function AvatarGrid({ tab, avatar, setBase, setAccessory }) {
   return (
     <div
-      className="mx-auto grid w-full max-w-[21rem] grid-cols-3 gap-2.5 sm:max-w-[24rem] sm:gap-3"
+      className="mx-auto grid w-full max-w-[21rem] grid-cols-3 gap-2.5 sm:max-w-[26rem] sm:grid-cols-4 sm:gap-3"
       role="tabpanel"
       aria-label={tab === "character" ? "Characters" : "Accessories"}
     >
@@ -126,6 +136,14 @@ export default function AvatarPicker({
 
   const setBase = (base) => setAvatar((a) => ({ ...a, base }));
   const setAccessory = (accessory) => setAvatar((a) => ({ ...a, accessory }));
+  const shuffleLook = () => {
+    sfx.tap?.();
+    setAvatar((a) => ({
+      ...a,
+      base: PICKER_BASES[Math.floor(Math.random() * PICKER_BASES.length)],
+      accessory: ACCESSORIES[Math.floor(Math.random() * ACCESSORIES.length)],
+    }));
+  };
 
   return (
     <form
@@ -137,29 +155,43 @@ export default function AvatarPicker({
           <Logo size="md" />
         </div>
 
-        <div className="alkheelank-card mt-8 flex w-full flex-col items-center gap-5 p-6 lg:mt-10 landscapePhone:mt-3 landscapePhone:gap-3 landscapePhone:p-4">
-          <div className="flex w-full flex-col items-center bg-brand-gradient-soft-br rounded-2xl px-6 py-5 ring-1 ring-brand-mid/25 landscapePhone:px-4 landscapePhone:py-2.5">
-            <p className="alkheelank-label mb-3 text-center landscapePhone:mb-1.5">Your look</p>
-            <Avatar config={avatar} size={120} variant="picker" className="landscapePhone:hidden" />
-            <span className="hidden landscapePhone:inline-flex">
-              <Avatar config={avatar} size={72} variant="picker" />
-            </span>
+        <div className="alkheelank-card mt-6 flex w-full flex-col items-center gap-4 p-5 lg:mt-8 landscapePhone:mt-3 landscapePhone:gap-3 landscapePhone:p-4">
+          {/* Live preview + name on one compact row — the look updates in place
+              as tiles are picked, no header copy needed. */}
+          <div className="flex w-full items-center gap-4 rounded-2xl bg-brand-gradient-soft-br px-4 py-3 ring-1 ring-brand-mid/25 landscapePhone:gap-3 landscapePhone:px-3 landscapePhone:py-2">
+            <div className="relative shrink-0">
+              <motion.span
+                key={`${avatar.base}-${avatar.accessory}`}
+                initial={{ scale: 0.85 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 18 }}
+                className="inline-flex"
+              >
+                <Avatar config={avatar} size={editMode ? 96 : 84} variant="picker" />
+              </motion.span>
+              <button
+                type="button"
+                onClick={shuffleLook}
+                aria-label="Surprise me — random look"
+                title="Random look"
+                className="absolute -bottom-1.5 -right-1.5 grid h-9 w-9 place-items-center rounded-full bg-surface-elevated text-base ring-1 ring-edge shadow-card transition hover:scale-110"
+              >
+                🎲
+              </button>
+            </div>
+            {!editMode ? (
+              <input
+                className="alkheelank-input w-full flex-1 !text-left"
+                placeholder="Nickname"
+                maxLength={16}
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                autoFocus
+              />
+            ) : (
+              <p className="flex-1 text-left text-sm text-muted landscapePhone:text-xs">{copy.player.editLookHint}</p>
+            )}
           </div>
-
-          {!editMode && (
-            <input
-              className="alkheelank-input w-full"
-              placeholder="Nickname"
-              maxLength={16}
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              autoFocus
-            />
-          )}
-
-          {editMode && (
-            <p className="w-full text-center text-sm text-muted landscapePhone:text-xs">{copy.player.editLookHint}</p>
-          )}
 
           {!editMode && mode === "teams" && teams.length > 0 && (
             <TeamPicker teams={teams} teamId={teamId} setTeamId={setTeamId} />

@@ -372,6 +372,14 @@ function syncPlayer(game, socket) {
 }
 
 io.on("connection", (socket) => {
+  // Clock sync: clients estimate their offset from the server clock so that
+  // countdowns/timers derived from server timestamps (question startedAt,
+  // countdown startedAt) render in step on every device regardless of how far
+  // off a phone's wall clock is. Scoring stays fully server-side.
+  socket.on("time:sync", (_clientTs, ack) => {
+    if (typeof ack === "function") ack({ serverNow: Date.now() });
+  });
+
   // --- HOST ---------------------------------------------------------------
   socket.on("host:create", ({ quizId, quiz, settings } = {}, ack) => {
     const ip = clientKey(socket);

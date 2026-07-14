@@ -2018,9 +2018,40 @@ button:focus-visible {
   justify-content: stretch;
 }
 
+/* True/False identity — a white badge with the tile-colored ✓ / ✕ plus loud
+   display type, so the two choices read as a bold pair instead of two generic
+   text buttons. Circle = True (emerald), rotated square = False (rose). */
+.answer-tile--kahoot.answer-tile--tf .answer-tile__icon--glyph {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--tile-color);
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.answer-tile--kahoot.answer-tile--tf[data-tf="false"] .answer-tile__icon--glyph {
+  border-radius: 0.6rem;
+  transform: rotate(45deg);
+}
+
+.answer-tile--kahoot.answer-tile--tf[data-tf="false"] .answer-tile__glyph-char {
+  display: block;
+  transform: rotate(-45deg);
+}
+
 .answer-tile--kahoot.answer-tile--tf .answer-tile__label--tf {
-  font-size: 1.125rem;
-  -webkit-line-clamp: 2;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-line-clamp: 1;
 }
 
 .answer-tile--kahoot.answer-tile--selected {
@@ -2035,9 +2066,18 @@ button:focus-visible {
     min-height: 4.75rem;
   }
 
-  .answer-tile--kahoot .answer-tile__label,
-  .answer-tile--kahoot.answer-tile--tf .answer-tile__label--tf {
+  .answer-tile--kahoot .answer-tile__label {
     font-size: 1.25rem;
+  }
+
+  .answer-tile--kahoot.answer-tile--tf .answer-tile__label--tf {
+    font-size: 1.65rem;
+  }
+
+  .answer-tile--kahoot.answer-tile--tf .answer-tile__icon--glyph {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.8rem;
   }
 
   .answer-tile--kahoot .answer-tile__icon--shape svg {

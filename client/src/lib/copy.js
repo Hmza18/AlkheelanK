@@ -78,7 +78,7 @@ export const copy = {
     lobbyCrowd: (n) => (n === 1 ? "You're the first player here" : `${n} players in the room`),
     disconnected: "Connection lost — reconnecting…",
     pinStep: "Enter the 6-digit code from the host screen.",
-    profileCta: "Join session",
+    profileCta: "Join →",
     editLook: "Edit your look",
     editLookHint: "Change your avatar anytime — the host screen updates too.",
     editLookCta: "Change look",

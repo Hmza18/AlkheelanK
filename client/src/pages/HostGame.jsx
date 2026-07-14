@@ -691,12 +691,12 @@ function QuestionView({ question, image, answerCount, paused }) {
 
 function StandingsView({ standings, onNext }) {
   return (
-    <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-4xl flex-col overflow-x-hidden">
+    <div className="host-phase-fill alkheelank-screen-host mx-auto flex min-h-0 max-w-5xl flex-col overflow-x-hidden">
       <div className="text-center landscapePhone:shrink-0">
         <p className="alkheelank-label tracking-[0.3em] landscapePhone:tracking-widest landscapePhone:text-[10px]">{copy.standings.subtitle(standings.index, standings.total)}</p>
-        <h1 className="mt-2 alkheelank-heading text-4xl alkheelank-gradient-text landscapePhone:mt-1 landscapePhone:text-2xl">{copy.standings.title}</h1>
+        <h1 className="mt-2 alkheelank-heading text-5xl alkheelank-gradient-text landscapePhone:mt-1 landscapePhone:text-2xl sm:text-6xl">{copy.standings.title}</h1>
       </div>
-      {standings.funStat && <div className="mx-auto mt-4 rounded-full bg-surface-elevated px-5 py-2 text-center ring-1 ring-edge landscapePhone:mt-2 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-sm"><span className="font-bold text-ink-900">{standings.funStat.title}:</span> <span className="text-muted">{standings.funStat.subtitle}</span></div>}
+      {standings.funStat && <div className="mx-auto mt-4 rounded-full bg-surface-elevated px-6 py-2.5 text-center text-lg ring-1 ring-edge landscapePhone:mt-2 landscapePhone:px-3 landscapePhone:py-1 landscapePhone:text-sm"><span className="font-bold text-ink-900">{standings.funStat.title}:</span> <span className="text-muted">{standings.funStat.subtitle}</span></div>}
       {standings.mode === "teams" && standings.teamStandings?.length > 0 && (
         <div className="mt-8 landscapePhone:mt-3">
           <h3 className="mb-3 text-center alkheelank-heading text-2xl text-muted landscapePhone:mb-1 landscapePhone:text-lg">{copy.standings.teamRace}</h3>
@@ -713,7 +713,7 @@ function StandingsView({ standings, onNext }) {
           </div>
         </div>
       )}
-      <div className="mt-8 min-h-0 flex-1 overflow-y-auto overflow-x-hidden landscapePhone:mt-2"><Standings standings={standings.standings} max={8} compactLandscape /><ScrollHint /></div>
+      <div className="mx-auto mt-8 w-full max-w-3xl min-h-0 flex-1 overflow-y-auto overflow-x-hidden landscapePhone:mt-2"><Standings standings={standings.standings} max={8} variant="host" compactLandscape /><ScrollHint /></div>
       <div className="sticky bottom-6 mt-10 flex shrink-0 justify-center landscapePhone:bottom-2 landscapePhone:mt-3">
         <button onClick={onNext} className="alkheelank-btn-primary px-16 text-2xl landscapePhone:px-8 landscapePhone:py-3 landscapePhone:text-lg">
           {standings.hasNext ? `${copy.host.nextQuestion} →` : `${copy.host.finalResults} 🏆`}

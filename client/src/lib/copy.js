@@ -82,6 +82,7 @@ export const copy = {
     editLook: "Edit your look",
     editLookHint: "Change your avatar anytime — the host screen updates too.",
     editLookCta: "Change look",
+    tapToEdit: "Tap your character to change it",
     saveLook: "Save look",
     savingLook: "Saving…",
     joining: "Joining…",

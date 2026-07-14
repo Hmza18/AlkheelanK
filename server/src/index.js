@@ -413,7 +413,9 @@ io.on("connection", (socket) => {
       return;
     }
     for (const stale of GM.listGamesByHost(socket.id)) {
-      io.to(gameRoom(stale.pin)).emit("game:ended", { reason: "Host ended the game." });
+      if (stale.status !== "ended") {
+        io.to(gameRoom(stale.pin)).emit("game:ended", { reason: "Host ended the game." });
+      }
       GM.destroyGame(stale.pin);
     }
     const game = GM.createGame(socket.id, chosen, settings);
@@ -538,7 +540,9 @@ io.on("connection", (socket) => {
   socket.on("host:end", () => {
     const game = GM.getGameByHost(socket.id);
     if (!game) return;
-    io.to(gameRoom(game.pin)).emit("game:ended", { reason: "Host ended the game." });
+    if (game.status !== "ended") {
+      io.to(gameRoom(game.pin)).emit("game:ended", { reason: "Host ended the game." });
+    }
     GM.destroyGame(game.pin);
   });
 
@@ -731,6 +735,10 @@ io.on("connection", (socket) => {
     // Host dropped: give them a grace window to reconnect before tearing down.
     const hosted = GM.getGameByHost(socket.id);
     if (hosted) {
+      if (hosted.status === "ended") {
+        GM.destroyGame(hosted.pin);
+        return;
+      }
       hosted.hostConnected = false;
       io.to(gameRoom(hosted.pin)).emit("game:hostStatus", { connected: false });
       if (hosted.status === "question" && !hosted.paused && GM.pauseGame(hosted)) {

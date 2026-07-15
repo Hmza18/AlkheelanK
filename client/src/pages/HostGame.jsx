@@ -38,8 +38,10 @@ function revealStageOverride(serverStage) {
 
 // Shift server-clock timestamps into this device's clock before any timer
 // consumes them (see serverToLocal in socket.js).
-const adjustQuestion = (q) => (q ? { ...q, startedAt: serverToLocal(q.startedAt) } : q);
-const adjustCountdown = (c) => (c ? { ...c, startedAt: serverToLocal(c.startedAt) } : c);
+const withSyncedStart = (payload) =>
+  payload ? { ...payload, serverStartedAt: payload.startedAt, startedAt: serverToLocal(payload.startedAt) } : payload;
+const adjustQuestion = (q) => withSyncedStart(q);
+const adjustCountdown = (c) => withSyncedStart(c);
 
 function statusToPhase(status, state) {
   const map = {
@@ -248,7 +250,7 @@ export default function HostGame({ launch, onExit }) {
     const onPaused = () => setPaused(true);
     const onResumed = ({ startedAt }) => {
       setPaused(false);
-      setQuestion((q) => (q ? { ...q, startedAt: serverToLocal(startedAt) } : q));
+      setQuestion((q) => (q ? { ...q, serverStartedAt: startedAt, startedAt: serverToLocal(startedAt) } : q));
     };
     const onFinal = (f) => {
       setFinal(f);
@@ -577,7 +579,11 @@ function QuestionView({ question, image, answerCount, paused }) {
   useEffect(() => {
     if (!question?.startedAt || paused) return;
     const timer = setInterval(() => {
-      const rem = question.timeLimit - (Date.now() - question.startedAt) / 1000;
+      const start =
+        typeof question.serverStartedAt === "number"
+          ? serverToLocal(question.serverStartedAt)
+          : question.startedAt;
+      const rem = question.timeLimit - (Date.now() - start) / 1000;
       const pct = Math.max(0, Math.min(1, rem / question.timeLimit));
       music.setTension?.(pct < 0.2 ? 1 : pct < 0.45 ? 0.6 : pct < 0.7 ? 0.25 : 0);
     }, 200);
@@ -585,7 +591,7 @@ function QuestionView({ question, image, answerCount, paused }) {
       clearInterval(timer);
       music.setTension?.(0);
     };
-  }, [question?.startedAt, question?.timeLimit, paused]);
+  }, [question?.startedAt, question?.serverStartedAt, question?.timeLimit, paused]);
   return (
     <QuestionScreen
       variant="host"
@@ -644,10 +650,23 @@ function QuestionView({ question, image, answerCount, paused }) {
       timer={
         <>
           <div className="question-screen__timer-full">
-            <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound />
+            <Timer
+              timeLimit={question.timeLimit}
+              startedAt={question.startedAt}
+              serverStartedAt={question.serverStartedAt}
+              paused={paused}
+              sound
+            />
           </div>
           <div className="question-screen__timer-compact">
-            <Timer timeLimit={question.timeLimit} startedAt={question.startedAt} paused={paused} sound size={48} />
+            <Timer
+              timeLimit={question.timeLimit}
+              startedAt={question.startedAt}
+              serverStartedAt={question.serverStartedAt}
+              paused={paused}
+              sound
+              size={48}
+            />
           </div>
         </>
       }
@@ -655,6 +674,7 @@ function QuestionView({ question, image, answerCount, paused }) {
         <TimerStrip
           timeLimit={question.timeLimit}
           startedAt={question.startedAt}
+          serverStartedAt={question.serverStartedAt}
           paused={paused}
           introDelay={questionIntro.timer}
         />

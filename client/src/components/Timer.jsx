@@ -2,33 +2,37 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { sfx } from "../lib/sound.js";
 import { useReducedMotion } from "../lib/motion.js";
+import { serverToLocal } from "../socket.js";
 
 // `startedAt` can sit slightly in the future while the question entrance
 // choreography plays — clamp so the bar holds full instead of overshooting.
 const clampRemaining = (timeLimit, start) =>
   Math.min(timeLimit, Math.max(0, timeLimit - (Date.now() - start) / 1000));
 
+const localStart = (startedAt, serverStartedAt) =>
+  typeof serverStartedAt === "number" ? serverToLocal(serverStartedAt) : startedAt || Date.now();
+
 /**
  * Thin linear countdown for phone — rendered into `question-screen__timer-strip`.
  * Same local countdown model as the circular Timer; the server stays authoritative.
  * `introDelay` (seconds) fades the strip in last during the question entrance.
  */
-export function TimerStrip({ timeLimit, startedAt, paused = false, introDelay = 0 }) {
+export function TimerStrip({ timeLimit, startedAt, serverStartedAt, paused = false, introDelay = 0 }) {
   const reduced = useReducedMotion();
   const [remaining, setRemaining] = useState(timeLimit);
 
   useEffect(() => {
     if (paused) return;
     let raf;
-    const start = startedAt || Date.now();
     const loop = () => {
+      const start = localStart(startedAt, serverStartedAt);
       const rem = clampRemaining(timeLimit, start);
       setRemaining(rem);
       if (rem > 0) raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [timeLimit, startedAt, paused]);
+  }, [timeLimit, startedAt, serverStartedAt, paused]);
 
   const pct = Math.max(0, Math.min(1, remaining / timeLimit));
   const danger = remaining <= 5 && !paused;
@@ -73,7 +77,7 @@ export function TimerStrip({ timeLimit, startedAt, paused = false, introDelay = 
 // When `paused` is true the loop freezes on the current value. On resume the
 // server sends a fresh `startedAt` (shifted to exclude the pause) and the effect
 // re-runs, so the countdown picks up exactly where it left off.
-export default function Timer({ timeLimit, startedAt, sound = false, paused = false, onExpire, size = 128 }) {
+export default function Timer({ timeLimit, startedAt, serverStartedAt, sound = false, paused = false, onExpire, size = 128 }) {
   const [remaining, setRemaining] = useState(timeLimit);
   const lastTickRef = useRef(Math.ceil(timeLimit));
   const firedRef = useRef(false);
@@ -83,9 +87,9 @@ export default function Timer({ timeLimit, startedAt, sound = false, paused = fa
     firedRef.current = false;
     lastTickRef.current = Math.ceil(timeLimit);
     let raf;
-    const start = startedAt || Date.now();
 
     const loop = () => {
+      const start = localStart(startedAt, serverStartedAt);
       const rem = clampRemaining(timeLimit, start);
       setRemaining(rem);
 
@@ -107,7 +111,7 @@ export default function Timer({ timeLimit, startedAt, sound = false, paused = fa
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeLimit, startedAt, paused]);
+  }, [timeLimit, startedAt, serverStartedAt, paused]);
 
   const pct = Math.max(0, Math.min(1, remaining / timeLimit));
   const R = (size / 128) * 52;

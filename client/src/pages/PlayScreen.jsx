@@ -30,6 +30,9 @@ import PointsPop from "../components/ui/PointsPop.jsx";
 import confetti from "canvas-confetti";
 import { questionIntro } from "../lib/motion.js";
 
+const withSyncedStart = (payload) =>
+  payload ? { ...payload, serverStartedAt: payload.startedAt, startedAt: serverToLocal(payload.startedAt) } : payload;
+
 export default function PlayScreen() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -207,7 +210,7 @@ export default function PlayScreen() {
     const onHintReveal = ({ hint }) => setHintText(hint ?? null);
     const onQuestion = (q) => {
       setDoubleWarning(null);
-      setQuestion({ ...q, startedAt: serverToLocal(q.startedAt) });
+      setQuestion(withSyncedStart(q));
       setSelected(null);
       setWaitContext(null);
       setResult(null);
@@ -228,7 +231,7 @@ export default function PlayScreen() {
       sfx.confirm?.();
     };
     const onCountdown = (c) => {
-      setCountdown({ ...c, startedAt: serverToLocal(c.startedAt) });
+      setCountdown(withSyncedStart(c));
       setSelected(null);
       setWaitContext(null);
       setResult(null);
@@ -269,7 +272,7 @@ export default function PlayScreen() {
     const onPaused = () => setPaused(true);
     const onResumed = ({ startedAt }) => {
       setPaused(false);
-      setQuestion((q) => (q ? { ...q, startedAt: serverToLocal(startedAt) } : q));
+      setQuestion((q) => (q ? { ...q, serverStartedAt: startedAt, startedAt: serverToLocal(startedAt) } : q));
     };
     const onFinal = (f) => {
       const myId = joinInfoRef.current?.pid;
@@ -846,6 +849,7 @@ function QuestionCard({ q, selected, onSubmit, onHint, paused, hintText }) {
         <TimerStrip
           timeLimit={q?.timeLimit}
           startedAt={q?.startedAt}
+          serverStartedAt={q?.serverStartedAt}
           paused={paused}
           introDelay={questionIntro.timer}
         />

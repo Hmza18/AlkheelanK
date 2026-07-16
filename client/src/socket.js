@@ -40,6 +40,12 @@ export function ensureConnected() {
 // timestamps into local-clock terms before they reach any timer.
 let serverClockOffset = 0; // serverNow - clientNow, latency-compensated
 let bestSyncRtt = Infinity;
+const clockSyncListeners = new Set();
+
+function setServerClockOffset(nextOffset) {
+  serverClockOffset = nextOffset;
+  for (const listener of clockSyncListeners) listener(serverClockOffset);
+}
 
 function sampleServerClock() {
   const sentAt = Date.now();
@@ -49,7 +55,7 @@ function sampleServerClock() {
     const rtt = now - sentAt;
     if (rtt <= bestSyncRtt) {
       bestSyncRtt = rtt;
-      serverClockOffset = res.serverNow + rtt / 2 - now;
+      setServerClockOffset(res.serverNow + rtt / 2 - now);
     }
   });
 }
@@ -64,6 +70,11 @@ socket.on("connect", () => {
 /** Convert a server-clock timestamp to this device's clock. */
 export function serverToLocal(ts) {
   return typeof ts === "number" ? ts - serverClockOffset : ts;
+}
+
+export function onServerClockSync(listener) {
+  clockSyncListeners.add(listener);
+  return () => clockSyncListeners.delete(listener);
 }
 
 export function formatConnectError(err, { timedOut = false } = {}) {

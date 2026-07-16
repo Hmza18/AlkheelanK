@@ -193,6 +193,14 @@ const io = new Server(server, {
 const gameRoom = (pin) => `game:${pin}`;
 const hostRoom = (pin) => `host:${pin}`;
 
+function destroyGame(game, { reason } = {}) {
+  if (!game) return;
+  if (game.status !== "ended") {
+    io.to(gameRoom(game.pin)).emit("game:ended", { reason });
+  }
+  GM.destroyGame(game.pin);
+}
+
 // Broadcast the live answer-count to the host only.
 function emitAnswerCount(game) {
   io.to(hostRoom(game.pin)).emit("host:answerCount", {
@@ -413,8 +421,7 @@ io.on("connection", (socket) => {
       return;
     }
     for (const stale of GM.listGamesByHost(socket.id)) {
-      io.to(gameRoom(stale.pin)).emit("game:ended", { reason: "Host ended the game." });
-      GM.destroyGame(stale.pin);
+      destroyGame(stale, { reason: "Host ended the game." });
     }
     const game = GM.createGame(socket.id, chosen, settings);
     socket.join(gameRoom(game.pin));
@@ -538,8 +545,7 @@ io.on("connection", (socket) => {
   socket.on("host:end", () => {
     const game = GM.getGameByHost(socket.id);
     if (!game) return;
-    io.to(gameRoom(game.pin)).emit("game:ended", { reason: "Host ended the game." });
-    GM.destroyGame(game.pin);
+    destroyGame(game, { reason: "Host ended the game." });
   });
 
   socket.on("host:lockLobby", ({ locked } = {}) => {
@@ -746,8 +752,7 @@ io.on("connection", (socket) => {
       }
       if (hosted.hostGraceTimer) clearTimeout(hosted.hostGraceTimer);
       hosted.hostGraceTimer = setTimeout(() => {
-        io.to(gameRoom(hosted.pin)).emit("game:ended", { reason: "The host disconnected." });
-        GM.destroyGame(hosted.pin);
+        destroyGame(hosted, { reason: "The host disconnected." });
       }, HOST_GRACE_MS);
       return;
     }
@@ -779,8 +784,7 @@ const GAME_CLEANUP_INTERVAL_MS = 15 * 60 * 1000; // check every 15 minutes
 setInterval(() => {
   const pins = GM.expiredGamePins(GAME_MAX_AGE_MS);
   for (const pin of pins) {
-    io.to(gameRoom(pin)).emit("game:ended", { reason: "Game expired." });
-    GM.destroyGame(pin);
+    destroyGame(GM.getGame(pin), { reason: "Game expired." });
   }
   if (pins.length) console.log(`[cleanup] removed ${pins.length} expired game(s)`);
 }, GAME_CLEANUP_INTERVAL_MS).unref();

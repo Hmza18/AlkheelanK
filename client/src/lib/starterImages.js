@@ -43,7 +43,7 @@ export function applyStarterTemplateImages(starterId, questions) {
   if (!Array.isArray(questions)) return questions;
   return questions.map((q, i) => ({
     ...q,
-    image: `/starter-images/${starterId}/${i}.webp`,
+    image: q.image ?? `/starter-images/${starterId}/${i}.webp`,
   }));
 }
 

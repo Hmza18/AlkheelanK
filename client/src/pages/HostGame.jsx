@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { socket, ensureConnected, wakeServer, connectSocket, emitWithAck, formatConnectError, serverToLocal } from "../socket.js";
+import {
+  socket,
+  ensureConnected,
+  wakeServer,
+  connectSocket,
+  emitWithAck,
+  formatConnectError,
+  serverToLocal,
+  onServerClockSync,
+} from "../socket.js";
 import { sfx, music, setLobbyMusicActive } from "../lib/sound.js";
 import Recap from "../components/Recap.jsx";
 import { logGame } from "../lib/db.js";
@@ -38,8 +47,10 @@ function revealStageOverride(serverStage) {
 
 // Shift server-clock timestamps into this device's clock before any timer
 // consumes them (see serverToLocal in socket.js).
-const adjustQuestion = (q) => (q ? { ...q, startedAt: serverToLocal(q.startedAt) } : q);
-const adjustCountdown = (c) => (c ? { ...c, startedAt: serverToLocal(c.startedAt) } : c);
+const adjustQuestion = (q) =>
+  q ? { ...q, serverStartedAt: q.startedAt, startedAt: serverToLocal(q.startedAt) } : q;
+const adjustCountdown = (c) =>
+  c ? { ...c, serverStartedAt: c.startedAt, startedAt: serverToLocal(c.startedAt) } : c;
 
 function statusToPhase(status, state) {
   const map = {
@@ -121,6 +132,19 @@ export default function HostGame({ launch, onExit }) {
     setLobbyMusicActive(false);
     music.stop();
   }, [phase]);
+
+  useEffect(
+    () =>
+      onServerClockSync(() => {
+        setQuestion((q) =>
+          q?.serverStartedAt ? { ...q, startedAt: serverToLocal(q.serverStartedAt) } : q,
+        );
+        setCountdown((c) =>
+          c?.serverStartedAt ? { ...c, startedAt: serverToLocal(c.serverStartedAt) } : c,
+        );
+      }),
+    [],
+  );
 
   useEffect(() => {
     wakeServer();
@@ -248,7 +272,9 @@ export default function HostGame({ launch, onExit }) {
     const onPaused = () => setPaused(true);
     const onResumed = ({ startedAt }) => {
       setPaused(false);
-      setQuestion((q) => (q ? { ...q, startedAt: serverToLocal(startedAt) } : q));
+      setQuestion((q) =>
+        q ? { ...q, serverStartedAt: startedAt, startedAt: serverToLocal(startedAt) } : q,
+      );
     };
     const onFinal = (f) => {
       setFinal(f);

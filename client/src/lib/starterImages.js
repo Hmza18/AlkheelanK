@@ -39,11 +39,14 @@ export function starterCoverSrc(quizId) {
 }
 
 /** Attach every starter question photo by template id + index. */
-export function applyStarterTemplateImages(starterId, questions) {
+export function applyStarterTemplateImages(starterId, questions, { preserveExistingImages = false } = {}) {
   if (!Array.isArray(questions)) return questions;
   return questions.map((q, i) => ({
     ...q,
-    image: `/starter-images/${starterId}/${i}.webp`,
+    image:
+      preserveExistingImages && Object.prototype.hasOwnProperty.call(q, "image")
+        ? q.image
+        : `/starter-images/${starterId}/${i}.webp`,
   }));
 }
 

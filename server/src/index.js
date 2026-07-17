@@ -286,6 +286,13 @@ function emitGameFinal(game) {
   io.to(hostRoom(game.pin)).emit("host:final", game.lastFinal);
 }
 
+function destroyHostGame(game, reason) {
+  if (game.status !== "ended") {
+    io.to(gameRoom(game.pin)).emit("game:ended", { reason });
+  }
+  GM.destroyGame(game.pin);
+}
+
 function advance(game, { skipDoubleWarning = false } = {}) {
   if (game.timer) {
     clearTimeout(game.timer);
@@ -412,10 +419,7 @@ io.on("connection", (socket) => {
       if (typeof ack === "function") ack({ error: message });
       return;
     }
-    for (const stale of GM.listGamesByHost(socket.id)) {
-      io.to(gameRoom(stale.pin)).emit("game:ended", { reason: "Host ended the game." });
-      GM.destroyGame(stale.pin);
-    }
+    for (const stale of GM.listGamesByHost(socket.id)) destroyHostGame(stale, "Host ended the game.");
     const game = GM.createGame(socket.id, chosen, settings);
     socket.join(gameRoom(game.pin));
     socket.join(hostRoom(game.pin));
@@ -538,8 +542,7 @@ io.on("connection", (socket) => {
   socket.on("host:end", () => {
     const game = GM.getGameByHost(socket.id);
     if (!game) return;
-    io.to(gameRoom(game.pin)).emit("game:ended", { reason: "Host ended the game." });
-    GM.destroyGame(game.pin);
+    destroyHostGame(game, "Host ended the game.");
   });
 
   socket.on("host:lockLobby", ({ locked } = {}) => {
@@ -731,6 +734,10 @@ io.on("connection", (socket) => {
     // Host dropped: give them a grace window to reconnect before tearing down.
     const hosted = GM.getGameByHost(socket.id);
     if (hosted) {
+      if (hosted.status === "ended") {
+        GM.destroyGame(hosted.pin);
+        return;
+      }
       hosted.hostConnected = false;
       io.to(gameRoom(hosted.pin)).emit("game:hostStatus", { connected: false });
       if (hosted.status === "question" && !hosted.paused && GM.pauseGame(hosted)) {
@@ -746,8 +753,7 @@ io.on("connection", (socket) => {
       }
       if (hosted.hostGraceTimer) clearTimeout(hosted.hostGraceTimer);
       hosted.hostGraceTimer = setTimeout(() => {
-        io.to(gameRoom(hosted.pin)).emit("game:ended", { reason: "The host disconnected." });
-        GM.destroyGame(hosted.pin);
+        destroyHostGame(hosted, "The host disconnected.");
       }, HOST_GRACE_MS);
       return;
     }
@@ -779,8 +785,8 @@ const GAME_CLEANUP_INTERVAL_MS = 15 * 60 * 1000; // check every 15 minutes
 setInterval(() => {
   const pins = GM.expiredGamePins(GAME_MAX_AGE_MS);
   for (const pin of pins) {
-    io.to(gameRoom(pin)).emit("game:ended", { reason: "Game expired." });
-    GM.destroyGame(pin);
+    const game = GM.getGame(pin);
+    if (game) destroyHostGame(game, "Game expired.");
   }
   if (pins.length) console.log(`[cleanup] removed ${pins.length} expired game(s)`);
 }, GAME_CLEANUP_INTERVAL_MS).unref();

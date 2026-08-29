@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { sfx } from "../lib/sound.js";
 import { useReducedMotion } from "../lib/motion.js";
+import { serverToLocal } from "../socket.js";
 
 // `startedAt` can sit slightly in the future while the question entrance
 // choreography plays — clamp so the bar holds full instead of overshooting.
@@ -20,8 +21,9 @@ export function TimerStrip({ timeLimit, startedAt, paused = false, introDelay = 
   useEffect(() => {
     if (paused) return;
     let raf;
-    const start = startedAt || Date.now();
+    const fallbackStart = Date.now();
     const loop = () => {
+      const start = typeof startedAt === "number" ? serverToLocal(startedAt) : fallbackStart;
       const rem = clampRemaining(timeLimit, start);
       setRemaining(rem);
       if (rem > 0) raf = requestAnimationFrame(loop);
@@ -83,9 +85,10 @@ export default function Timer({ timeLimit, startedAt, sound = false, paused = fa
     firedRef.current = false;
     lastTickRef.current = Math.ceil(timeLimit);
     let raf;
-    const start = startedAt || Date.now();
+    const fallbackStart = Date.now();
 
     const loop = () => {
+      const start = typeof startedAt === "number" ? serverToLocal(startedAt) : fallbackStart;
       const rem = clampRemaining(timeLimit, start);
       setRemaining(rem);
 

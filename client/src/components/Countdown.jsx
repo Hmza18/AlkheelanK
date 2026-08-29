@@ -4,6 +4,7 @@ import { ANSWERS } from "../lib/answers.js";
 import { copy } from "../lib/copy.js";
 import { sfx } from "../lib/sound.js";
 import { motionSafe, spring, useReducedMotion } from "../lib/motion.js";
+import { serverToLocal } from "../socket.js";
 
 const STEPS = ["3", "2", "1", "go"];
 
@@ -23,10 +24,15 @@ const STEP_COLORS = [
  */
 export default function Countdown({ countdown, variant = "player" }) {
   const reduced = useReducedMotion();
-  const startedAt = countdown?.startedAt ?? Date.now();
+  const fallbackStartedAtRef = useRef(Date.now());
   const stepMs = (countdown?.durationMs ?? 3200) / STEPS.length;
-  const stepNow = () =>
-    Math.min(STEPS.length - 1, Math.max(0, Math.floor((Date.now() - startedAt) / stepMs)));
+  const stepNow = () => {
+    const startedAt =
+      typeof countdown?.startedAt === "number"
+        ? serverToLocal(countdown.startedAt)
+        : fallbackStartedAtRef.current;
+    return Math.min(STEPS.length - 1, Math.max(0, Math.floor((Date.now() - startedAt) / stepMs)));
+  };
   const [step, setStep] = useState(stepNow);
   const lastStepRef = useRef(-1);
 
@@ -43,7 +49,7 @@ export default function Countdown({ countdown, variant = "player" }) {
     const timer = setInterval(tick, 50);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startedAt, stepMs]);
+  }, [countdown?.startedAt, stepMs]);
 
   const isGo = STEPS[step] === "go";
   const beatColor = STEP_COLORS[step];

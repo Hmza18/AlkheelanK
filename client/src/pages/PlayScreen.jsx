@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { socket, ensureConnected, wakeServer, connectSocket, formatConnectError, serverToLocal } from "../socket.js";
+import { socket, ensureConnected, wakeServer, connectSocket, formatConnectError } from "../socket.js";
 import { sfx } from "../lib/sound.js";
 import Logo from "../components/Logo.jsx";
 import AnswerTile from "../components/AnswerTile.jsx";
@@ -207,7 +207,7 @@ export default function PlayScreen() {
     const onHintReveal = ({ hint }) => setHintText(hint ?? null);
     const onQuestion = (q) => {
       setDoubleWarning(null);
-      setQuestion({ ...q, startedAt: serverToLocal(q.startedAt) });
+      setQuestion(q);
       setSelected(null);
       setWaitContext(null);
       setResult(null);
@@ -228,7 +228,7 @@ export default function PlayScreen() {
       sfx.confirm?.();
     };
     const onCountdown = (c) => {
-      setCountdown({ ...c, startedAt: serverToLocal(c.startedAt) });
+      setCountdown(c);
       setSelected(null);
       setWaitContext(null);
       setResult(null);
@@ -269,7 +269,7 @@ export default function PlayScreen() {
     const onPaused = () => setPaused(true);
     const onResumed = ({ startedAt }) => {
       setPaused(false);
-      setQuestion((q) => (q ? { ...q, startedAt: serverToLocal(startedAt) } : q));
+      setQuestion((q) => (q ? { ...q, startedAt } : q));
     };
     const onFinal = (f) => {
       const myId = joinInfoRef.current?.pid;

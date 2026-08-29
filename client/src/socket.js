@@ -36,8 +36,8 @@ export function ensureConnected() {
 // SERVER clock. Clients render countdowns by comparing those stamps against
 // Date.now() — so a phone whose wall clock is off by even a few seconds shows
 // a timer visibly out of step with the host screen. We estimate the offset
-// with a few ping samples (keeping the tightest-RTT one) and shift server
-// timestamps into local-clock terms before they reach any timer.
+// with a few ping samples (keeping the tightest-RTT one). Timer loops translate
+// server timestamps on every tick so late sync samples correct active phases.
 let serverClockOffset = 0; // serverNow - clientNow, latency-compensated
 let bestSyncRtt = Infinity;
 

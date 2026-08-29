@@ -291,6 +291,11 @@ export function destroyGame(pin) {
   if (game?.hostGraceTimer) clearTimeout(game.hostGraceTimer);
   games.delete(pin);
 }
+export function shouldBroadcastGameEnded(game) {
+  // Finalized games already delivered game:final; a later game:ended event
+  // would force players off the recap/share screen during normal cleanup.
+  return game?.status !== "ended";
+}
 export const connectedCount = (game) => [...game.players.values()].filter((p) => p.connected).length;
 export const playerBySocket = (game, socketId) => game.players.get(game.sockets.get(socketId));
 export function findPlayerByNick(game, rawNick) {

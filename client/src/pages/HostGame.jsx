@@ -36,11 +36,6 @@ function revealStageOverride(serverStage) {
   return serverStage > 0 ? revealStageName(serverStage) : null;
 }
 
-// Shift server-clock timestamps into this device's clock before any timer
-// consumes them (see serverToLocal in socket.js).
-const adjustQuestion = (q) => (q ? { ...q, startedAt: serverToLocal(q.startedAt) } : q);
-const adjustCountdown = (c) => (c ? { ...c, startedAt: serverToLocal(c.startedAt) } : c);
-
 function statusToPhase(status, state) {
   const map = {
     lobby: "lobby",
@@ -179,7 +174,7 @@ export default function HostGame({ launch, onExit }) {
       setPlayers(state.players || []);
       setAnswerCount(state.answerCount || { answered: 0, total: 0 });
       setPaused(!!state.paused);
-      if (state.question) setQuestion(adjustQuestion(state.question));
+      if (state.question) setQuestion(state.question);
       if (state.reveal) {
         setReveal(state.reveal);
         setRevealStage(revealStageOverride(state.reveal.revealStage ?? 0));
@@ -188,7 +183,7 @@ export default function HostGame({ launch, onExit }) {
       if (state.final) setFinal(state.final);
       if (state.doubleWarning) setDoubleWarning(state.doubleWarning);
       else if (state.status !== "double-warning") setDoubleWarning(null);
-      if (state.countdown) setCountdown(adjustCountdown(state.countdown));
+      if (state.countdown) setCountdown(state.countdown);
       setLobbyLocked(!!state.lobbyLocked);
       setHostConnected(true);
       wasHostDisconnectRef.current = false;
@@ -206,14 +201,14 @@ export default function HostGame({ launch, onExit }) {
       sfx.moment();
     };
     const onCountdown = (c) => {
-      setCountdown(adjustCountdown(c));
+      setCountdown(c);
       setReveal(null);
       setStandings(null);
       setPhase("countdown");
     };
     const onQuestion = (q) => {
       setQuestion({
-        ...adjustQuestion(q),
+        ...q,
         image: q.image ? starterImageStoragePath(q.image) ?? q.image : q.image,
       });
       setDoubleWarning(null);
@@ -248,7 +243,7 @@ export default function HostGame({ launch, onExit }) {
     const onPaused = () => setPaused(true);
     const onResumed = ({ startedAt }) => {
       setPaused(false);
-      setQuestion((q) => (q ? { ...q, startedAt: serverToLocal(startedAt) } : q));
+      setQuestion((q) => (q ? { ...q, startedAt } : q));
     };
     const onFinal = (f) => {
       setFinal(f);
@@ -356,7 +351,7 @@ export default function HostGame({ launch, onExit }) {
           setPlayers(state.players || []);
           setAnswerCount(state.answerCount || { answered: 0, total: 0 });
           setPaused(!!state.paused);
-          if (state.question) setQuestion(adjustQuestion(state.question));
+          if (state.question) setQuestion(state.question);
           if (state.reveal) {
             setReveal(state.reveal);
             setRevealStage(revealStageOverride(state.reveal.revealStage ?? 0));
@@ -364,7 +359,7 @@ export default function HostGame({ launch, onExit }) {
           if (state.standings) setStandings(state.standings);
           if (state.final) setFinal(state.final);
           if (state.doubleWarning) setDoubleWarning(state.doubleWarning);
-          if (state.countdown) setCountdown(adjustCountdown(state.countdown));
+          if (state.countdown) setCountdown(state.countdown);
           setLobbyLocked(!!state.lobbyLocked);
           setPhase(statusToPhase(state.status, state));
           setCreatingRoom(false);
@@ -577,7 +572,7 @@ function QuestionView({ question, image, answerCount, paused }) {
   useEffect(() => {
     if (!question?.startedAt || paused) return;
     const timer = setInterval(() => {
-      const rem = question.timeLimit - (Date.now() - question.startedAt) / 1000;
+      const rem = question.timeLimit - (Date.now() - serverToLocal(question.startedAt)) / 1000;
       const pct = Math.max(0, Math.min(1, rem / question.timeLimit));
       music.setTension?.(pct < 0.2 ? 1 : pct < 0.45 ? 0.6 : pct < 0.7 ? 0.25 : 0);
     }, 200);

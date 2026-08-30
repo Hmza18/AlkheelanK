@@ -8,6 +8,7 @@
     "setup:google-auth": "node scripts/setup-google-auth.mjs",
     "setup:auth": "node scripts/configure-auth.mjs",
     "apply-security": "node scripts/apply-schema.mjs --security",
+    "verify:vercel": "node scripts/verify-vercel-configs.mjs",
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
     "fetch-starter-images": "node scripts/fetch-starter-images.mjs",

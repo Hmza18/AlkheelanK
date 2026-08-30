@@ -29,21 +29,44 @@ export function createRateLimiter({ windowMs, max }) {
   };
 }
 
-/**
- * Derive a stable client key from a Socket.io socket.
- *
- * When behind a reverse proxy (e.g. Render), the real client IP is appended to
- * X-Forwarded-For by each proxy in turn:
- *   X-Forwarded-For: <client-spoofable>, ..., <proxy-added-real-ip>
- *
- * Taking the LAST entry (added by the nearest trusted proxy) prevents a client
- * from spoofing an earlier entry to bypass rate limiting.
- */
-export function clientKey(socket) {
-  const fwd = socket.handshake.headers["x-forwarded-for"];
-  if (typeof fwd === "string" && fwd.length) {
-    const ips = fwd.split(",").map((s) => s.trim()).filter(Boolean);
-    return ips[ips.length - 1];
+function headerValue(headers, name) {
+  const raw = headers?.[name];
+  if (Array.isArray(raw)) return raw[0] || "";
+  return typeof raw === "string" ? raw : "";
+}
+
+function splitIps(value) {
+  return String(value || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export function forwardedClientKey(headers) {
+  const vercelForwarded = splitIps(headerValue(headers, "x-vercel-forwarded-for"));
+  const vercelRealIp = splitIps(headerValue(headers, "x-real-ip"));
+  // Same-origin Vercel rewrites send the original browser IP in Vercel-owned
+  // headers. The final X-Forwarded-For hop is Vercel itself after Render's
+  // proxy, which would collapse unrelated users into one limiter bucket.
+  if (headerValue(headers, "x-vercel-id") && (vercelForwarded[0] || vercelRealIp[0])) {
+    return vercelForwarded[0] || vercelRealIp[0];
   }
-  return socket.handshake.address || socket.id;
+
+  const forwarded = splitIps(headerValue(headers, "x-forwarded-for"));
+  if (forwarded.length) {
+    // For direct-to-Render traffic, keep using the nearest proxy-appended hop
+    // so a client-supplied leading XFF value cannot rotate limiter buckets.
+    return forwarded[forwarded.length - 1];
+  }
+  return null;
+}
+
+/** Derive a stable client key from a Socket.io socket. */
+export function clientKey(socket) {
+  return forwardedClientKey(socket.handshake.headers) || socket.handshake.address || socket.id;
+}
+
+/** Derive a stable client key from an Express request. */
+export function httpClientKey(req) {
+  return forwardedClientKey(req.headers) || req.ip || "unknown";
 }

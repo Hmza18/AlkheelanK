@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import * as GM from "./gameManager.js";
 import { getQuiz, quizSummaries, validateCustomQuiz, getStarterForCopy } from "./quizzes.js";
-import { createRateLimiter, clientKey } from "./rateLimit.js";
+import { createRateLimiter, clientKey, httpClientKey } from "./rateLimit.js";
 import { generateQuiz, generateFromText, isAiConfigured } from "./ai.js";
 import { searchImages } from "./imageSearch.js";
 import { mountBillingJsonRoutes, billingWebhookHandler } from "./billing/routes.js";
@@ -72,16 +72,6 @@ const limitPlayerJoin = createRateLimiter({ windowMs: 60_000, max: 240 });
 const limitGenerate = createRateLimiter({ windowMs: 60_000, max: 4 });
 const limitIngest = createRateLimiter({ windowMs: 60_000, max: 4 });
 const limitImageSearch = createRateLimiter({ windowMs: 60_000, max: 20 });
-
-function httpClientKey(req) {
-  const fwd = req.headers["x-forwarded-for"];
-  if (typeof fwd === "string" && fwd.length) {
-    // Take the last (proxy-appended) entry to prevent client X-Forwarded-For spoofing.
-    const ips = fwd.split(",").map((s) => s.trim()).filter(Boolean);
-    return ips[ips.length - 1];
-  }
-  return req.ip || "unknown";
-}
 
 const app = express();
 app.use(cors({ origin: corsOrigin }));
